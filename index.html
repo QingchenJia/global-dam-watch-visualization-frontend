@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>全球大坝三维可视化</title>
+        <link rel="stylesheet" href="./src/web/style.css" />
+    </head>
+    <body>
+        <div id="cesiumContainer"></div>
+
+        <!-- 跳转按钮组件 -->
+        <div
+            id="jump-button"
+            class="custom-jump-button"
+            title="跳转到下一个实体"
+        >
+            <svg viewBox="0 0 24 24">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+            </svg>
+        </div>
+
+        <!-- Agent 聊天窗口组件 -->
+        <div id="agent-chat-container" class="agent-chat-container">
+            <div class="agent-header">
+                <span id="agent-title">🦜🔗 GIS Agent</span>
+                <span id="agent-toggle" class="agent-toggle">_</span>
+            </div>
+            <div id="agent-messages" class="agent-messages"></div>
+            <div class="agent-input-area">
+                <input id="agent-input" placeholder="输入指令..." />
+                <button id="agent-send-btn">发送</button>
+            </div>
+        </div>
+
+        <script type="module" src="./src/main.js"></script>
+    </body>
+</html>
