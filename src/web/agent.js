@@ -88,7 +88,6 @@ window.initAgent = async function (viewer) {
         // --------------------------------------------------------------------
         // C. 构建 Prompt 模板
         // --------------------------------------------------------------------
-        // 修正：将所有消息数组包裹在一个外部数组中 []
         const prompt = ChatPromptTemplate.fromMessages([
             [
                 "system",
@@ -96,22 +95,27 @@ window.initAgent = async function (viewer) {
                 ## 角色定义
                 你是一个高效的GIS操作助手，负责检索全球的"barrier"和"reservoir"。你的任务是根据用户指令调用工具，并汇报结果。
 
+                ## 核心指令 (**最高优先级**)
+                1. **结果直通 (Pass-through)**：工具执行成功并返回以"SUCCESS: "开头的内容时，**必须直接原样输出"SUCCESS: "后的内容**作为最终回答。
+                2. **禁止多余思考**：严禁对工具输出进行解释、总结、翻译或润色。不要说 "根据结果..." 或 "我已经..."，直接给出结果。
+                3. **非必须无视上下文**：除非明确要求，否则**禁止**参考或思考对话上下文内容，所有决策均基于当前用户输入。
+
                 ## 数据类型
                 1. **barrier**：指大坝/水闸等水工建筑物实体。
                 2. **reservoir**：指水库、**自然湖泊**（如安大略湖、洪泽湖等）等蓄水实体。即使是天然湖泊，也请归类为 reservoir 进行查找。
 
-                ## 核心指令 (最高优先级)
-                1. **立即停止原则**：工具调用成功并返回了有效结果（如"已定位到某某实体"、"视角已重置"、"已筛选多少实体"、"已重新加载数据"），**必须立即停止思考**，直接向用户输出工具返回的内容。
-                2. **禁止废话**：不要输出"正在思考"、"我将..."等中间过程，直接行动。
+                ## 实体定位策略 (智能上下文决策)
+                当用户请求定位实体（如"定位密云水库"）时：
+                1. **检测上下文 (Check Context)**：
+                   - **必须**先检查历史对话。若之前已搜索过该实体且 Agent 回复中包含 ID信息 (如 "...(ID: r-28089)...")，说明已知其 ID。
+                   - 在此情况下，**必须**直接调用 \`fly_to_entity\` 工具（提取并传入该 ID），**禁止**再次调用 search_and_fly。
+                2. **执行搜索 (Search)**：
+                   - 只有在上下文中找不到该实体的 ID 时，才调用 \`search_and_fly\` 工具。
+                   - 该工具会自动执行"本地查找 -> 远程查找 -> 自动飞行"。
+                   - 如果返回"未找到"，则尝试调整关键词重试。
 
-                ## 实体定位策略 (Search Strategy)
-                当用户要求定位某个实体（如"定位到密云水库"）时：
-                - 直接调用 \`search_and_fly\` 工具。
-                - 该工具会自动执行"本地查找 -> 远程查找 -> 自动飞行"的全流程。
-                - 如果返回"未找到"，则尝试调整关键词重试。
-
-                ## 实体过滤策略 (Filter Strategy)
-                当用户进行条件筛选（如"查找库容大于5亿的水库"、"筛选坝高超过100米的大坝"）时：
+                ## 实体过滤策略
+                当用户进行条件筛选（如"查找库容大于5亿的水库"）时：
                 - 调用 \`sql_filter_entity\`。
                 - 根据表结构构造 SQL 条件语句。
                 - 注意单位换算。
@@ -139,7 +143,7 @@ window.initAgent = async function (viewer) {
             agent,
             tools,
             handleParsingErrors: true,
-            maxIterations: 4, // 强制限制最大迭代次数，防止死循环请求
+            maxIterations: 5,
         });
 
         // 3. 初始化完成反馈
@@ -178,16 +182,16 @@ window.initAgent = async function (viewer) {
  * @param {Cesium.Viewer} viewer - Cesium 视图对象
  */
 function defineTools(viewer) {
-    // 工具 1: 综合搜索与定位 (合并了本地搜索、远程搜索、飞行定位)
+    // 工具 1: 综合搜索与定位
     const searchAndFlyTool = new DynamicStructuredTool({
         name: "search_and_fly",
         description:
-            "综合搜索工具。按名称搜索实体，优先查找本地，若无则查询远程数据库。找到后自动控制地图飞行定位。",
+            "综合搜索定位工具。按名称搜索实体，优先查找本地，若无则查询远程数据库。找到后自动控制地图飞行定位。",
         schema: z.object({
             keyword: z
                 .string()
                 .describe(
-                    "实体名称关键词，尽可能简短(英文，如 'Three Gorges'、'Miyun'、'Winnipeg')"
+                    "实体名称关键词(英文，尽可能简短如 'Three Gorges'、'Miyun'、'Winnipeg')"
                 ),
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
         }),
@@ -195,7 +199,29 @@ function defineTools(viewer) {
             searchAndFlyToEntity(viewer, keyword, type),
     });
 
-    // 工具 2: SQL 过滤实体
+    // 工具 2: 精确ID定位实体
+    const flyToEntityTool = new DynamicStructuredTool({
+        name: "fly_to_entity",
+        description:
+            "精确ID定位工具。当上下文中已经知道实体的ID时，必须优先使用此工具进行跳转，而不是重新搜索名称。",
+        schema: z.object({
+            id: z
+                .string()
+                .describe("实体唯一ID (格式如 'b-12345' 或 'r-67890')"),
+        }),
+        func: async ({ id }) => {
+            const entity = viewer.entities.getById(id);
+            if (entity) {
+                viewer.selectedEntity = entity;
+                viewer.flyTo(entity, { duration: 1.5 });
+                return `SUCCESS: 已定位到实体 "${entity.name}" (ID: ${id})，视角已自动调整。`;
+            } else {
+                return `ERROR: 不存在当前实体 (ID: ${id})。`;
+            }
+        },
+    });
+
+    // 工具 3: SQL 过滤实体
     const sqlFilterEntityTool = new DynamicStructuredTool({
         name: "sql_filter_entity",
         description:
@@ -288,7 +314,7 @@ function defineTools(viewer) {
                         (hylak_id:NUMERIC, Examples: [16336.0, 1373069.0, 174466.0]),
                         (hybas_l12:DOUBLE PRECISION, Examples: [7121099760.0, 0.0, 2120425050.0])
                         ]
-                        //# Table: public.gdw_reservoir
+                        # Table: public.gdw_reservoir
                         [
                         (ogc_fid:INTEGER, Primary Key, Examples: [1, 2, 3]),
                         (wkb_geometry:GEOMETRY(MULTIPOLYGON),Examples:[MULTIPOLYGON(((-96.9260430229998 36.8243969726566, -96.9252777777741 36.824166666667, -96.9239054361943 36.8246904839413, -96.9232047526006 36.82626030816, -96.9211775716109 36.8290969509553, -96.9212719726526 36.830273166233, -96.9223714192673 36.8309619140628, -96.9227137586769 36.8317287868926, -96.9251907009512 36.8346213107642, -96.9258610026006 36.8368478732642, -96.926743977861 36.8367770724829, -96.9279994032082 36.8335308159726, -96.9279673936595 36.8315898980039, -96.9275857204825 36.8309060329864, -96.9265530056387 36.826764322917, -96.925941026472 36.8256673177088, -96.9260430229998 36.8243969726566)))]),
@@ -374,12 +400,10 @@ function defineTools(viewer) {
         func: async ({ sql, type }) => sqlFilterEntity(viewer, sql, type),
     });
 
-    // 工具 3: 重置视角 (回到默认视图)
-    // 修复：简化 Schema，移除可选参数，防止模型过度思考参数
+    // 工具 4: 重置视角
     const resetViewTool = new DynamicStructuredTool({
         name: "reset_view",
-        description:
-            "将地图视角重置到默认的中国区域，并清除当前的选中状态。调用此工具后任务即完成。",
+        description: "重置地图视角到中国默认区域。执行即完成。",
         schema: z.object({
             // 将参数改为空对象，明确告诉模型这是一个无参动作
         }),
@@ -393,28 +417,27 @@ function defineTools(viewer) {
                 ),
                 duration: 1.5,
             });
-            // 返回非常明确的“终结性”语句
-            return "视角已重置到默认区域。请停止思考并回复用户已完成。";
+            return "SUCCESS: 视角已重置。";
         },
     });
 
-    // 工具 4: 重新加载全部实体数据
+    // 工具 5: 重新加载全部实体数据
     const reloadAllEntitiesTool = new DynamicStructuredTool({
         name: "reload_all_entities",
-        description:
-            "重新加载全部实体数据，刷新地图显示。调用此工具后任务即完成。",
+        description: "重新加载全部数据。执行即完成。",
         schema: z.object({
             // 将参数改为空对象，明确告诉模型这是一个无参动作
         }),
         func: async () => {
             window.showLightBarrier(viewer);
             window.showLightReservoir(viewer);
-            return "已重新加载全部实体数据。";
+            return "SUCCESS: 数据已重载。";
         },
     });
 
     return [
         searchAndFlyTool,
+        flyToEntityTool,
         sqlFilterEntityTool,
         resetViewTool,
         reloadAllEntitiesTool,
@@ -446,7 +469,7 @@ async function searchAndFlyToEntity(viewer, keyword, type) {
     if (localTarget) {
         viewer.selectedEntity = localTarget;
         viewer.flyTo(localTarget, { duration: 1.5 });
-        return `本地已找到实体 "${localTarget.name}" (ID: ${localTarget.id})，视角已自动定位。`;
+        return `SUCCESS: 本地已找到实体 "${localTarget.name}" (ID: ${localTarget.id})，视角已自动定位。`;
     }
 
     // ------------------------------------------------------------------------
@@ -478,15 +501,15 @@ async function searchAndFlyToEntity(viewer, keyword, type) {
             if (entity) {
                 viewer.selectedEntity = entity;
                 viewer.flyTo(entity, { duration: 1.5 });
-                return `远程数据库查找到 "${entityName}" (ID: ${entityId})，已加载并自动定位。`;
+                return `SUCCESS: 远程数据库查找到 "${entityName}" (ID: ${entityId})，已加载并自动定位。`;
             } else {
-                return `数据库查找到数据，但实体加载失败 (ID: ${entityId})。`;
+                return `ERROR: 数据库查找到数据，但实体加载失败 (ID: ${entityId})。`;
             }
         }
 
-        return `未找到名为 "${keyword}" 的${type}实体 (本地与远程均无结果)。`;
+        return `ERROR: 未找到名为 "${keyword}" 的${type}实体 (本地与远程均无结果)。`;
     } catch (error) {
-        return `搜索过程出错: ${error.message}`;
+        return `ERROR: 搜索过程出错: ${error.message}`;
     }
 }
 
@@ -527,12 +550,12 @@ async function sqlFilterEntity(viewer, sql, type) {
             // 自动缩放视角以包含所有结果
             viewer.zoomTo(viewer.entities);
 
-            return `查询成功！已筛选 ${data.length} 个符合条件的${type}实体。`;
+            return `SUCCESS: 查询成功！已筛选 ${data.length} 个符合条件的${type}实体。`;
         } else {
-            return `查询失败: ${res.data.message || "未知错误"}`;
+            return `ERROR: 查询失败: ${res.data.message || "未知错误"}`;
         }
     } catch (error) {
-        return `查询出错: ${error.message}`;
+        return `ERROR: 查询出错: ${error.message}`;
     }
 }
 
