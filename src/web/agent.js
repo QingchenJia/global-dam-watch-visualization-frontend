@@ -6,6 +6,7 @@ import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import z from "zod";
 import axios from "axios";
+import { API_ENDPOINT } from "./config";
 
 // ============================================================================
 // 1. 核心模式配置
@@ -27,17 +28,6 @@ const agentConfig = {
         baseUrl: import.meta.env.VITE_OLLAMA_BASE_URL,
         modelName: import.meta.env.VITE_OLLAMA_MODEL_NAME,
     },
-    // 业务数据查询接口
-    apiEndpoints: {
-        position: {
-            barrier: "http://localhost:8100/barrier/position",
-            reservoir: "http://localhost:8100/reservoir/position",
-        },
-        filter: {
-            barrier: "http://localhost:8100/barrier/filter",
-            reservoir: "http://localhost:8100/reservoir/filter",
-        },
-    },
 };
 
 let agentExecutor = null;
@@ -51,9 +41,8 @@ let chatHistory = [];
  * @param {Cesium.Viewer} viewer - Cesium 地图实例，用于执行地图操作
  */
 window.initAgent = async function (viewer) {
-    // 1. 获取并初始化 UI (不再动态创建)
-    // 移除 injectStyles();
-    const ui = initUI(); // 改名为 initUI
+    // 1. 获取并初始化 UI
+    const ui = initUI();
 
     // 2. 远程模式下的必要性检查
     if (agentConfig.agentMode === "cloud" && !agentConfig.cloud.apiKey) {
@@ -150,7 +139,7 @@ window.initAgent = async function (viewer) {
             agent,
             tools,
             handleParsingErrors: true,
-            maxIterations: 2, // 补上：强制限制最大迭代次数，防止死循环请求
+            maxIterations: 4, // 强制限制最大迭代次数，防止死循环请求
         });
 
         // 3. 初始化完成反馈
@@ -405,16 +394,17 @@ function defineTools(viewer) {
                 duration: 1.5,
             });
             // 返回非常明确的“终结性”语句
-            return "SUCCESS: 视角已重置到默认区域。请停止思考并回复用户已完成。";
+            return "视角已重置到默认区域。请停止思考并回复用户已完成。";
         },
     });
 
     // 工具 4: 重新加载全部实体数据
     const reloadAllEntitiesTool = new DynamicStructuredTool({
         name: "reload_all_entities",
-        description: "重新加载全部实体数据，刷新地图显示。",
+        description:
+            "重新加载全部实体数据，刷新地图显示。调用此工具后任务即完成。",
         schema: z.object({
-            reason: z.string().optional().describe("重新加载原因"),
+            // 将参数改为空对象，明确告诉模型这是一个无参动作
         }),
         func: async () => {
             window.showLightBarrier(viewer);
@@ -463,7 +453,7 @@ async function searchAndFlyToEntity(viewer, keyword, type) {
     // Step 2: 远程查找
     // ------------------------------------------------------------------------
     try {
-        const url = agentConfig.apiEndpoints.position[type];
+        const url = API_ENDPOINT.position[type];
         // 调用后端 API
         const res = await axios.post(url, keyword, {
             headers: { "Content-Type": "text/plain" },
@@ -508,7 +498,7 @@ async function searchAndFlyToEntity(viewer, keyword, type) {
  */
 async function sqlFilterEntity(viewer, sql, type) {
     try {
-        const url = agentConfig.apiEndpoints.filter[type];
+        const url = API_ENDPOINT.filter[type];
         // 1. 移除当前加载的全部实体
         viewer.entities.removeAll();
 
@@ -556,9 +546,8 @@ async function sqlFilterEntity(viewer, sql, type) {
 function bindEvents(ui) {
     const handleSend = async () => {
         const text = ui.input.value.trim();
-        if (!text || ui.sendBtn.disabled) return; // 补上：防止重复点击
+        if (!text || ui.sendBtn.disabled) return;
 
-        // 补上：显示加载状态，禁用按钮
         ui.sendBtn.disabled = true;
         ui.sendBtn.style.opacity = "0.6";
 
@@ -587,13 +576,11 @@ function bindEvents(ui) {
                 chatHistory = chatHistory.slice(chatHistory.length - 20);
             }
 
-            // 核心修复：使用正确的 loadingId 更新消息
             ui.updateMessage(loadingId, result.output);
         } catch (e) {
             console.error(e);
             ui.updateMessage(loadingId, `执行出错: ${e.message}`);
         } finally {
-            // 补上：恢复按钮状态
             ui.sendBtn.disabled = false;
             ui.sendBtn.style.opacity = "1";
             ui.input.focus();
@@ -657,7 +644,6 @@ function initUI() {
             messagesContainer.appendChild(msgDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-            // 核心修复：必须返回 ID
             return msgDiv.id;
         },
 

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BARRIER_FIELD_MAPPING, RESERVOIR_FIELD_MAPPING } from "./config.js";
+import { FIELD_MAPPING, API_ENDPOINT } from "./config.js";
 
 // 全局 Cesium 视图实例变量
 let viewer = null;
@@ -24,34 +24,34 @@ window.onload = function () {
     // 隐藏 Cesium 默认的版权信息容器
     viewer._cesiumWidget._creditContainer.style.display = "none";
 
-    // 将核心渲染函数挂载到 window 对象，供 filter.js 等外部模块调用
-    window.loadBarrierEntity = loadBarrierEntity;
-    window.loadReservoirEntity = loadReservoirEntity;
-    window.parseGeometry = parseGeometry;
-    window.showLightBarrier = showLightBarrier;
-    window.showLightReservoir = showLightReservoir;
-
-    // 加载大坝和水库的轻量级位置数据（仅包含坐标和ID，用于快速渲染）
+    // 加载大坝和水库的轻量级位置数据
     showLightBarrier(viewer);
     showLightReservoir(viewer);
 
     // 配置实体点击交互逻辑
     showDescription(viewer);
 
-    // 初始化跳转按钮 (使用 index.html 中预置的按钮)
+    // 初始化跳转按钮功能
     initJumpButton(viewer);
 
     // 初始化智能体组件
     if (typeof initAgent === "function") {
         initAgent(viewer);
     }
+
+    // 将核心渲染函数挂载到 window 对象，外部模块调用
+    window.loadBarrierEntity = loadBarrierEntity;
+    window.loadReservoirEntity = loadReservoirEntity;
+    window.parseGeometry = parseGeometry;
+    window.showLightBarrier = showLightBarrier;
+    window.showLightReservoir = showLightReservoir;
 };
 
 // 全局变量维护跳转索引
 let currentEntityIndex = -1;
 
 /**
- * 初始化跳转按钮功能 (重构：仅负责逻辑绑定)
+ * 初始化跳转按钮功能
  */
 function initJumpButton(viewer) {
     const nextIcon = document.getElementById("jump-button");
@@ -112,27 +112,13 @@ function showDescription(viewer) {
  * @param {String} type - 实体类型 ('barrier' 或 'reservoir')
  */
 function queryDescription(entity, id, type) {
-    let apiUrl = "";
-    let mapping = null;
-
     // 根据类型确定 API 端点和字段映射表
-    if (type === "barrier") {
-        apiUrl = `http://localhost:8100/barrier/${id}`;
-        mapping =
-            typeof BARRIER_FIELD_MAPPING !== "undefined"
-                ? BARRIER_FIELD_MAPPING
-                : null;
-    } else if (type === "reservoir") {
-        apiUrl = `http://localhost:8100/reservoir/${id}`;
-        mapping =
-            typeof RESERVOIR_FIELD_MAPPING !== "undefined"
-                ? RESERVOIR_FIELD_MAPPING
-                : null;
-    }
+    let url = API_ENDPOINT.detail[type] + id;
+    let mapping = FIELD_MAPPING[type];
 
     // 发起异步请求
     axios
-        .get(apiUrl)
+        .get(url)
         .then((res) => {
             if (res.data.code === 1) {
                 const entireInfo = res.data.data;
@@ -171,10 +157,10 @@ function queryDescription(entity, id, type) {
  * 获取并渲染所有大坝的简略位置信息
  */
 function showLightBarrier(viewer) {
-    const apiUrl = "http://localhost:8100/barrier/location";
+    const url = API_ENDPOINT.location.barrier;
 
     axios
-        .get(apiUrl)
+        .get(url)
         .then((res) => {
             if (res.data.code === 1 && Array.isArray(res.data.data)) {
                 const data = res.data.data;
@@ -191,10 +177,10 @@ function showLightBarrier(viewer) {
  * 获取并渲染所有水库的简略位置信息
  */
 function showLightReservoir(viewer) {
-    const apiUrl = "http://localhost:8100/reservoir/location";
+    const url = API_ENDPOINT.location.reservoir;
 
     axios
-        .get(apiUrl)
+        .get(url)
         .then((res) => {
             if (res.data.code === 1 && Array.isArray(res.data.data)) {
                 const data = res.data.data;
