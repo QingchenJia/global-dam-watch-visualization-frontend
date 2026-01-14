@@ -1,23 +1,13 @@
-// 字段中英文映射表
 export const FIELD_MAPPING = {
-    /**
-     * 大坝 (Barrier) 字段中英文映射表
-     * 对应表: GDW_BARRIER
-     */
     barrier: {
-        // --- 1. 核心标识与几何字段 ---
         ogcFid: "系统主键",
         objectid: "原始对象ID",
         gdwId: "全球大坝ID",
-
-        // --- 2. 名称与类型信息 ---
         resName: "对应水库名称",
         damName: "大坝名称",
         altName: "水库备用名称",
         damType: "大坝类型",
         lakeCtrl: "湖泊控制类型",
-
-        // --- 3. 地理位置信息 ---
         river: "所在河流",
         altRiver: "备用河流名",
         mainBasin: "主要流域",
@@ -28,8 +18,6 @@ export const FIELD_MAPPING = {
         secAdmin: "第二行政单位",
         nearCity: "附近城市",
         altCity: "备用城市",
-
-        // --- 4. 时间信息 ---
         yearDam: "建成年份",
         preYear: "前期年份",
         yearSrc: "年份来源",
@@ -37,14 +25,10 @@ export const FIELD_MAPPING = {
         remYear: "拆除年份",
         timeline: "时间线分类",
         yearTxt: "年份描述",
-
-        // --- 5. 大坝物理特征 ---
         damHgtM: "大坝高度(m)",
         altHgtM: "备选高度(m)",
         damLenM: "大坝长度(m)",
         altLenM: "备选长度(m)",
-
-        // --- 6. 相关水库特征(引用信息) ---
         areaSkm: "对应水库表面积(km²)",
         areaRep: "报告水库面积",
         areaMax: "最大水库面积",
@@ -54,15 +38,11 @@ export const FIELD_MAPPING = {
         capRep: "报告库容",
         capMin: "最小库容",
         depthM: "水库深度(m)",
-
-        // --- 7. 水文特征 ---
         disAvgLs: "平均流量(L/s)",
         dorPc: "泄洪道百分比",
         elevMasl: "海拔高度(m)",
         catchSkm: "集水区面积(km²)",
         catchRep: "报告集水区面积",
-
-        // --- 8. 功能用途 ---
         powerMw: "发电功率(MW)",
         useIrri: "灌溉用途",
         useElec: "发电用途",
@@ -75,14 +55,10 @@ export const FIELD_MAPPING = {
         useLive: "牲畜用水",
         useOthr: "其他用途",
         mainUse: "主要用途",
-
-        // --- 9. 坐标信息 ---
         longRiv: "河流经度",
         latRiv: "河流纬度",
         longDam: "大坝经度",
         latDam: "大坝纬度",
-
-        // --- 10. 元数据信息 ---
         dataInfo: "数据信息说明",
         multiDams: "多座大坝",
         comments: "注释",
@@ -91,33 +67,21 @@ export const FIELD_MAPPING = {
         editor: "编辑者",
         origSrc: "原始数据源",
         polySrc: "多边形数据源(引用)",
-
-        // --- 11. 关联ID字段 ---
         grandId: "GRanD ID",
         hyrivId: "HydroRIVERS ID",
         instream: "河道内",
         hylakId: "HydroLAKES ID",
         hybasL12: "HydroBASINS ID",
     },
-
-    /**
-     * 水库 (Reservoir) 字段中英文映射表
-     * 对应表: GDW_RESERVOIR
-     */
     reservoir: {
-        // --- 1. 核心标识与几何字段 ---
         ogcFid: "系统主键",
         objectid: "原始对象ID",
         gdwId: "全球大坝ID",
-
-        // --- 2. 名称与类型信息 ---
         resName: "水库名称",
         damName: "对应大坝名称",
         altName: "大坝备用名称",
         damType: "大坝类型",
         lakeCtrl: "湖泊控制类型",
-
-        // --- 3. 地理位置信息 ---
         river: "所在河流",
         altRiver: "备用河流名",
         mainBasin: "主要流域",
@@ -128,8 +92,6 @@ export const FIELD_MAPPING = {
         secAdmin: "第二行政单位",
         nearCity: "附近城市",
         altCity: "备用城市",
-
-        // --- 4. 时间信息 ---
         yearDam: "建成年份",
         preYear: "前期年份",
         yearSrc: "年份来源",
@@ -137,8 +99,6 @@ export const FIELD_MAPPING = {
         remYear: "拆除年份",
         timeline: "时间线分类",
         yearTxt: "年份描述",
-
-        // --- 5. 尺寸容量数据 ---
         damHgtM: "大坝高度(m)",
         altHgtM: "备选高度(m)",
         damLenM: "大坝长度(m)",
@@ -153,15 +113,11 @@ export const FIELD_MAPPING = {
         capRep: "报告库容",
         capMin: "最小库容",
         depthM: "深度(m)",
-
-        // --- 6. 水文特征 ---
         disAvgLs: "平均流量(L/s)",
         dorPc: "泄洪道百分比",
         elevMasl: "海拔高度(m)",
         catchSkm: "集水区面积(km²)",
         catchRep: "报告集水区面积",
-
-        // --- 7. 功能用途 ---
         powerMw: "发电功率(MW)",
         useIrri: "灌溉用途",
         useElec: "发电用途",
@@ -174,14 +130,10 @@ export const FIELD_MAPPING = {
         useLive: "牲畜用水",
         useOthr: "其他用途",
         mainUse: "主要用途",
-
-        // --- 8. 坐标信息 ---
         longRiv: "河流经度",
         latRiv: "河流纬度",
         longDam: "大坝经度",
         latDam: "大坝纬度",
-
-        // --- 9. 元数据信息 ---
         dataInfo: "数据信息说明",
         multiDams: "多座大坝",
         comments: "注释",
@@ -190,21 +142,16 @@ export const FIELD_MAPPING = {
         editor: "编辑者",
         origSrc: "原始数据源",
         polySrc: "多边形数据源",
-
-        // --- 10. 关联ID ---
         grandId: "GRanD ID",
         hyrivId: "HydroRIVERS ID",
         instream: "河道内",
         hylakId: "HydroLAKES ID",
         hybasL12: "HydroBASINS ID",
-
-        // --- 11. 几何计算字段 ---
         shapeLength: "形状周长",
         shapeArea: "形状面积",
     },
 };
 
-// 业务数据查询接口
 export const API_ENDPOINT = {
     position: {
         barrier: "http://localhost:8100/barrier/position",
@@ -223,3 +170,199 @@ export const API_ENDPOINT = {
         reservoir: "http://localhost:8100/reservoir/location",
     },
 };
+
+export const SYSTEM_PROMPT = `
+## 角色定义
+你是一个高效的GIS操作助手，负责检索全球的"barrier"和"reservoir"。你的任务是根据用户指令调用工具，并汇报结果。
+
+## 核心指令 (**最高优先级**)
+1. **结果直通 (Pass-through)**：工具执行成功并返回以"SUCCESS: "开头的内容时，你必须遵守以下规则：
+    (1) 立即终止任何进一步的思考、分析或加工流程。
+    (2) 直接、原样地输出"SUCCESS: "之后的所有内容，作为给用户的最终回答。
+    (3) 不得添加任何前言、后语、总结、格式修改或解释。
+2. **非必须无视上下文**：除非明确要求，否则**禁止**参考或思考对话上下文内容，所有决策均基于当前用户输入。
+
+## 数据类型
+1. **barrier**：指大坝/水闸等水工建筑物实体。
+2. **reservoir**：指水库、**自然湖泊**（如安大略湖、洪泽湖等）等蓄水实体。即使是天然湖泊，也请归类为 reservoir 进行查找。
+
+## 实体定位策略 (智能上下文决策)
+当用户请求定位实体（如"定位密云水库"）时：
+1. **检测上下文 (Check Context)**：
+   - **必须**先检查历史对话。若之前已搜索过该实体且 Agent 回复中包含 ID信息 (如 "...(ID: r-28089)...")，说明已知其 ID。
+   - 在此情况下，**必须**直接调用 \`fly_to_entity\` 工具（提取并传入该 ID），**禁止**再次调用 search_and_fly。
+2. **执行搜索 (Search)**：
+   - 只有在上下文中找不到该实体的 ID 时，才调用 \`search_and_fly\` 工具。
+   - 该工具会自动执行"本地查找 -> 远程查找 -> 自动飞行"。
+   - 如果返回"未找到"，则尝试调整关键词重试。
+
+## 实体过滤策略
+当用户进行条件筛选（如"查找库容大于5亿的水库"）时：
+- 调用 \`sql_filter_entity\`。
+- 根据表结构构造 SQL 条件语句。
+- 注意单位换算。
+
+## 其他工具指南
+- 重置/复位 -> 使用 \`reset_view\`
+- 重新加载数据 -> 使用 \`reload_all_entities\`
+`;
+
+export const M_SCHEMA = `
+# Table: public.gdw_barrier
+[
+(ogc_fid:INTEGER, Primary Key, Examples: [1, 2, 3]),
+(wkb_geometry:GEOMETRY(POINT), Examples: [POINT(-97.8635419999999 53.696359)]),
+(objectid:NUMERIC, Examples: [37209.0, 13381.0, 39500.0]),
+(gdw_id:NUMERIC, Examples: [37209.0, 13381.0, 39500.0]),
+(res_name:VARCHAR, Examples: [Karatomarskoye, Red Indian, Lake Glenn Shoals]),
+(dam_name:VARCHAR, Examples: [Balarood, Houayho, Onoike]),
+(alt_name:VARCHAR, Examples: [CANE CREEK WATERSHED DAM 3A]),
+(dam_type:VARCHAR, Examples: [Low Permeable Dam, Lock, Dam]),
+(lake_ctrl:VARCHAR, Examples: [Yes, Maybe, Enlarged]),
+(river:VARCHAR, Examples: [Alaingni Creek, Oidegawa, Molototosi]),
+(alt_river:VARCHAR, Examples: [Contoocook River, Duan, Ouegha]),
+(main_basin:VARCHAR, Examples: [Betsiboka, Mangamahoe, Waihopai]),
+(sub_basin:VARCHAR, Examples: [Elefantes, Oueme, Kampe]),
+(country:VARCHAR, Examples: [Indonesia, Bangladesh, Venezuela]),
+(sec_cntry:VARCHAR, Examples: [El Salvador, Italy, Uruguay]),
+(admin_unit:VARCHAR, Examples: [Giresun, Bali, Sukhothai]),
+(sec_admin:VARCHAR, Examples: [SAN BERNARDINO, Chhattisgarh, WALKER]),
+(near_city:VARCHAR, Examples: [Jiuzhaigou, Carmo do Cajuru, Lingchuan]),
+(alt_city:VARCHAR, Examples: [Homa, Vereeniging, Don Matias]),
+(year_dam:NUMERIC, Examples: [1988.0, 1944.0, 1900.0]),
+(pre_year:NUMERIC, Examples: [2000.0, 1989.0, 1998.0]),
+(year_src:VARCHAR, Examples: [JRC-GSW, NID, Other]),
+(alt_year:NUMERIC, Examples: [1924.0, 1962.0, 1964.0]),
+(rem_year:NUMERIC, Examples: [1987.0, 2005.0, 2016.0]),
+(timeline:VARCHAR, Examples: [Subsumed, Removed, Modified]),
+(year_txt:VARCHAR, Examples: [Built 1949 - Modified 1966]),
+(dam_hgt_m:NUMERIC, Examples: [117.0, 33.0, 124.0]),
+(alt_hgt_m:NUMERIC, Examples: [93.0, 44.0, 50.0]),
+(dam_len_m:NUMERIC, Examples: [3070.0, 163.0, 8000.0]),
+(alt_len_m:NUMERIC, Examples: [124.0, 2000.0, 252.0]),
+(area_skm:DOUBLE PRECISION, Examples: [4.168, 0.473, 42.794]),
+(area_poly:DOUBLE PRECISION, Examples: [4.168, 0.473, 42.794]),
+(area_rep:DOUBLE PRECISION, Examples: [79.2, 7.365, 44.6]),
+(area_max:DOUBLE PRECISION, Examples: [39.0, 68.0, 11.0]),
+(area_min:DOUBLE PRECISION, Examples: [1000.0, 0.9, 760.0]),
+(cap_mcm:DOUBLE PRECISION, Examples: [1444.1, 14.1, 60.5]),
+(cap_max:DOUBLE PRECISION, Examples: [44.2, 1518.2, 173.8]),
+(cap_rep:DOUBLE PRECISION, Examples: [1444.1, 14.1, 60.5]),
+(cap_min:DOUBLE PRECISION, Examples: [787.5, 57.0, 7100.0]),
+(depth_m:DOUBLE PRECISION, Examples: [0.0, 60.5, 159.600006103516]),
+(dis_avg_ls:NUMERIC, Examples: [140257.0, 2747.0, 39058.0]),
+(dor_pc:DOUBLE PRECISION, Examples: [224.899993896484, 621.900024414062, 767.700012207031]),
+(elev_masl:NUMERIC, Examples: [2865.0, 204.0, 2482.0]),
+(catch_skm:NUMERIC, Examples: [55879.0, 4773.0, 30922.0]),
+(catch_rep:NUMERIC, Examples: [59160.0, 13580.0, 1330.0]),
+(power_mw:DOUBLE PRECISION, Examples: [0.0, 1000.0, 24.3]),
+(data_info:VARCHAR, Examples: [Capacity from statistics - Eq 2]),
+(use_irri:VARCHAR, Examples: [Multi, Main, Major]),
+(use_elec:VARCHAR, Examples: [Multi, Main, Major]),
+(use_supp:VARCHAR, Examples: [Multi, Main, Major]),
+(use_fcon:VARCHAR, Examples: [Multi, Main, Major]),
+(use_recr:VARCHAR, Examples: [Multi, Main, Sec]),
+(use_navi:VARCHAR, Examples: [Multi, Main, Major]),
+(use_fish:VARCHAR, Examples: [Multi, Main, Major]),
+(use_pcon:VARCHAR, Examples: [Multi, Main, Sec]),
+(use_live:VARCHAR, Examples: [Sec]),
+(use_othr:VARCHAR, Examples: [Multi, Main, Sec]),
+(main_use:VARCHAR, Examples: [Pollution control, Hydroelectricity, Multipurpose]),
+(multi_dams:VARCHAR, Examples: [Yes]),
+(comments:VARCHAR),
+(url:VARCHAR),
+(quality:VARCHAR, Examples: [5: Unreliable, 3: Fair, 1: Verified]),
+(editor:VARCHAR, Examples: [UNH, McGill-TX, McGill-MA]),
+(long_riv:DOUBLE PRECISION, Examples: [-0.403180345999942, -90.0760059999999, 115.181201]),
+(lat_riv:DOUBLE PRECISION, Examples: [27.868694197, 36.789122311, 20.774666768]),
+(long_dam:DOUBLE PRECISION, Examples: [107.172427114, 133.745862076, -41.7284490854585]),
+(lat_dam:DOUBLE PRECISION, Examples: [29.4655917147, 33.1152704958877, 27.3618654545]),
+(orig_src:VARCHAR, Examples: [GROD-NID, Other, GRanD]),
+(poly_src:VARCHAR, Examples: [UY, No Polygon, Other]),
+(grand_id:NUMERIC, Examples: [4773.0, 2747.0, 2482.0]),
+(hyriv_id:NUMERIC, Examples: [41243498.0, 41044980.0, 40674650.0]),
+(instream:VARCHAR, Examples: [Offstream, Instream]),
+(hylak_id:NUMERIC, Examples: [16336.0, 1373069.0, 174466.0]),
+(hybas_l12:DOUBLE PRECISION, Examples: [7121099760.0, 0.0, 2120425050.0])
+]
+
+# Table: public.gdw_reservoir
+[
+(ogc_fid:INTEGER, Primary Key, Examples: [1, 2, 3]),
+(wkb_geometry:GEOMETRY(MULTIPOLYGON),Examples:[MULTIPOLYGON(((-96.9260430229998 36.8243969726566, -96.9252777777741 36.824166666667, -96.9239054361943 36.8246904839413, -96.9232047526006 36.82626030816, -96.9211775716109 36.8290969509553, -96.9212719726526 36.830273166233, -96.9223714192673 36.8309619140628, -96.9227137586769 36.8317287868926, -96.9251907009512 36.8346213107642, -96.9258610026006 36.8368478732642, -96.926743977861 36.8367770724829, -96.9279994032082 36.8335308159726, -96.9279673936595 36.8315898980039, -96.9275857204825 36.8309060329864, -96.9265530056387 36.826764322917, -96.925941026472 36.8256673177088, -96.9260430229998 36.8243969726566)))]),
+(objectid:NUMERIC, Examples: [13381.0, 28089.0, 799.0]),
+(gdw_id:NUMERIC, Examples: [28089.0, 799.0, 24481.0]),
+(res_name:VARCHAR, Examples: [Karatomarskoye, Red Indian, Lake Glenn Shoals]),
+(dam_name:VARCHAR, Examples: [Onoike, Houayho, Nalan]),
+(alt_name:VARCHAR, Examples: [CANE CREEK WATERSHED DAM 3A]),
+(dam_type:VARCHAR, Examples: [Low Permeable Dam, Lock, Dam]),
+(lake_ctrl:VARCHAR, Examples: [Yes, Maybe, Enlarged]),
+(river:VARCHAR, Examples: [Alaingni Creek, Oidegawa, Kamiichigawa]),
+(alt_river:VARCHAR, Examples: [Contoocook River, Duan, Ouegha]),
+(main_basin:VARCHAR, Examples: [Betsiboka, Mangamahoe, Waihopai]),
+(sub_basin:VARCHAR, Examples: [Elefantes, Oueme, Kampe]),
+(country:VARCHAR, Examples: [Indonesia, Bangladesh, Venezuela]),
+(sec_cntry:VARCHAR, Examples: [Italy, Uruguay, Cameroon]),
+(admin_unit:VARCHAR, Examples: [Bali, Sukhothai, Karlovarský]),
+(sec_admin:VARCHAR, Examples: [ULSTER, WHATCOM, Giresun]),
+(near_city:VARCHAR, Examples: [Jiuzhaigou, Carmo do Cajuru, Lingchuan]),
+(alt_city:VARCHAR, Examples: [Homa, Vereeniging, Don Matias]),
+(year_dam:NUMERIC, Examples: [1988.0, 1944.0, 1900.0]),
+(pre_year:NUMERIC, Examples: [2000.0, 1989.0, 1998.0]),
+(year_src:VARCHAR, Examples: [JRC-GSW, NID, Other]),
+(alt_year:NUMERIC, Examples: [1924.0, 1962.0, 1964.0]),
+(rem_year:NUMERIC, Examples: [2003.0, 1987.0, 2002.0]),
+(timeline:VARCHAR, Examples: [Removed, Modified, Destroyed]),
+(year_txt:VARCHAR, Examples: [Built 1949 - Modified 1966]),
+(dam_hgt_m:NUMERIC, Examples: [117.0, 33.0, 124.0]),
+(alt_hgt_m:NUMERIC, Examples: [93.0, 44.0, 50.0]),
+(dam_len_m:NUMERIC, Examples: [3070.0, 163.0, 8000.0]),
+(alt_len_m:NUMERIC, Examples: [124.0, 2000.0, 252.0]),
+(area_skm:DOUBLE PRECISION, Examples: [4.168, 0.473, 42.794]),
+(area_poly:DOUBLE PRECISION, Examples: [4.168, 0.473, 42.794]),
+(area_rep:DOUBLE PRECISION, Examples: [79.2, 7.365, 44.6]),
+(area_max:DOUBLE PRECISION, Examples: [39.0, 68.0, 11.0]),
+(area_min:DOUBLE PRECISION, Examples: [1000.0, 0.9, 760.0]),
+(cap_mcm:DOUBLE PRECISION, Examples: [1444.1, 14.1, 60.5]),
+(cap_max:DOUBLE PRECISION, Examples: [44.2, 1518.2, 173.8]),
+(cap_rep:DOUBLE PRECISION, Examples: [1444.1, 14.1, 60.5]),
+(cap_min:DOUBLE PRECISION, Examples: [787.5, 57.0, 7100.0]),
+(depth_m:DOUBLE PRECISION, Examples: [0.0, 60.5, 159.600006103516]),
+(dis_avg_ls:NUMERIC, Examples: [4773.0, 140257.0, 2747.0]),
+(dor_pc:DOUBLE PRECISION, Examples: [224.899993896484, 621.900024414062, 767.700012207031]),
+(elev_masl:NUMERIC, Examples: [204.0, 2482.0, 1070.0]),
+(catch_skm:NUMERIC, Examples: [204.0, 4773.0, 30922.0]),
+(catch_rep:NUMERIC, Examples: [59160.0, 13580.0, 1330.0]),
+(power_mw:DOUBLE PRECISION, Examples: [48.1, 1.8, 0.0]),
+(data_info:VARCHAR, Examples: [Capacity from statistics - Eq 2]),
+(use_irri:VARCHAR, Examples: [Multi, Main, Major]),
+(use_elec:VARCHAR, Examples: [Multi, Main, Major]),
+(use_supp:VARCHAR, Examples: [Multi, Main, Major]),
+(use_fcon:VARCHAR, Examples: [Multi, Main, Major]),
+(use_recr:VARCHAR, Examples: [Multi, Main, Sec]),
+(use_navi:VARCHAR, Examples: [Multi, Main, Major]),
+(use_fish:VARCHAR, Examples: [Multi, Main, Major]),
+(use_pcon:VARCHAR, Examples: [Multi, Main, Sec]),
+(use_live:VARCHAR, Examples: [Sec]),
+(use_othr:VARCHAR, Examples: [Multi, Main, Sec]),
+(main_use:VARCHAR, Examples: [Pollution control, Hydroelectricity, Multipurpose]),
+(multi_dams:VARCHAR, Examples: [Yes]),
+(comments:VARCHAR),
+(url:VARCHAR),
+(quality:VARCHAR, Examples: [5: Unreliable, 3: Fair, 1: Verified]),
+(editor:VARCHAR, Examples: [UNH, McGill-TX, McGill-MA]),
+(long_riv:DOUBLE PRECISION, Examples: [-90.0760059999999, 115.181201, -72.6660416669999]),
+(lat_riv:DOUBLE PRECISION, Examples: [27.868694197, 36.789122311, 20.774666768]),
+(long_dam:DOUBLE PRECISION, Examples: [19.6013654962, 10.9265436681, -68.7077887491]),
+(lat_dam:DOUBLE PRECISION, Examples: [27.6676489242, 48.0130177701, 50.2413450265]),
+(orig_src:VARCHAR, Examples: [GROD-NID, Other, GRanD]),
+(poly_src:VARCHAR, Examples: [Other, SWBD, JRC-GSW]),
+(grand_id:NUMERIC, Examples: [4773.0, 2747.0, 2482.0]),
+(hyriv_id:NUMERIC, Examples: [41243498.0, 41044980.0, 40674650.0]),
+(instream:VARCHAR, Examples: [Offstream, Instream]),
+(hylak_id:NUMERIC, Examples: [16336.0, 1373069.0, 174466.0]),
+(hybas_l12:DOUBLE PRECISION, Examples: [6120406470.0, 4121508690.0, 2120685640.0]),
+(shape_length:DOUBLE PRECISION, Examples: [0.08588079250678, 0.0424254338660635, 0.0193721577721688]),
+(shape_area:DOUBLE PRECISION, Examples: [0.00018992758547819, 4.60430052748586e-05, 1.7304645538329e-05])
+]
+`;
