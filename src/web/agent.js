@@ -83,7 +83,7 @@ window.initAgent = async function (viewer) {
         ui.updateHeader(agentConfig.agentMode);
         ui.addMessage(
             "agent",
-            `就绪！我是GIS助手 (模式: ${agentConfig.agentMode}, 模型: ${currentModelName})。`
+            `就绪!我是GIS助手(模式:${agentConfig.agentMode},模型:${currentModelName}).`
         );
         bindEvents(ui);
     } catch (error) {
@@ -97,10 +97,10 @@ window.initAgent = async function (viewer) {
         ) {
             ui.addMessage(
                 "agent",
-                `连接 Ollama 失败。请确保服务已启动 (ollama serve)。`
+                `连接Ollama失败.请确保服务已启动(ollama serve).`
             );
         } else {
-            ui.addMessage("agent", `初始化失败: ${error.message}`);
+            ui.addMessage("agent", `初始化失败:${error.message}`);
         }
     }
 };
@@ -109,12 +109,12 @@ function defineTools(viewer) {
     const searchAndFlyTool = new DynamicStructuredTool({
         name: "search_and_fly",
         description:
-            "综合搜索定位工具。按名称搜索实体，优先查找本地，若无则查询远程数据库。找到后自动控制地图飞行定位。",
+            "综合搜索定位工具.按名称搜索实体,优先查找本地,若无则查询远程数据库.找到后自动控制地图飞行定位.",
         schema: z.object({
             keyword: z
                 .string()
                 .describe(
-                    "实体名称关键词(英文，尽可能简短如 'Three Gorges'、'Miyun'、'Winnipeg')"
+                    "实体名称关键词(英文,尽可能简短如 'Three Gorges','Miyun','Winnipeg')"
                 ),
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
         }),
@@ -125,20 +125,18 @@ function defineTools(viewer) {
     const flyToEntityTool = new DynamicStructuredTool({
         name: "fly_to_entity",
         description:
-            "精确ID定位工具。当上下文中已经知道实体的ID时，必须优先使用此工具进行跳转，而不是重新搜索名称。",
+            "精确ID定位工具。当上下文中已经知道实体的ID时,必须优先使用此工具进行跳转,而不是重新搜索名称。",
         schema: z.object({
-            id: z
-                .string()
-                .describe("实体唯一ID (格式如 'b-12345' 或 'r-67890')"),
+            id: z.string().describe("实体唯一ID(格式如'b-12345'或'r-67890')"),
         }),
         func: async ({ id }) => {
             const entity = viewer.entities.getById(id);
             if (entity) {
                 viewer.selectedEntity = entity;
                 viewer.flyTo(entity, { duration: 1.5 });
-                return `SUCCESS: 已定位到实体 "${entity.name}" (ID: ${id})，视角已自动调整。`;
+                return `SUCCESS:已定位到实体"${entity.name}"(ID:${id}),视角已自动调整.`;
             } else {
-                return `ERROR: 不存在当前实体 (ID: ${id})。`;
+                return `ERROR:不存在当前实体(ID:${id}).`;
             }
         },
     });
@@ -146,18 +144,18 @@ function defineTools(viewer) {
     const sqlFilterEntityTool = new DynamicStructuredTool({
         name: "sql_filter_entity",
         description:
-            "高级过滤工具。根据SQL条件筛选实体。适用于'大于'、'小于'、'筛选'等批量查询场景。",
+            "高级过滤工具.根据SQL条件筛选实体.适用于'大于'、'小于'、'筛选'等批量查询场景.",
         schema: z.object({
             sql: z.string().describe(
                 `
-                    1. 仅生成一条可直接执行的 PostgreSQL + PostGIS SELECT 语句，并以分号结尾。
-                    2. barrier 表：只能返回 gdw_id、wkb_geometry、dam_type、dam_name，禁止返回其他字段。
-                    3. reservoir 表：只能返回 gdw_id、wkb_geometry、res_name，禁止返回其他字段。
-                    4. 如涉及空间字段，禁止直接返回 wkb 二进制，必须使用：ST_AsGeoJSON(wkb_geometry) AS wkb_geometry
-                    5. SQL 必须基于 M-Schema 已定义的表与字段，不得凭空构造不存在的字段。
-                    6. 禁止生成 UPDATE、DELETE、INSERT 等非查询语句。
-                    7. 查询条件中必须正确处理数据缺失的字段：表中 varchar 类型字段缺失数据中均采用空字符串来表示
-                    8. M-Schema 定义如下：${M_SCHEMA}
+                    1. 仅生成一条可直接执行的PostgreSQL + PostGIS SELECT语句,并以分号结尾.
+                    2. barrier 表：只能返回 gdw_id、wkb_geometry、dam_type、dam_name,禁止返回其他字段.
+                    3. reservoir 表：只能返回 gdw_id、wkb_geometry、res_name,禁止返回其他字段.
+                    4. 如涉及空间字段，禁止直接返回 wkb 二进制,必须使用:ST_AsGeoJSON(wkb_geometry) AS wkb_geometry
+                    5. SQL 必须基于 M-Schema 已定义的表与字段,不得凭空构造不存在的字段.
+                    6. 禁止生成 UPDATE、DELETE、INSERT 等非查询语句.
+                    7. 查询条件中必须正确处理数据缺失的字段: 表中 varchar 类型字段缺失数据中均采用空字符串来表示
+                    8. M-Schema 定义如下:${M_SCHEMA}
                     `
             ),
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
@@ -167,7 +165,7 @@ function defineTools(viewer) {
 
     const resetViewTool = new DynamicStructuredTool({
         name: "reset_view",
-        description: "重置地图视角到中国默认区域。执行即完成。",
+        description: "重置地图视角到默认区域.执行即完成.",
         schema: z.object({}),
         func: async () => {
             viewer.selectedEntity = null;
@@ -179,18 +177,20 @@ function defineTools(viewer) {
                 ),
                 duration: 1.5,
             });
-            return "SUCCESS: 视角已重置。";
+            return "SUCCESS:地图视角已重置到默认区域.";
         },
     });
 
     const reloadAllEntitiesTool = new DynamicStructuredTool({
         name: "reload_all_entities",
-        description: "重新加载全部数据。执行即完成。",
+        description: "重新加载全部实体数据.执行即完成.",
         schema: z.object({}),
         func: async () => {
+            // 重新渲染前先移除所有实体
+            viewer.entities.removeAll();
             window.showLightBarrier(viewer);
             window.showLightReservoir(viewer);
-            return "SUCCESS: 数据已重载。";
+            return "SUCCESS:全部实体数据已重新加载.";
         },
     });
 
@@ -214,7 +214,7 @@ async function searchAndFlyToEntity(viewer, keyword, type) {
     if (localTarget) {
         viewer.selectedEntity = localTarget;
         viewer.flyTo(localTarget, { duration: 1.5 });
-        return `SUCCESS: 本地已找到实体 "${localTarget.name}" (ID: ${localTarget.id})，视角已自动定位。`;
+        return `SUCCESS:本地已找到实体"${localTarget.name}"(ID:${localTarget.id}),视角已自动定位.`;
     }
 
     try {
@@ -241,15 +241,15 @@ async function searchAndFlyToEntity(viewer, keyword, type) {
             if (entity) {
                 viewer.selectedEntity = entity;
                 viewer.flyTo(entity, { duration: 1.5 });
-                return `SUCCESS: 远程数据库查找到 "${entityName}" (ID: ${entityId})，已加载并自动定位。`;
+                return `SUCCESS:远程数据库查找到"${entityName}"(ID:${entityId}),已加载并自动定位.`;
             } else {
-                return `ERROR: 数据库查找到数据，但实体加载失败 (ID: ${entityId})。`;
+                return `ERROR:数据库查找到数据，但实体加载失败(ID:${entityId}).`;
             }
         }
 
-        return `ERROR: 未找到名为 "${keyword}" 的${type}实体 (本地与远程均无结果)。`;
+        return `ERROR:未找到名为"${keyword}"的${type}实体(本地与远程均无结果).`;
     } catch (error) {
-        return `ERROR: 搜索过程出错: ${error.message}`;
+        return `ERROR:搜索过程出错:${error.message}`;
     }
 }
 
@@ -266,7 +266,7 @@ async function sqlFilterEntity(viewer, sql, type) {
         if (res.data.code === 1 && Array.isArray(res.data.data)) {
             const data = res.data.data;
             if (data.length === 0) {
-                return "查询成功，但未找到符合条件的实体。";
+                return "查询成功,但未找到符合条件的实体.";
             }
 
             data.forEach((item) => {
@@ -279,12 +279,12 @@ async function sqlFilterEntity(viewer, sql, type) {
 
             viewer.zoomTo(viewer.entities);
 
-            return `SUCCESS: 查询成功！已筛选 ${data.length} 个符合条件的${type}实体。`;
+            return `SUCCESS:查询成功!已筛选${data.length}个符合条件的${type}实体.`;
         } else {
-            return `ERROR: 查询失败: ${res.data.message || "未知错误"}`;
+            return `ERROR:查询失败:${res.data.message || "未知错误"}`;
         }
     } catch (error) {
-        return `ERROR: 查询出错: ${error.message}`;
+        return `ERROR:查询出错:${error.message}`;
     }
 }
 
@@ -312,15 +312,15 @@ function bindEvents(ui) {
             chatHistory.push(new HumanMessage(text));
             chatHistory.push(new AIMessage(result.output));
 
-            // 保留最新的二十条对话记录
-            if (chatHistory.length > 20) {
-                chatHistory = chatHistory.slice(chatHistory.length - 20);
+            // 保留最新的十条对话记录
+            if (chatHistory.length > 10) {
+                chatHistory = chatHistory.slice(chatHistory.length - 10);
             }
 
             ui.updateMessage(loadingId, result.output);
         } catch (e) {
             console.error(e);
-            ui.updateMessage(loadingId, `执行出错: ${e.message}`);
+            ui.updateMessage(loadingId, `执行出错:${e.message}`);
         } finally {
             ui.sendBtn.disabled = false;
             ui.sendBtn.style.opacity = "1";
@@ -360,7 +360,7 @@ function initUI() {
         titleSpan: titleSpan,
 
         updateHeader: (mode) => {
-            titleSpan.textContent = `🦜🔗 GIS Agent (${mode})`;
+            titleSpan.textContent = `🦜🔗 GIS Agent(${mode})`;
         },
 
         scrollToBottom: () => {
