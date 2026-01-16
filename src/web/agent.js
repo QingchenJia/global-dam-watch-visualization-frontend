@@ -9,6 +9,7 @@ import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import { API_ENDPOINT, SYSTEM_PROMPT, M_SCHEMA } from "./config";
 
 const agentConfig = {
+    // 加载环境变量配置智能体模式
     agentMode: import.meta.env.VITE_AGENT_MODE,
     cloud: {
         baseUrl: import.meta.env.VITE_OPENAI_BASE_URL,
@@ -28,10 +29,7 @@ window.initAgent = async function (viewer) {
     const ui = initUI();
 
     if (agentConfig.agentMode === "cloud" && !agentConfig.cloud.apiKey) {
-        ui.addMessage(
-            "agent",
-            "错误: Cloud 模式下未配置 API Key，请检查 .env 文件。"
-        );
+        ui.addMessage("agent", "错误:Cloud模式下未配置API-Key,请检查.env文件.");
         return;
     }
 
@@ -39,6 +37,7 @@ window.initAgent = async function (viewer) {
         let llm;
         let currentModelName;
 
+        // 根据智能体模式选择对应语言模型
         if (agentConfig.agentMode === "local") {
             llm = new ChatOllama({
                 baseUrl: agentConfig.local.baseUrl,
@@ -52,6 +51,7 @@ window.initAgent = async function (viewer) {
                 configuration: { baseURL: agentConfig.cloud.baseUrl },
                 model: agentConfig.cloud.modelName,
                 temperature: 0,
+                // 关闭用量统计提高云服务接口兼容
                 streamUsage: false,
             });
             currentModelName = agentConfig.cloud.modelName;
@@ -76,11 +76,13 @@ window.initAgent = async function (viewer) {
             agent,
             tools,
             handleParsingErrors: true,
+            // 限制最大迭代次数防止无限循环
             maxIterations: 5,
         });
 
         ui.clearLoading();
         ui.updateHeader(agentConfig.agentMode);
+        // 聊天窗口欢迎招呼消息
         ui.addMessage(
             "agent",
             `就绪!我是GIS助手(模式:${agentConfig.agentMode},模型:${currentModelName}).`
@@ -89,7 +91,7 @@ window.initAgent = async function (viewer) {
     } catch (error) {
         console.error("Agent初始化失败:", error);
         ui.clearLoading();
-
+        // 检查本地模型连接情况
         if (
             agentConfig.agentMode === "local" &&
             (error.message.includes("fetch") ||
@@ -97,7 +99,7 @@ window.initAgent = async function (viewer) {
         ) {
             ui.addMessage(
                 "agent",
-                `连接Ollama失败.请确保服务已启动(ollama serve).`
+                "连接Ollama失败.请确保服务已启动(ollama serve)."
             );
         } else {
             ui.addMessage("agent", `初始化失败:${error.message}`);
@@ -114,7 +116,7 @@ function defineTools(viewer) {
             keyword: z
                 .string()
                 .describe(
-                    "实体名称关键词(英文,尽可能简短如 'Three Gorges','Miyun','Winnipeg')"
+                    "实体名称关键词(英文,尽可能简短如'Three Gorges','Miyun','Winnipeg')"
                 ),
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
         }),
@@ -125,7 +127,7 @@ function defineTools(viewer) {
     const flyToEntityTool = new DynamicStructuredTool({
         name: "fly_to_entity",
         description:
-            "精确ID定位工具。当上下文中已经知道实体的ID时,必须优先使用此工具进行跳转,而不是重新搜索名称。",
+            "精确ID定位工具.当上下文中已经知道实体的ID时,必须优先使用此工具进行跳转,而不是重新搜索名称.",
         schema: z.object({
             id: z.string().describe("实体唯一ID(格式如'b-12345'或'r-67890')"),
         }),
@@ -148,14 +150,14 @@ function defineTools(viewer) {
         schema: z.object({
             sql: z.string().describe(
                 `
-                    1. 仅生成一条可直接执行的PostgreSQL + PostGIS SELECT语句,并以分号结尾.
-                    2. barrier 表：只能返回 gdw_id、wkb_geometry、dam_type、dam_name,禁止返回其他字段.
-                    3. reservoir 表：只能返回 gdw_id、wkb_geometry、res_name,禁止返回其他字段.
-                    4. 如涉及空间字段，禁止直接返回 wkb 二进制,必须使用:ST_AsGeoJSON(wkb_geometry) AS wkb_geometry
-                    5. SQL 必须基于 M-Schema 已定义的表与字段,不得凭空构造不存在的字段.
-                    6. 禁止生成 UPDATE、DELETE、INSERT 等非查询语句.
-                    7. 查询条件中必须正确处理数据缺失的字段: 表中 varchar 类型字段缺失数据中均采用空字符串来表示
-                    8. M-Schema 定义如下:${M_SCHEMA}
+                    1.仅生成一条可直接执行的PostgreSQL+PostGIS SELECT语句,并以分号结尾.
+                    2.barrier表:只能返回gdw_id、wkb_geometry、dam_type、dam_name,禁止返回其他字段.
+                    3.reservoir表:只能返回gdw_id、wkb_geometry、res_name,禁止返回其他字段.
+                    4.如涉及空间字段,禁止直接返回wkb二进制,必须使用:ST_AsGeoJSON(wkb_geometry) AS wkb_geometry
+                    5.SQL必须基于M-Schema已定义的表与字段,不得凭空构造不存在的字段.
+                    6.禁止生成UPDATE、DELETE、INSERT等非查询语句.
+                    7.查询条件中必须正确处理数据缺失的字段:表中varchar类型字段缺失数据中均采用空字符串来表示.
+                    8.M-Schema定义如下:${M_SCHEMA}
                     `
             ),
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
@@ -168,8 +170,10 @@ function defineTools(viewer) {
         description: "重置地图视角到默认区域.执行即完成.",
         schema: z.object({}),
         func: async () => {
+            // 取消当前选中实体
             viewer.selectedEntity = null;
             viewer.camera.flyTo({
+                // 设置默认视角为中国大陆地区
                 destination: Cesium.Cartesian3.fromDegrees(
                     105.0,
                     35.0,
@@ -206,6 +210,7 @@ function defineTools(viewer) {
 async function searchAndFlyToEntity(viewer, keyword, type) {
     const entities = viewer.entities.values;
 
+    // 遍历本地实体列表查找名称模糊匹配
     const localTarget = entities.find((e) => {
         if (e.properties?.dataType?.getValue() !== type) return false;
         return e.name.includes(keyword);
@@ -243,7 +248,7 @@ async function searchAndFlyToEntity(viewer, keyword, type) {
                 viewer.flyTo(entity, { duration: 1.5 });
                 return `SUCCESS:远程数据库查找到"${entityName}"(ID:${entityId}),已加载并自动定位.`;
             } else {
-                return `ERROR:数据库查找到数据，但实体加载失败(ID:${entityId}).`;
+                return `ERROR:数据库查找到数据,但实体加载失败(ID:${entityId}).`;
             }
         }
 
@@ -270,13 +275,13 @@ async function sqlFilterEntity(viewer, sql, type) {
             }
 
             data.forEach((item) => {
-                if (type === "barrier" && window.loadBarrierEntity) {
+                if (type === "barrier") {
                     window.loadBarrierEntity(viewer, item);
-                } else if (type === "reservoir" && window.loadReservoirEntity) {
+                } else if (type === "reservoir") {
                     window.loadReservoirEntity(viewer, item);
                 }
             });
-
+            // 调整地图相机视角适应所有实体
             viewer.zoomTo(viewer.entities);
 
             return `SUCCESS:查询成功!已筛选${data.length}个符合条件的${type}实体.`;
@@ -290,9 +295,10 @@ async function sqlFilterEntity(viewer, sql, type) {
 
 function bindEvents(ui) {
     const handleSend = async () => {
+        // 裁切输入文本中多余空白
         const text = ui.input.value.trim();
         if (!text || ui.sendBtn.disabled) return;
-
+        // 消息发送期间禁用发送按钮
         ui.sendBtn.disabled = true;
         ui.sendBtn.style.opacity = "0.6";
 
@@ -306,9 +312,10 @@ function bindEvents(ui) {
 
             const result = await agentExecutor.invoke({
                 input: text,
+                // 传递对话记录供模型上下文参考
                 chat_history: chatHistory,
             });
-
+            // 更新聊天历史对话记录
             chatHistory.push(new HumanMessage(text));
             chatHistory.push(new AIMessage(result.output));
 
@@ -316,7 +323,7 @@ function bindEvents(ui) {
             if (chatHistory.length > 10) {
                 chatHistory = chatHistory.slice(chatHistory.length - 10);
             }
-
+            // 更新智能体回复内容替换思考提示
             ui.updateMessage(loadingId, result.output);
         } catch (e) {
             console.error(e);
@@ -328,6 +335,7 @@ function bindEvents(ui) {
         }
     };
 
+    // 发送按钮与回车按键绑定消息发送
     ui.sendBtn.onclick = handleSend;
     ui.input.onkeypress = (e) => e.key === "Enter" && handleSend();
 }

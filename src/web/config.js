@@ -1,4 +1,4 @@
-export const FIELD_MAPPING = {
+export const FIELD_MAP = {
     barrier: {
         ogcFid: "系统主键",
         objectid: "原始对象ID",
@@ -151,6 +151,18 @@ export const FIELD_MAPPING = {
         shapeArea: "形状面积",
     },
 };
+
+export const IGNORE_FIELD = new Set([
+    "ogcFid",
+    "objectid",
+    "gdwId",
+    "wkbGeometry",
+    "geojson",
+    "grandId",
+    "hyrivId",
+    "hylakId",
+    "hybasL12",
+]);
 
 export const API_ENDPOINT = {
     position: {
