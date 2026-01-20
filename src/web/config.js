@@ -221,7 +221,7 @@ export const SYSTEM_PROMPT = `
 - 重新加载数据 -> 使用 \`reload_all_entities\`
 `;
 
-export const M_SCHEMA = `
+const M_SCHEMA = `
 # Table: public.gdw_barrier
 [
 (ogc_fid:INTEGER, Primary Key, Examples: [1, 2, 3]),
@@ -379,4 +379,15 @@ export const M_SCHEMA = `
 (shape_length:DOUBLE PRECISION, Examples: [0.08588079250678, 0.0424254338660635, 0.0193721577721688]),
 (shape_area:DOUBLE PRECISION, Examples: [0.00018992758547819, 4.60430052748586e-05, 1.7304645538329e-05])
 ]
+`;
+
+export const SQL_PROMPT = `
+1.仅生成一条可直接执行的PostgreSQL+PostGIS SELECT语句,并以分号结尾.
+2.barrier表:只能返回gdw_id、wkb_geometry、dam_type、dam_name,禁止返回其他字段.
+3.reservoir表:只能返回gdw_id、wkb_geometry、res_name,禁止返回其他字段.
+4.如涉及空间字段,禁止直接返回wkb二进制,必须使用:ST_AsGeoJSON(wkb_geometry) AS wkb_geometry
+5.SQL必须基于M-Schema已定义的表与字段,不得凭空构造不存在的字段.
+6.禁止生成UPDATE、DELETE、INSERT等非查询语句.
+7.查询条件中必须正确处理数据缺失的字段:表中varchar类型字段缺失数据中均采用空字符串来表示.
+8.M-Schema定义如下:${M_SCHEMA}
 `;

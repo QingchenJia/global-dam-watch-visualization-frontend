@@ -31,7 +31,6 @@ window.onload = function () {
     // 对外暴露实体加载和解析函数
     window.loadBarrierEntity = loadBarrierEntity;
     window.loadReservoirEntity = loadReservoirEntity;
-    window.parseGeometry = parseGeometry;
     window.showLightBarrier = showLightBarrier;
     window.showLightReservoir = showLightReservoir;
 };
@@ -63,8 +62,10 @@ function initJumpButton(viewer) {
 }
 
 function showDescription(viewer) {
+    // 监听实体选中变化事件
     viewer.selectedEntityChanged.addEventListener(function (entity) {
         if (entity) {
+            // 显示加载中提示
             entity.description =
                 '<div style="padding:10px;">正在从服务器获取详细数据...</div>';
 
@@ -77,6 +78,7 @@ function showDescription(viewer) {
                 const type = entity.properties.dataType.getValue();
                 queryDescription(entity, id, type);
             } else {
+                // 无法获取实体详细数据时的提示
                 entity.description =
                     '<div style="padding:10px;">暂无详细数据</div>';
             }
@@ -94,9 +96,10 @@ function queryDescription(entity, id, type) {
             if (res.data.code === 1) {
                 const entireInfo = res.data.data;
 
+                // 侧边详情栏内容生成并赋值
                 entity.description = generateDescriptionForm(
                     entireInfo,
-                    mapping
+                    mapping,
                 );
             } else {
                 entity.description = `<div style="color:red; padding:10px;">获取数据失败:${res.data.message}</div>`;
@@ -251,7 +254,7 @@ function parseGeometry(rawGeometry) {
             // 取每个多边形的第一个环作为外环
             const hierarchies = polygons.map((polygonRings) => {
                 return new Cesium.PolygonHierarchy(
-                    Cesium.Cartesian3.fromDegreesArray(polygonRings[0].flat())
+                    Cesium.Cartesian3.fromDegreesArray(polygonRings[0].flat()),
                 );
             });
 

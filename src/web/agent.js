@@ -6,7 +6,7 @@ import { DynamicStructuredTool } from "@langchain/core/tools";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
-import { API_ENDPOINT, SYSTEM_PROMPT, M_SCHEMA } from "./config";
+import { API_ENDPOINT, SYSTEM_PROMPT, SQL_PROMPT } from "./config";
 
 const agentConfig = {
     // 加载环境变量配置智能体模式
@@ -26,6 +26,7 @@ let agentExecutor = null;
 let chatHistory = [];
 
 window.initAgent = async function (viewer) {
+    // 初始化聊天对话框界面
     const ui = initUI();
 
     if (agentConfig.agentMode === "cloud" && !agentConfig.cloud.apiKey) {
@@ -39,6 +40,7 @@ window.initAgent = async function (viewer) {
 
         // 根据智能体模式选择对应语言模型
         if (agentConfig.agentMode === "local") {
+            // 本地部署模型
             llm = new ChatOllama({
                 baseUrl: agentConfig.local.baseUrl,
                 model: agentConfig.local.modelName,
@@ -46,6 +48,7 @@ window.initAgent = async function (viewer) {
             });
             currentModelName = agentConfig.local.modelName;
         } else if (agentConfig.agentMode === "cloud") {
+            // 云服务远程调用模型
             llm = new ChatOpenAI({
                 apiKey: agentConfig.cloud.apiKey,
                 configuration: { baseURL: agentConfig.cloud.baseUrl },
@@ -75,6 +78,7 @@ window.initAgent = async function (viewer) {
         agentExecutor = new AgentExecutor({
             agent,
             tools,
+            // 开启解析错误处理
             handleParsingErrors: true,
             // 限制最大迭代次数防止无限循环
             maxIterations: 5,
@@ -85,7 +89,7 @@ window.initAgent = async function (viewer) {
         // 聊天窗口欢迎招呼消息
         ui.addMessage(
             "agent",
-            `就绪!我是GIS助手(模式:${agentConfig.agentMode},模型:${currentModelName}).`
+            `就绪!我是GIS助手(模式:${agentConfig.agentMode},模型:${currentModelName}).`,
         );
         bindEvents(ui);
     } catch (error) {
@@ -97,9 +101,10 @@ window.initAgent = async function (viewer) {
             (error.message.includes("fetch") ||
                 error.message.includes("network"))
         ) {
+            // 连接本地模型失败提示
             ui.addMessage(
                 "agent",
-                "连接Ollama失败.请确保服务已启动(ollama serve)."
+                "连接Ollama失败.请确保服务已启动(ollama serve).",
             );
         } else {
             ui.addMessage("agent", `初始化失败:${error.message}`);
@@ -116,8 +121,9 @@ function defineTools(viewer) {
             keyword: z
                 .string()
                 .describe(
-                    "实体名称关键词(英文,尽可能简短如'Three Gorges','Miyun','Winnipeg')"
+                    "实体名称关键词(英文,尽可能简短如'Three Gorges','Miyun','Winnipeg')",
                 ),
+            // 限定实体数据类型
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
         }),
         func: async ({ keyword, type }) =>
@@ -148,18 +154,7 @@ function defineTools(viewer) {
         description:
             "高级过滤工具.根据SQL条件筛选实体.适用于'大于'、'小于'、'筛选'等批量查询场景.",
         schema: z.object({
-            sql: z.string().describe(
-                `
-                    1.仅生成一条可直接执行的PostgreSQL+PostGIS SELECT语句,并以分号结尾.
-                    2.barrier表:只能返回gdw_id、wkb_geometry、dam_type、dam_name,禁止返回其他字段.
-                    3.reservoir表:只能返回gdw_id、wkb_geometry、res_name,禁止返回其他字段.
-                    4.如涉及空间字段,禁止直接返回wkb二进制,必须使用:ST_AsGeoJSON(wkb_geometry) AS wkb_geometry
-                    5.SQL必须基于M-Schema已定义的表与字段,不得凭空构造不存在的字段.
-                    6.禁止生成UPDATE、DELETE、INSERT等非查询语句.
-                    7.查询条件中必须正确处理数据缺失的字段:表中varchar类型字段缺失数据中均采用空字符串来表示.
-                    8.M-Schema定义如下:${M_SCHEMA}
-                    `
-            ),
+            sql: z.string().describe(`${SQL_PROMPT}`),
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
         }),
         func: async ({ sql, type }) => sqlFilterEntity(viewer, sql, type),
@@ -168,6 +163,7 @@ function defineTools(viewer) {
     const resetViewTool = new DynamicStructuredTool({
         name: "reset_view",
         description: "重置地图视角到默认区域.执行即完成.",
+        // 无输入参数
         schema: z.object({}),
         func: async () => {
             // 取消当前选中实体
@@ -177,7 +173,7 @@ function defineTools(viewer) {
                 destination: Cesium.Cartesian3.fromDegrees(
                     105.0,
                     35.0,
-                    20000000
+                    20000000,
                 ),
                 duration: 1.5,
             });
@@ -188,6 +184,7 @@ function defineTools(viewer) {
     const reloadAllEntitiesTool = new DynamicStructuredTool({
         name: "reload_all_entities",
         description: "重新加载全部实体数据.执行即完成.",
+        // 无输入参数
         schema: z.object({}),
         func: async () => {
             // 重新渲染前先移除所有实体
@@ -270,8 +267,9 @@ async function sqlFilterEntity(viewer, sql, type) {
 
         if (res.data.code === 1 && Array.isArray(res.data.data)) {
             const data = res.data.data;
+            // 符合查询条件的实体确实不存在
             if (data.length === 0) {
-                return "查询成功,但未找到符合条件的实体.";
+                return "SUCCESS:查询成功,但未找到符合条件的实体.";
             }
 
             data.forEach((item) => {
@@ -286,7 +284,7 @@ async function sqlFilterEntity(viewer, sql, type) {
 
             return `SUCCESS:查询成功!已筛选${data.length}个符合条件的${type}实体.`;
         } else {
-            return `ERROR:查询失败:${res.data.message || "未知错误"}`;
+            return `ERROR:查询失败:${res.data.message || "未知错误"}.`;
         }
     } catch (error) {
         return `ERROR:查询出错:${error.message}`;
@@ -367,6 +365,7 @@ function initUI() {
         toggleBtn: toggleBtn,
         titleSpan: titleSpan,
 
+        // 同步更新标题栏显示智能体模式
         updateHeader: (mode) => {
             titleSpan.textContent = `🦜🔗 GIS Agent(${mode})`;
         },
@@ -394,6 +393,7 @@ function initUI() {
 
         updateMessage: (id, text) => {
             if (!id) return;
+            // 更新指定消息的内容
             const msgDiv = document.getElementById(id);
             if (msgDiv) {
                 msgDiv.innerHTML = text.replace(/\n/g, "<br>");
