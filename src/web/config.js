@@ -215,10 +215,6 @@ export const SYSTEM_PROMPT = `
 - 调用 \`sql_filter_entity\`.
 - 根据表结构构造 SQL 条件语句.
 - 注意单位换算.
-
-## 其他工具指南
-- 重置/复位 -> 使用 \`reset_view\`
-- 重新加载数据 -> 使用 \`reload_all_entities\`
 `;
 
 const M_SCHEMA = `

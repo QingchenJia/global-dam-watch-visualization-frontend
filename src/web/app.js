@@ -20,8 +20,11 @@ window.onload = function () {
 
     // 设置实体循环跳转
     initJumpButton(viewer);
+    // 设置实体重新加载
+    initReloadButton(viewer);
     // 初始化智能体功能
     initAgent(viewer);
+
     // 绑定单击实体侧边详情栏显示
     showDescription(viewer);
     // 加载并显示大坝和水库实体
@@ -58,6 +61,23 @@ function initJumpButton(viewer) {
 
         viewer.selectedEntity = targetEntity;
         viewer.flyTo(targetEntity, { duration: 1.5 });
+    });
+}
+
+function initReloadButton(viewer) {
+    const reloadBtn = document.getElementById("reload-button");
+
+    if (!reloadBtn) {
+        console.warn("Reload button element (#reload-button) not found");
+        return;
+    }
+
+    reloadBtn.addEventListener("click", () => {
+        // 移除当前渲染到三维地球上的所有实体
+        viewer.entities.removeAll();
+
+        showLightBarrier(viewer);
+        showLightReservoir(viewer);
     });
 }
 

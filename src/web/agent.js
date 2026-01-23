@@ -160,48 +160,7 @@ function defineTools(viewer) {
         func: async ({ sql, type }) => sqlFilterEntity(viewer, sql, type),
     });
 
-    const resetViewTool = new DynamicStructuredTool({
-        name: "reset_view",
-        description: "重置地图视角到默认区域.执行即完成.",
-        // 无输入参数
-        schema: z.object({}),
-        func: async () => {
-            // 取消当前选中实体
-            viewer.selectedEntity = null;
-            viewer.camera.flyTo({
-                // 设置默认视角为中国大陆地区
-                destination: Cesium.Cartesian3.fromDegrees(
-                    105.0,
-                    35.0,
-                    20000000,
-                ),
-                duration: 1.5,
-            });
-            return "SUCCESS:地图视角已重置到默认区域.";
-        },
-    });
-
-    const reloadAllEntitiesTool = new DynamicStructuredTool({
-        name: "reload_all_entities",
-        description: "重新加载全部实体数据.执行即完成.",
-        // 无输入参数
-        schema: z.object({}),
-        func: async () => {
-            // 重新渲染前先移除所有实体
-            viewer.entities.removeAll();
-            window.showLightBarrier(viewer);
-            window.showLightReservoir(viewer);
-            return "SUCCESS:全部实体数据已重新加载.";
-        },
-    });
-
-    return [
-        searchAndFlyTool,
-        flyToEntityTool,
-        sqlFilterEntityTool,
-        resetViewTool,
-        reloadAllEntitiesTool,
-    ];
+    return [searchAndFlyTool, flyToEntityTool, sqlFilterEntityTool];
 }
 
 async function searchAndFlyToEntity(viewer, keyword, type) {
