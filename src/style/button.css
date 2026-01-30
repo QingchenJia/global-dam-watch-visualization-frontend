@@ -1,35 +1,7 @@
-.custom-jump-button {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 999;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    background-color: rgba(42, 42, 42, 0.9);
-    border-radius: 4px;
-    border: 1px solid #444;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-    transition: background-color 0.2s;
-}
-
-.custom-jump-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.custom-jump-button svg {
-    width: 20px;
-    height: 20px;
-    fill: #edffff;
-}
-
 .custom-reload-button {
     position: absolute;
     top: 10px;
-    left: 52px;
+    left: 10px;
     z-index: 999;
     width: 32px;
     height: 32px;
@@ -49,6 +21,62 @@
 }
 
 .custom-reload-button svg {
+    width: 20px;
+    height: 20px;
+    fill: #edffff;
+}
+
+.custom-reset-button {
+    position: absolute;
+    top: 10px;
+    left: 52px;
+    z-index: 999;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: rgba(42, 42, 42, 0.9);
+    border-radius: 4px;
+    border: 1px solid #444;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    transition: background-color 0.2s;
+}
+
+.custom-reset-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.custom-reset-button svg {
+    width: 20px;
+    height: 20px;
+    fill: #edffff;
+}
+
+.custom-jump-button {
+    position: absolute;
+    top: 10px;
+    left: 94px;
+    z-index: 999;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: rgba(42, 42, 42, 0.9);
+    border-radius: 4px;
+    border: 1px solid #444;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    transition: background-color 0.2s;
+}
+
+.custom-jump-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.custom-jump-button svg {
     width: 20px;
     height: 20px;
     fill: #edffff;

@@ -18,25 +18,35 @@ window.onload = function () {
     // 隐藏开源三维地球版权信息
     viewer._cesiumWidget._creditContainer.style.display = "none";
 
+    // 初始化窗口交互功能
+    initWindowFunc(viewer);
+    // 对外暴露实体加载和解析函数
+    bindWindowFunc(viewer);
+
+    // 加载并显示大坝和水库实体
+    showLightBarrier(viewer);
+    showLightReservoir(viewer);
+};
+
+function initWindowFunc(viewer) {
     // 设置实体循环跳转
     initJumpButton(viewer);
     // 设置实体重新加载
     initReloadButton(viewer);
+    // 设置视角重置
+    initResetViewButton(viewer);
     // 初始化智能体功能
     initAgent(viewer);
-
     // 绑定单击实体侧边详情栏显示
-    showDescription(viewer);
-    // 加载并显示大坝和水库实体
-    showLightBarrier(viewer);
-    showLightReservoir(viewer);
+    entitySelectedEvent(viewer);
+}
 
-    // 对外暴露实体加载和解析函数
+function bindWindowFunc(viewer) {
     window.loadBarrierEntity = loadBarrierEntity;
     window.loadReservoirEntity = loadReservoirEntity;
     window.showLightBarrier = showLightBarrier;
     window.showLightReservoir = showLightReservoir;
-};
+}
 
 let currentEntityIndex = -1;
 
@@ -81,7 +91,27 @@ function initReloadButton(viewer) {
     });
 }
 
-function showDescription(viewer) {
+function initResetViewButton(viewer) {
+    const resetBtn = document.getElementById("reset-view-button");
+
+    if (!resetBtn) {
+        console.warn("Reset button element (#reset-view-button) not found");
+        return;
+    }
+
+    resetBtn.addEventListener("click", () => {
+        // 取消当前的实体选中状态
+        viewer.selectedEntity = null;
+        // 调整视角至自定义初始位置
+        viewer.camera.flyTo({
+            // 设置初始视角位置为中国上空
+            destination: Cesium.Cartesian3.fromDegrees(105.0, 35.0, 20000000),
+            duration: 1.5,
+        });
+    });
+}
+
+function entitySelectedEvent(viewer) {
     // 监听实体选中变化事件
     viewer.selectedEntityChanged.addEventListener(function (entity) {
         if (entity) {
@@ -291,9 +321,14 @@ function parseGeometry(rawGeometry) {
 function generateDescriptionForm(data, mapping) {
     let html = '<table class="cesium-infoBox-defaultTable"><tbody>';
     for (const key in data) {
-        // 侧边详情栏过滤非必要字段
+        // 侧边详情栏过滤非必要与空值字段
         const ignoreField = IGNORE_FIELD;
-        if (ignoreField.has(key)) continue;
+        if (
+            ignoreField.has(key) ||
+            data[key] === null ||
+            data[key] === undefined
+        )
+            continue;
 
         const label = mapping && mapping[key] ? mapping[key] : key;
         html += `<tr><th>${label}</th><td>${data[key]}</td></tr>`;
