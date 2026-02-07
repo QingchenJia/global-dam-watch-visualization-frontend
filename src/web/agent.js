@@ -133,18 +133,18 @@ function defineTools(viewer) {
     const flyToEntityTool = new DynamicStructuredTool({
         name: "fly_to_entity",
         description:
-            "精确ID定位工具.当上下文中已经知道实体的ID时,必须优先使用此工具进行跳转,而不是重新搜索名称.",
+            "精确id定位工具.当上下文中已经知道实体的id时,必须优先使用此工具进行跳转,而不是重新搜索名称.",
         schema: z.object({
-            id: z.string().describe("实体唯一ID(格式如'b-12345'或'r-67890')"),
+            id: z.string().describe("实体唯一id(格式如'b-12345'或'r-67890')"),
         }),
         func: async ({ id }) => {
             const entity = viewer.entities.getById(id);
             if (entity) {
                 viewer.selectedEntity = entity;
                 viewer.flyTo(entity, { duration: 1.5 });
-                return `SUCCESS:已定位到实体"${entity.name}"(ID:${id}),视角已自动调整.`;
+                return `SUCCESS:已定位到实体"${entity.name}"(id:${id}),视角已自动调整.`;
             } else {
-                return `ERROR:不存在当前实体(ID:${id}).`;
+                return `ERROR:不存在当前实体(id:${id}).`;
             }
         },
     });
@@ -175,7 +175,7 @@ async function searchAndFlyToEntity(viewer, keyword, type) {
     if (localTarget) {
         viewer.selectedEntity = localTarget;
         viewer.flyTo(localTarget, { duration: 1.5 });
-        return `SUCCESS:本地已找到实体"${localTarget.name}"(ID:${localTarget.id}),视角已自动定位.`;
+        return `SUCCESS:本地已找到实体"${localTarget.name}"(id:${localTarget.id}),视角已自动定位.`;
     }
 
     try {
@@ -202,9 +202,9 @@ async function searchAndFlyToEntity(viewer, keyword, type) {
             if (entity) {
                 viewer.selectedEntity = entity;
                 viewer.flyTo(entity, { duration: 1.5 });
-                return `SUCCESS:远程数据库查找到"${entityName}"(ID:${entityId}),已加载并自动定位.`;
+                return `SUCCESS:远程数据库查找到"${entityName}"(id:${entityId}),已加载并自动定位.`;
             } else {
-                return `ERROR:数据库查找到数据,但实体加载失败(ID:${entityId}).`;
+                return `ERROR:数据库查找到数据,但实体加载失败(id:${entityId}).`;
             }
         }
 

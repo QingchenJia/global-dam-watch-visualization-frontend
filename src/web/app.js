@@ -10,6 +10,11 @@ window.onload = function () {
         infoBox: true,
         selectionIndicator: true,
         baseLayerPicker: true,
+        // 设置默认底图为ArcGIS影像图
+        selectedImageryProviderViewModel:
+            Cesium.createDefaultImageryProviderViewModels().find(
+                (viewModel) => viewModel.name === "ArcGIS World Imagery",
+            ),
         navigationHelpButton: false,
         homeButton: true,
         geocoder: true,
@@ -21,7 +26,7 @@ window.onload = function () {
     // 初始化窗口交互功能
     initWindowFunc(viewer);
     // 对外暴露实体加载和解析函数
-    bindWindowFunc(viewer);
+    bindWindowFunc();
 
     // 加载并显示大坝和水库实体
     showLightBarrier(viewer);
@@ -41,7 +46,7 @@ function initWindowFunc(viewer) {
     entitySelectedEvent(viewer);
 }
 
-function bindWindowFunc(viewer) {
+function bindWindowFunc() {
     window.loadBarrierEntity = loadBarrierEntity;
     window.loadReservoirEntity = loadReservoirEntity;
     window.showLightBarrier = showLightBarrier;
@@ -223,7 +228,7 @@ function loadBarrierEntity(viewer, item) {
     }
 
     viewer.entities.add({
-        // 显式定义大坝唯一标志
+        // 显式定义大坝id
         id: "b-" + gdwId,
         name: name,
         position: position,
@@ -254,7 +259,7 @@ function loadReservoirEntity(viewer, item) {
         const hierarchy = hierarchies[0];
 
         viewer.entities.add({
-            // 显式定义水库唯一标志
+            // 显式定义水库id
             id: "r-" + gdwId,
             name: name,
             // 存储水库关键属性
@@ -282,7 +287,7 @@ function parseGeometry(rawGeometry) {
     if (typeof geometry === "string") {
         try {
             if (geometry.trim().startsWith("{")) {
-                // 地理位置信息字符串转换为对象格式
+                // 地理位置信息字符串转换为json格式
                 geometry = JSON.parse(geometry);
             } else {
                 return null;
@@ -326,7 +331,9 @@ function generateDescriptionForm(data, mapping) {
         if (
             ignoreField.has(key) ||
             data[key] === null ||
-            data[key] === undefined
+            data[key] === -99 ||
+            data[key] === "" ||
+            data[key] === " "
         )
             continue;
 
