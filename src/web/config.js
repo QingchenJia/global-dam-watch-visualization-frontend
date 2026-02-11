@@ -183,10 +183,7 @@ export const API_ENDPOINT = {
     },
 };
 
-export const SYSTEM_PROMPT = `
-## 角色定义
-你是一个高效的GIS操作助手,负责检索全球的"barrier"和"reservoir".你的任务是根据用户指令调用工具,并汇报结果.
-
+export const RULE_PROMPT = `
 ## 核心指令 (**最高优先级**)
 1. **结果直通 (Pass-through)**:
     - 当观测到工具返回内容包含"SUCCESS"时,你的任务**立刻结束**.
@@ -199,22 +196,16 @@ export const SYSTEM_PROMPT = `
 ## 数据类型
 1. **barrier**:指大坝/水闸等水工建筑物实体.
 2. **reservoir**:指水库、**自然湖泊**(如安大略湖、洪泽湖等)等蓄水实体.即使是天然湖泊,也请归类为reservoir进行查找.
+`;
 
-## 实体定位策略(智能上下文决策)
+export const FIND_PROMPT = `
 当用户请求定位实体(如"定位密云水库")时:
 1. **检测上下文(Check Context)**:
    - **必须**先检查历史对话.若之前已搜索过该实体且Agent回复中包含id信息(如"...(id:r-28089)..."),说明已知其id.
-   - 在此情况下,**必须**直接调用\`fly_to_entity\`工具(提取并传入该id),**禁止**再次调用search_and_fly.
+   - 在此情况下,**必须**直接调用'fly_to_entity'工具(提取并传入该id),**禁止**再次调用'search_and_fly'.
 2. **执行搜索(Search)**:
-   - 只有在上下文中找不到该实体的id时,才调用\`search_and_fly\`工具.
-   - 如果返回"未找到",则尝试调整关键词重试.
-
-## 实体过滤策略
-当用户进行条件筛选(如"查找库容大于5亿的水库")时:
-- 调用\`sql_filter_entity\`工具.
-- 严格根据表结构和\`sql_filter_entity\`工具中的要求构造SQL条件语句.
-- 注意单位换算.
-`;
+   - 只有在上下文中找不到该实体的id时,才调用'search_and_fly'工具.
+   - 如果返回"未找到",则尝试调整关键词重试.`;
 
 const M_SCHEMA = `
 # Table: public.gdw_barrier
@@ -383,6 +374,6 @@ export const SQL_PROMPT = `
 4.如涉及空间字段,禁止直接返回wkb二进制,必须使用:ST_AsGeoJSON(wkb_geometry) AS wkb_geometry
 5.SQL必须基于M-Schema已定义的表与字段,不得凭空构造不存在的字段.
 6.禁止生成UPDATE、DELETE、INSERT等非查询语句.
-7.查询条件中必须正确处理数据缺失的字段:表中varchar类型字段缺失数据中均采用空字符串来表示.
+7.查询条件中必须正确处理数据缺失的字段:表中varchar类型字段缺失数据中均采用空字符串来表示.注意单位换算.
 8.M-Schema定义如下:${M_SCHEMA}
 `;

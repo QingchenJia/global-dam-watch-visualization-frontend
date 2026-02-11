@@ -3,12 +3,16 @@ import z from "zod";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatOllama } from "@langchain/ollama";
 import { DynamicStructuredTool } from "@langchain/core/tools";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+import {
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+} from "@langchain/core/prompts";
+import { StringOutputParser } from "@langchain/core/output_parsers";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
-import { API_ENDPOINT, SYSTEM_PROMPT, SQL_PROMPT } from "./config";
+import { API_ENDPOINT, RULE_PROMPT, FIND_PROMPT, SQL_PROMPT } from "./config";
 
-const agentConfig = {
+const llmConfig = {
     // 加载环境变量配置智能体模式
     agentMode: import.meta.env.VITE_AGENT_MODE,
     cloud: {
@@ -20,77 +24,52 @@ const agentConfig = {
         baseUrl: import.meta.env.VITE_OLLAMA_BASE_URL,
         modelName: import.meta.env.VITE_OLLAMA_MODEL_NAME,
     },
+    chat: {
+        baseUrl: import.meta.env.VITE_CHAT_BASE_URL,
+        apiKey: import.meta.env.VITE_CHAT_API_KEY,
+        modelName: import.meta.env.VITE_CHAT_MODEL_NAME,
+    },
 };
 
-let agentExecutor = null;
+// 定义不同任务职责的智能体执行器
+let agentExecutors = {
+    position: null,
+    filter: null,
+    chat: null,
+    router: null,
+};
 let chatHistory = [];
 
 window.initAgent = async function (viewer) {
     // 初始化聊天对话框界面
     const ui = initUI();
 
-    if (agentConfig.agentMode === "cloud" && !agentConfig.cloud.apiKey) {
-        ui.addMessage("agent", "错误:Cloud模式下未配置API-Key,请检查.env文件.");
+    if (llmConfig.agentMode === "cloud" && !llmConfig.cloud.apiKey) {
+        ui.addMessage("agent", "错误:Cloud模式下未配置API key,请检查.env文件.");
         return;
     }
 
     try {
-        let llm;
-        let currentModelName;
-
-        // 根据智能体模式选择对应语言模型
-        if (agentConfig.agentMode === "local") {
-            // 本地部署模型
-            llm = new ChatOllama({
-                baseUrl: agentConfig.local.baseUrl,
-                model: agentConfig.local.modelName,
-                temperature: 0,
-                keepAlive: "15m",
-            });
-            currentModelName = agentConfig.local.modelName;
-        } else if (agentConfig.agentMode === "cloud") {
-            // 云服务远程调用模型
-            llm = new ChatOpenAI({
-                apiKey: agentConfig.cloud.apiKey,
-                configuration: { baseURL: agentConfig.cloud.baseUrl },
-                model: agentConfig.cloud.modelName,
-                temperature: 0,
-                // 关闭用量统计提高云服务接口兼容
-                streamUsage: false,
-            });
-            currentModelName = agentConfig.cloud.modelName;
-        }
-
-        const tools = defineTools(viewer);
-
-        const prompt = ChatPromptTemplate.fromMessages([
-            ["system", `${SYSTEM_PROMPT}`],
-            ["placeholder", "{chat_history}"],
-            ["human", "{input}"],
-            ["placeholder", "{agent_scratchpad}"],
-        ]);
-
-        const agent = createToolCallingAgent({
+        // 定义大语言模型与聊天模型
+        const { llm, chatLlm, currentModelName } = defineLlm();
+        // 初始化定义智能体所需的工具
+        const [searchAndFlyTool, flyToEntityTool, sqlFilterEntityTool] =
+            defineTools(viewer);
+        // 定义不同任务职责的智能体
+        defineAgent(
             llm,
-            tools,
-            prompt,
-        });
-
-        agentExecutor = new AgentExecutor({
-            agent,
-            tools,
-            // 开启解析错误处理
-            handleParsingErrors: true,
-            // 限制最大迭代次数防止无限循环
-            maxIterations: 5,
-        });
+            chatLlm,
+            searchAndFlyTool,
+            flyToEntityTool,
+            sqlFilterEntityTool,
+        );
 
         ui.clearLoading();
-        ui.updateHeader(agentConfig.agentMode);
+        ui.updateHeader(llmConfig.agentMode);
         // 聊天窗口欢迎招呼消息
         ui.addMessage(
             "agent",
-            `就绪!我是GIS助手(模式:${agentConfig.agentMode},模型:${currentModelName}).`,
+            `就绪!我是GIS助手(Hybrid Router架构,模型:${currentModelName}).`,
         );
         bindEvents(ui);
     } catch (error) {
@@ -98,7 +77,7 @@ window.initAgent = async function (viewer) {
         ui.clearLoading();
         // 检查本地模型连接情况
         if (
-            agentConfig.agentMode === "local" &&
+            llmConfig.agentMode === "local" &&
             (error.message.includes("fetch") ||
                 error.message.includes("network"))
         ) {
@@ -112,6 +91,127 @@ window.initAgent = async function (viewer) {
         }
     }
 };
+
+function defineLlm() {
+    let llm;
+    let currentModelName;
+
+    // 根据智能体模式选择对应语言模型
+    if (llmConfig.agentMode === "local") {
+        // 本地部署模型
+        llm = new ChatOllama({
+            baseUrl: llmConfig.local.baseUrl,
+            model: llmConfig.local.modelName,
+            temperature: 0,
+            keepAlive: "15m",
+        });
+        currentModelName = llmConfig.local.modelName;
+    } else if (llmConfig.agentMode === "cloud") {
+        // 云服务远程调用模型
+        llm = new ChatOpenAI({
+            apiKey: llmConfig.cloud.apiKey,
+            configuration: { baseURL: llmConfig.cloud.baseUrl },
+            model: llmConfig.cloud.modelName,
+            temperature: 0,
+            // 关闭用量统计提高云服务接口兼容
+            streamUsage: false,
+        });
+        currentModelName = llmConfig.cloud.modelName;
+    }
+
+    const chatLlm = new ChatOpenAI({
+        apiKey: llmConfig.chat.apiKey,
+        configuration: { baseURL: llmConfig.chat.baseUrl },
+        model: llmConfig.chat.modelName,
+    });
+
+    return { llm, chatLlm, currentModelName };
+}
+
+function defineAgent(
+    llm,
+    chatLlm,
+    searchAndFlyTool,
+    flyToEntityTool,
+    sqlFilterEntityTool,
+) {
+    agentExecutors.router = {
+        invoke: async ({ input }) => {
+            const text = input.trim();
+
+            const positionRegex = /(定位|搜索|寻找|查一下|去|哪里|位置|坐标)/i;
+            if (positionRegex.test(text)) {
+                return "POSITION";
+            }
+            const filterRegex =
+                /(筛选|过滤|大于|小于|等于|最[大高低深浅长多少]|(列|查|找|显示)(出|一下)?(所有|全部)|统计|数量|多少|列表)/i;
+            if (filterRegex.test(text)) {
+                return "FILTER";
+            }
+
+            return "CHAT";
+        },
+    };
+
+    const positionPrompt = ChatPromptTemplate.fromMessages([
+        [
+            "system",
+            `你负责**实体定位**任务.请使用'search_and_fly'或'fly_to_entity'工具来响应用户.${RULE_PROMPT}${FIND_PROMPT}`,
+        ],
+        new MessagesPlaceholder("chat_history"),
+        ["human", "{input}"],
+        new MessagesPlaceholder("agent_scratchpad"),
+    ]);
+    const positionAgent = createToolCallingAgent({
+        llm: llm,
+        tools: [searchAndFlyTool, flyToEntityTool],
+        prompt: positionPrompt,
+    });
+    // 定义实体定位智能体执行器
+    agentExecutors.position = new AgentExecutor({
+        agent: positionAgent,
+        tools: [searchAndFlyTool, flyToEntityTool],
+        handleParsingErrors: true,
+    });
+
+    const filterPrompt = ChatPromptTemplate.fromMessages([
+        [
+            "system",
+            `你负责**条件筛选**任务.你的核心能力是将用户的自然语言转换为PostGIS SQL语句.${RULE_PROMPT}${SQL_PROMPT}`,
+        ],
+        new MessagesPlaceholder("chat_history"),
+        ["human", "{input}"],
+        new MessagesPlaceholder("agent_scratchpad"),
+    ]);
+    const filterAgent = createToolCallingAgent({
+        llm: llm,
+        tools: [sqlFilterEntityTool],
+        prompt: filterPrompt,
+    });
+    // 定义条件筛选智能体执行器
+    agentExecutors.filter = new AgentExecutor({
+        agent: filterAgent,
+        tools: [sqlFilterEntityTool],
+        handleParsingErrors: true,
+    });
+
+    const chatPrompt = ChatPromptTemplate.fromMessages([
+        [
+            "system",
+            "你是一个友好的GIS助手.请用简练专业的语言回答用户的普通闲聊问题.",
+        ],
+        new MessagesPlaceholder("chat_history"),
+        ["human", "{input}"],
+    ]);
+    // 定义普通聊天智能体执行器
+    agentExecutors.chat = chatPrompt
+        .pipe(chatLlm)
+        .pipe(new StringOutputParser())
+        .pipe((text) => {
+            // 移除markdown符号仅保留文本和基本标点
+            return text ? text.replace(/[*#`_~>]/g, "") : "";
+        });
+}
 
 function defineTools(viewer) {
     const searchAndFlyTool = new DynamicStructuredTool({
@@ -153,9 +253,9 @@ function defineTools(viewer) {
     const sqlFilterEntityTool = new DynamicStructuredTool({
         name: "sql_filter_entity",
         description:
-            "高级过滤工具.根据SQL条件筛选实体.适用于'大于'、'小于'、'筛选'等批量查询场景.",
+            "高级过滤工具.根据生成的SQL执行查询.注意:调用此工具前必须确保SQL语句符合Schema定义.",
         schema: z.object({
-            sql: z.string().describe(`${SQL_PROMPT}`),
+            sql: z.string().describe("符合SQL_PROMPT要求的PostgreSQL查询语句"),
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
         }),
         func: async ({ sql, type }) => sqlFilterEntity(viewer, sql, type),
@@ -263,19 +363,47 @@ function bindEvents(ui) {
         ui.addMessage("user", text);
         ui.input.value = "";
 
-        const loadingId = ui.addMessage("agent", "思考中...", true);
-
         try {
-            if (!agentExecutor) throw new Error("Agent未初始化");
+            if (!agentExecutors.router) throw new Error("Agent未初始化");
 
-            const result = await agentExecutor.invoke({
+            const intent = await agentExecutors.router.invoke({
                 input: text,
-                // 传递对话记录供模型上下文参考
                 chat_history: chatHistory,
             });
 
+            let resultOutput = "";
+            let executor = null;
+
+            const loadingId = ui.addMessage(
+                "agent",
+                `执行任务(${intent})...`,
+                true,
+            );
+
+            if (intent === "POSITION") {
+                executor = agentExecutors.position;
+            } else if (intent === "FILTER") {
+                executor = agentExecutors.filter;
+            } else {
+                executor = agentExecutors.chat;
+            }
+
+            const result = await executor.invoke({
+                input: text,
+                chat_history: chatHistory,
+            });
+
+            if (intent === "CHAT" || !result.output) {
+                resultOutput =
+                    typeof result === "string"
+                        ? result
+                        : result.content || result.output || "";
+            } else {
+                resultOutput = result.output;
+            }
+
             // 移除输出结果首尾多余的空白字符和换行符
-            const finalOutput = result.output.trim();
+            const finalOutput = resultOutput.trim();
 
             // 更新聊天历史对话记录
             chatHistory.push(new HumanMessage(text));
@@ -289,7 +417,10 @@ function bindEvents(ui) {
             ui.updateMessage(loadingId, finalOutput);
         } catch (e) {
             console.error(e);
-            ui.updateMessage(loadingId, `执行出错:${e.message}`);
+            const errorMsg = e.message.includes("404")
+                ? "服务未响应"
+                : e.message;
+            ui.updateMessage(loadingId, `执行出错:${errorMsg}`);
         } finally {
             ui.sendBtn.disabled = false;
             ui.sendBtn.style.opacity = "1";
