@@ -2,6 +2,7 @@ import axios from "axios";
 import { FIELD_MAP, API_ENDPOINT, IGNORE_FIELD } from "./config.js";
 
 let viewer = null;
+let currentEntityIndex = -1;
 
 window.onload = function () {
     viewer = new Cesium.Viewer("cesiumContainer", {
@@ -52,8 +53,6 @@ function bindWindowFunc() {
     window.showLightBarrier = showLightBarrier;
     window.showLightReservoir = showLightReservoir;
 }
-
-let currentEntityIndex = -1;
 
 function initJumpButton(viewer) {
     const nextIcon = document.getElementById("jump-button");

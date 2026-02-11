@@ -12,6 +12,13 @@ import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import { API_ENDPOINT, RULE_PROMPT, FIND_PROMPT, SQL_PROMPT } from "./config";
 
+// 定义不同任务职责的智能体执行器
+let agentExecutors = {
+    router: null,
+    position: null,
+    filter: null,
+    chat: null,
+};
 const llmConfig = {
     // 加载环境变量配置智能体模式
     agentMode: import.meta.env.VITE_AGENT_MODE,
@@ -30,14 +37,6 @@ const llmConfig = {
         modelName: import.meta.env.VITE_CHAT_MODEL_NAME,
     },
 };
-
-// 定义不同任务职责的智能体执行器
-let agentExecutors = {
-    position: null,
-    filter: null,
-    chat: null,
-    router: null,
-};
 let chatHistory = [];
 
 window.initAgent = async function (viewer) {
@@ -50,26 +49,15 @@ window.initAgent = async function (viewer) {
     }
 
     try {
-        // 定义大语言模型与聊天模型
-        const { llm, chatLlm, currentModelName } = defineLlm();
-        // 初始化定义智能体所需的工具
-        const [searchAndFlyTool, flyToEntityTool, sqlFilterEntityTool] =
-            defineTools(viewer);
-        // 定义不同任务职责的智能体
-        defineAgent(
-            llm,
-            chatLlm,
-            searchAndFlyTool,
-            flyToEntityTool,
-            sqlFilterEntityTool,
-        );
+        // 初始化不同任务职责的智能体执行器
+        defineAgentExecutors(viewer);
 
         ui.clearLoading();
         ui.updateHeader(llmConfig.agentMode);
         // 聊天窗口欢迎招呼消息
         ui.addMessage(
             "agent",
-            `就绪!我是GIS助手(Hybrid Router架构,模型:${currentModelName}).`,
+            `就绪!我是您的个人GIS助手(Hybrid Router架构),有什么可以帮到您?`,
         );
         bindEvents(ui);
     } catch (error) {
@@ -105,7 +93,6 @@ function defineLlm() {
             temperature: 0,
             keepAlive: "15m",
         });
-        currentModelName = llmConfig.local.modelName;
     } else if (llmConfig.agentMode === "cloud") {
         // 云服务远程调用模型
         llm = new ChatOpenAI({
@@ -116,7 +103,6 @@ function defineLlm() {
             // 关闭用量统计提高云服务接口兼容
             streamUsage: false,
         });
-        currentModelName = llmConfig.cloud.modelName;
     }
 
     const chatLlm = new ChatOpenAI({
@@ -125,16 +111,15 @@ function defineLlm() {
         model: llmConfig.chat.modelName,
     });
 
-    return { llm, chatLlm, currentModelName };
+    return { llm, chatLlm };
 }
 
-function defineAgent(
-    llm,
-    chatLlm,
-    searchAndFlyTool,
-    flyToEntityTool,
-    sqlFilterEntityTool,
-) {
+function defineAgentExecutors(viewer) {
+    // 定义大语言模型与聊天模型
+    const { llm, chatLlm } = defineLlm();
+    // 初始化定义智能体所需的工具
+    const [searchAndFlyTool, flyToTool, sqlFilterTool] = defineTools(viewer);
+
     agentExecutors.router = {
         invoke: async ({ input }) => {
             const text = input.trim();
@@ -164,14 +149,15 @@ function defineAgent(
     ]);
     const positionAgent = createToolCallingAgent({
         llm: llm,
-        tools: [searchAndFlyTool, flyToEntityTool],
+        tools: [searchAndFlyTool, flyToTool],
         prompt: positionPrompt,
     });
     // 定义实体定位智能体执行器
     agentExecutors.position = new AgentExecutor({
         agent: positionAgent,
-        tools: [searchAndFlyTool, flyToEntityTool],
+        tools: [searchAndFlyTool, flyToTool],
         handleParsingErrors: true,
+        maxIterations: 4,
     });
 
     const filterPrompt = ChatPromptTemplate.fromMessages([
@@ -185,14 +171,15 @@ function defineAgent(
     ]);
     const filterAgent = createToolCallingAgent({
         llm: llm,
-        tools: [sqlFilterEntityTool],
+        tools: [sqlFilterTool],
         prompt: filterPrompt,
     });
     // 定义条件筛选智能体执行器
     agentExecutors.filter = new AgentExecutor({
         agent: filterAgent,
-        tools: [sqlFilterEntityTool],
+        tools: [sqlFilterTool],
         handleParsingErrors: true,
+        maxIterations: 4,
     });
 
     const chatPrompt = ChatPromptTemplate.fromMessages([
@@ -203,7 +190,6 @@ function defineAgent(
         new MessagesPlaceholder("chat_history"),
         ["human", "{input}"],
     ]);
-    // 定义普通聊天智能体执行器
     agentExecutors.chat = chatPrompt
         .pipe(chatLlm)
         .pipe(new StringOutputParser())
@@ -227,12 +213,11 @@ function defineTools(viewer) {
             // 限定实体数据类型
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
         }),
-        func: async ({ keyword, type }) =>
-            searchAndFlyToEntity(viewer, keyword, type),
+        func: async ({ keyword, type }) => searchAndFly(viewer, keyword, type),
     });
 
-    const flyToEntityTool = new DynamicStructuredTool({
-        name: "fly_to_entity",
+    const flyToTool = new DynamicStructuredTool({
+        name: "fly_to",
         description:
             "精确id定位工具.当上下文中已经知道实体的id时,必须优先使用此工具进行跳转,而不是重新搜索名称.",
         schema: z.object({
@@ -250,21 +235,21 @@ function defineTools(viewer) {
         },
     });
 
-    const sqlFilterEntityTool = new DynamicStructuredTool({
-        name: "sql_filter_entity",
+    const sqlFilterTool = new DynamicStructuredTool({
+        name: "sql_filter",
         description:
             "高级过滤工具.根据生成的SQL执行查询.注意:调用此工具前必须确保SQL语句符合Schema定义.",
         schema: z.object({
             sql: z.string().describe("符合SQL_PROMPT要求的PostgreSQL查询语句"),
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
         }),
-        func: async ({ sql, type }) => sqlFilterEntity(viewer, sql, type),
+        func: async ({ sql, type }) => sqlFilter(viewer, sql, type),
     });
 
-    return [searchAndFlyTool, flyToEntityTool, sqlFilterEntityTool];
+    return [searchAndFlyTool, flyToTool, sqlFilterTool];
 }
 
-async function searchAndFlyToEntity(viewer, keyword, type) {
+async function searchAndFly(viewer, keyword, type) {
     const entities = viewer.entities.values;
 
     // 遍历本地实体列表查找名称模糊匹配
@@ -315,7 +300,7 @@ async function searchAndFlyToEntity(viewer, keyword, type) {
     }
 }
 
-async function sqlFilterEntity(viewer, sql, type) {
+async function sqlFilter(viewer, sql, type) {
     try {
         const url = API_ENDPOINT.filter[type];
 
@@ -416,7 +401,7 @@ function bindEvents(ui) {
             // 更新智能体回复内容替换思考提示
             ui.updateMessage(loadingId, finalOutput);
         } catch (e) {
-            console.error(e);
+            console.error("消息处理出错,错误信息请详见:", e);
             const errorMsg = e.message.includes("404")
                 ? "服务未响应"
                 : e.message;
@@ -448,7 +433,7 @@ function initUI() {
     const sendBtn = document.getElementById("agent-send-btn");
 
     if (!container || !messagesContainer || !input || !sendBtn) {
-        console.error("Agent UI elements not found in index.html");
+        console.error("初始化智能体UI失败:缺少必要的DOM元素.");
         return null;
     }
 
