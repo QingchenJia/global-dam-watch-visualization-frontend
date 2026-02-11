@@ -45,6 +45,7 @@ window.initAgent = async function (viewer) {
                 baseUrl: agentConfig.local.baseUrl,
                 model: agentConfig.local.modelName,
                 temperature: 0,
+                keepAlive: "15m",
             });
             currentModelName = agentConfig.local.modelName;
         } else if (agentConfig.agentMode === "cloud") {
@@ -272,16 +273,20 @@ function bindEvents(ui) {
                 // 传递对话记录供模型上下文参考
                 chat_history: chatHistory,
             });
+
+            // 移除输出结果首尾多余的空白字符和换行符
+            const finalOutput = result.output.trim();
+
             // 更新聊天历史对话记录
             chatHistory.push(new HumanMessage(text));
-            chatHistory.push(new AIMessage(result.output));
+            chatHistory.push(new AIMessage(finalOutput));
 
-            // 保留最新的十条对话记录
+            // 保留最新的10条对话记录
             if (chatHistory.length > 10) {
                 chatHistory = chatHistory.slice(chatHistory.length - 10);
             }
             // 更新智能体回复内容替换思考提示
-            ui.updateMessage(loadingId, result.output);
+            ui.updateMessage(loadingId, finalOutput);
         } catch (e) {
             console.error(e);
             ui.updateMessage(loadingId, `执行出错:${e.message}`);
@@ -294,7 +299,13 @@ function bindEvents(ui) {
 
     // 发送按钮与回车按键绑定消息发送
     ui.sendBtn.onclick = handleSend;
-    ui.input.onkeypress = (e) => e.key === "Enter" && handleSend();
+
+    ui.input.onkeypress = (e) => {
+        // 避免箭头函数直接返回false导致阻止默认输入行为
+        if (e.key === "Enter") {
+            handleSend();
+        }
+    };
 }
 
 function initUI() {
