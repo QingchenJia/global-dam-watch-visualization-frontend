@@ -1,5 +1,5 @@
 import axios from "axios";
-import { FIELD_MAP, API_ENDPOINT, IGNORE_FIELD } from "./config.js";
+import { API_ENDPOINT, FIELD_MAP, IGNORE_FIELD } from "./config.js";
 
 let viewer = null;
 let currentEntityIndex = -1;

@@ -10,7 +10,12 @@ import {
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
-import { API_ENDPOINT, RULE_PROMPT, FIND_PROMPT, SQL_PROMPT } from "./config";
+import {
+    API_ENDPOINT,
+    POSITION_PROMPT,
+    FILTER_PROMPT,
+    SQL_PROMPT,
+} from "./config";
 
 // 定义不同任务职责的智能体执行器
 let agentExecutors = {
@@ -43,46 +48,21 @@ window.initAgent = async function (viewer) {
     // 初始化聊天对话框界面
     const ui = initUI();
 
-    if (llmConfig.agentMode === "cloud" && !llmConfig.cloud.apiKey) {
-        ui.addMessage("agent", "错误:Cloud模式下未配置API key,请检查.env文件.");
-        return;
-    }
+    // 初始化不同任务职责的智能体执行器
+    defineAgentExecutors(viewer);
 
-    try {
-        // 初始化不同任务职责的智能体执行器
-        defineAgentExecutors(viewer);
-
-        ui.clearLoading();
-        ui.updateHeader(llmConfig.agentMode);
-        // 聊天窗口欢迎招呼消息
-        ui.addMessage(
-            "agent",
-            `就绪!我是您的个人GIS助手(Hybrid Router架构),有什么可以帮到您?`,
-        );
-        bindEvents(ui);
-    } catch (error) {
-        console.error("Agent初始化失败:", error);
-        ui.clearLoading();
-        // 检查本地模型连接情况
-        if (
-            llmConfig.agentMode === "local" &&
-            (error.message.includes("fetch") ||
-                error.message.includes("network"))
-        ) {
-            // 连接本地模型失败提示
-            ui.addMessage(
-                "agent",
-                "连接Ollama失败.请确保服务已启动(ollama serve).",
-            );
-        } else {
-            ui.addMessage("agent", `初始化失败:${error.message}`);
-        }
-    }
+    ui.clearLoading();
+    ui.updateHeader(llmConfig.agentMode);
+    // 聊天窗口欢迎招呼消息
+    ui.addMessage(
+        "agent",
+        `就绪!我是您的个人GIS助手(Hybrid Router架构),有什么可以帮到您?`,
+    );
+    bindEvents(ui);
 };
 
 function defineLlm() {
     let llm;
-    let currentModelName;
 
     // 根据智能体模式选择对应语言模型
     if (llmConfig.agentMode === "local") {
@@ -139,10 +119,7 @@ function defineAgentExecutors(viewer) {
     };
 
     const positionPrompt = ChatPromptTemplate.fromMessages([
-        [
-            "system",
-            `你负责**实体定位**任务.请使用'search_and_fly'或'fly_to_entity'工具来响应用户.${RULE_PROMPT}${FIND_PROMPT}`,
-        ],
+        ["system", `${POSITION_PROMPT}`],
         new MessagesPlaceholder("chat_history"),
         ["human", "{input}"],
         new MessagesPlaceholder("agent_scratchpad"),
@@ -161,10 +138,7 @@ function defineAgentExecutors(viewer) {
     });
 
     const filterPrompt = ChatPromptTemplate.fromMessages([
-        [
-            "system",
-            `你负责**条件筛选**任务.你的核心能力是将用户的自然语言转换为PostGIS SQL语句.${RULE_PROMPT}${SQL_PROMPT}`,
-        ],
+        ["system", `${FILTER_PROMPT}`],
         new MessagesPlaceholder("chat_history"),
         ["human", "{input}"],
         new MessagesPlaceholder("agent_scratchpad"),
@@ -238,12 +212,11 @@ function defineTools(viewer) {
     const sqlFilterTool = new DynamicStructuredTool({
         name: "sql_filter",
         description:
-            "高级过滤工具.根据生成的SQL执行查询.注意:调用此工具前必须确保SQL语句符合Schema定义.",
+            "高级过滤工具.根据SQL进行数据库查询实现过滤,请严格按照提示语中SQL语法要求构造查询条件.",
         schema: z.object({
-            sql: z.string().describe("符合SQL_PROMPT要求的PostgreSQL查询语句"),
-            type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
+            sql: z.string().describe(`${SQL_PROMPT}`),
         }),
-        func: async ({ sql, type }) => sqlFilter(viewer, sql, type),
+        func: async ({ sql }) => sqlFilter(viewer, sql),
     });
 
     return [searchAndFlyTool, flyToTool, sqlFilterTool];
@@ -300,8 +273,13 @@ async function searchAndFly(viewer, keyword, type) {
     }
 }
 
-async function sqlFilter(viewer, sql, type) {
+async function sqlFilter(viewer, sql) {
     try {
+        let type = null;
+        // 根据单表查询语句所在表名判断实体类型
+        if (sql.includes("public.gdw_barrier")) type = "barrier";
+        else if (sql.includes("public.gdw_reservoir")) type = "reservoir";
+
         const url = API_ENDPOINT.filter[type];
 
         viewer.entities.removeAll();
@@ -349,8 +327,6 @@ function bindEvents(ui) {
         ui.input.value = "";
 
         try {
-            if (!agentExecutors.router) throw new Error("Agent未初始化");
-
             const intent = await agentExecutors.router.invoke({
                 input: text,
                 chat_history: chatHistory,
@@ -453,7 +429,8 @@ function initUI() {
 
         // 同步更新标题栏显示智能体模式
         updateHeader: (mode) => {
-            titleSpan.textContent = `🦜🔗 GIS Agent(${mode})`;
+            const modelName = llmConfig[mode]?.modelName || "未知模型";
+            titleSpan.textContent = `GIS Agent(${mode}) - ${modelName}`;
         },
 
         scrollToBottom: () => {
