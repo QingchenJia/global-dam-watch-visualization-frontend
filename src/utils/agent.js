@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toRaw } from "vue";
 import z from "zod";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatOllama } from "@langchain/ollama";
@@ -24,7 +25,7 @@ let agentExecutors = {
     filter: null,
     chat: null,
 };
-const llmConfig = {
+export const llmConfig = {
     // 加载环境变量配置智能体模式
     agentMode: import.meta.env.VITE_AGENT_MODE,
     cloud: {
@@ -44,22 +45,66 @@ const llmConfig = {
 };
 let chatHistory = [];
 
-window.initAgent = async function (viewer) {
-    // 初始化聊天对话框界面
-    const ui = initUI();
+// 核心对话处理函数
+export async function agentChat(text, callbacks) {
+    const { question, answer, handle } = callbacks;
 
-    // 初始化不同任务职责的智能体执行器
-    defineAgentExecutors(viewer);
+    try {
+        const intent = await agentExecutors.router.invoke({
+            input: text,
+            chat_history: chatHistory,
+        });
 
-    ui.clearLoading();
-    ui.updateHeader(llmConfig.agentMode);
-    // 聊天窗口欢迎招呼消息
-    ui.addMessage(
-        "agent",
-        `就绪!我是您的个人GIS助手(Hybrid Router架构),有什么可以帮到您?`,
-    );
-    bindEvents(ui);
-};
+        let resultOutput = "";
+        let executor = null;
+
+        // 通知ui开始执行任务
+        question(intent);
+
+        if (intent === "POSITION") {
+            executor = agentExecutors.position;
+        } else if (intent === "FILTER") {
+            executor = agentExecutors.filter;
+        } else {
+            executor = agentExecutors.chat;
+        }
+
+        const result = await executor.invoke({
+            input: text,
+            chat_history: chatHistory,
+        });
+
+        if (intent === "CHAT" || !result.output) {
+            resultOutput =
+                typeof result === "string"
+                    ? result
+                    : result.content || result.output || "";
+        } else {
+            resultOutput = result.output;
+        }
+
+        // 移除输出结果首尾多余的空白字符和换行符
+        const finalOutput = resultOutput.trim();
+
+        // 更新聊天历史对话记录
+        chatHistory.push(new HumanMessage(text));
+        chatHistory.push(new AIMessage(finalOutput));
+
+        // 保留最新的10条对话记录
+        if (chatHistory.length > 10) {
+            chatHistory = chatHistory.slice(chatHistory.length - 10);
+        }
+
+        // 通知 UI 更新结果
+        answer(finalOutput);
+    } catch (e) {
+        console.error("消息处理出错:", e);
+        const errorMsg = e.message.includes("404") ? "服务未响应" : e.message;
+
+        // 通知ui发生错误
+        handle(`执行出错:${errorMsg}`);
+    }
+}
 
 function defineLlm() {
     let llm;
@@ -94,7 +139,7 @@ function defineLlm() {
     return { llm, chatLlm };
 }
 
-function defineAgentExecutors(viewer) {
+export function defineAgentExecutors(viewer) {
     // 定义大语言模型与聊天模型
     const { llm, chatLlm } = defineLlm();
     // 初始化定义智能体所需的工具
@@ -201,7 +246,7 @@ function defineTools(viewer) {
             const entity = viewer.entities.getById(id);
             if (entity) {
                 viewer.selectedEntity = entity;
-                viewer.flyTo(entity, { duration: 1.5 });
+                viewer.flyTo(toRaw(viewer.selectedEntity), { duration: 1.5 });
                 return `SUCCESS:已定位到实体"${entity.name}"(id:${id}),视角已自动调整.`;
             } else {
                 return `ERROR:不存在当前实体(id:${id}).`;
@@ -233,7 +278,7 @@ async function searchAndFly(viewer, keyword, type) {
 
     if (localTarget) {
         viewer.selectedEntity = localTarget;
-        viewer.flyTo(localTarget, { duration: 1.5 });
+        viewer.flyTo(toRaw(viewer.selectedEntity), { duration: 1.5 });
         return `SUCCESS:本地已找到实体"${localTarget.name}"(id:${localTarget.id}),视角已自动定位.`;
     }
 
@@ -260,7 +305,7 @@ async function searchAndFly(viewer, keyword, type) {
             const entity = viewer.entities.getById(entityId);
             if (entity) {
                 viewer.selectedEntity = entity;
-                viewer.flyTo(entity, { duration: 1.5 });
+                viewer.flyTo(toRaw(viewer.selectedEntity), { duration: 1.5 });
                 return `SUCCESS:远程数据库查找到"${entityName}"(id:${entityId}),已加载并自动定位.`;
             } else {
                 return `ERROR:数据库查找到数据,但实体加载失败(id:${entityId}).`;
@@ -312,162 +357,4 @@ async function sqlFilter(viewer, sql) {
     } catch (error) {
         return `ERROR:查询出错:${error.message}`;
     }
-}
-
-function bindEvents(ui) {
-    const handleSend = async () => {
-        // 裁切输入文本中多余空白
-        const text = ui.input.value.trim();
-        if (!text || ui.sendBtn.disabled) return;
-        // 消息发送期间禁用发送按钮
-        ui.sendBtn.disabled = true;
-        ui.sendBtn.style.opacity = "0.6";
-
-        ui.addMessage("user", text);
-        ui.input.value = "";
-
-        try {
-            const intent = await agentExecutors.router.invoke({
-                input: text,
-                chat_history: chatHistory,
-            });
-
-            let resultOutput = "";
-            let executor = null;
-
-            const loadingId = ui.addMessage(
-                "agent",
-                `执行任务(${intent})...`,
-                true,
-            );
-
-            if (intent === "POSITION") {
-                executor = agentExecutors.position;
-            } else if (intent === "FILTER") {
-                executor = agentExecutors.filter;
-            } else {
-                executor = agentExecutors.chat;
-            }
-
-            const result = await executor.invoke({
-                input: text,
-                chat_history: chatHistory,
-            });
-
-            if (intent === "CHAT" || !result.output) {
-                resultOutput =
-                    typeof result === "string"
-                        ? result
-                        : result.content || result.output || "";
-            } else {
-                resultOutput = result.output;
-            }
-
-            // 移除输出结果首尾多余的空白字符和换行符
-            const finalOutput = resultOutput.trim();
-
-            // 更新聊天历史对话记录
-            chatHistory.push(new HumanMessage(text));
-            chatHistory.push(new AIMessage(finalOutput));
-
-            // 保留最新的10条对话记录
-            if (chatHistory.length > 10) {
-                chatHistory = chatHistory.slice(chatHistory.length - 10);
-            }
-            // 更新智能体回复内容替换思考提示
-            ui.updateMessage(loadingId, finalOutput);
-        } catch (e) {
-            console.error("消息处理出错,错误信息请详见:", e);
-            const errorMsg = e.message.includes("404")
-                ? "服务未响应"
-                : e.message;
-            ui.updateMessage(loadingId, `执行出错:${errorMsg}`);
-        } finally {
-            ui.sendBtn.disabled = false;
-            ui.sendBtn.style.opacity = "1";
-            ui.input.focus();
-        }
-    };
-
-    // 发送按钮与回车按键绑定消息发送
-    ui.sendBtn.onclick = handleSend;
-
-    ui.input.onkeypress = (e) => {
-        // 避免箭头函数直接返回false导致阻止默认输入行为
-        if (e.key === "Enter") {
-            handleSend();
-        }
-    };
-}
-
-function initUI() {
-    const container = document.getElementById("agent-chat-container");
-    const messagesContainer = document.getElementById("agent-messages");
-    const toggleBtn = document.getElementById("agent-toggle");
-    const titleSpan = document.getElementById("agent-title");
-    const input = document.getElementById("agent-input");
-    const sendBtn = document.getElementById("agent-send-btn");
-
-    if (!container || !messagesContainer || !input || !sendBtn) {
-        console.error("初始化智能体UI失败:缺少必要的DOM元素.");
-        return null;
-    }
-
-    toggleBtn.onclick = () => container.classList.toggle("minimized");
-
-    container.querySelector(".agent-header").onclick = (e) => {
-        if (e.target !== toggleBtn) container.classList.toggle("minimized");
-    };
-
-    return {
-        input: input,
-        sendBtn: sendBtn,
-        container: container,
-        messagesContainer: messagesContainer,
-        toggleBtn: toggleBtn,
-        titleSpan: titleSpan,
-
-        // 同步更新标题栏显示智能体模式
-        updateHeader: (mode) => {
-            const modelName = llmConfig[mode]?.modelName || "未知模型";
-            titleSpan.textContent = `GIS Agent(${mode}) - ${modelName}`;
-        },
-
-        scrollToBottom: () => {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        },
-
-        addMessage: (role, text, loading) => {
-            const msgDiv = document.createElement("div");
-            msgDiv.className = `message ${role} ${loading ? "loading" : ""}`;
-
-            if (!loading) {
-                text = text.replace(/\n/g, "<br>");
-            }
-            msgDiv.innerHTML = text;
-
-            if (loading) msgDiv.id = "agent-loading-msg";
-
-            messagesContainer.appendChild(msgDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-            return msgDiv.id;
-        },
-
-        updateMessage: (id, text) => {
-            if (!id) return;
-            // 更新指定消息的内容
-            const msgDiv = document.getElementById(id);
-            if (msgDiv) {
-                msgDiv.innerHTML = text.replace(/\n/g, "<br>");
-                msgDiv.classList.remove("loading");
-                msgDiv.removeAttribute("id");
-            }
-        },
-
-        clearLoading: () => {
-            const loadingMsg = document.getElementById("agent-loading-msg");
-            if (loadingMsg) loadingMsg.remove();
-        },
-    };
 }

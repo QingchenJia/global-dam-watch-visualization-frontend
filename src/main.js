@@ -1,6 +1,9 @@
-import * as Cesium from "cesium";
-import "cesium/Build/Cesium/Widgets/widgets.css";
-import "./web/agent.js";
-import "./web/app.js";
+import { createApp } from "vue";
+import App from "./App.vue";
+import "./styles/app-container.css";
+import "./styles/cesium-viewer.css";
+import "./styles/control-panel.css";
+import "./styles/agent-chat.css";
+import "./styles/stats-panel.css";
 
-window.Cesium = Cesium;
+createApp(App).mount("#app");

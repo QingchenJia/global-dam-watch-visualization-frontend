@@ -4,61 +4,9 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>全球大坝水库三维可视化</title>
-        <link rel="stylesheet" href="./src/style/cesium.css" />
-        <link rel="stylesheet" href="./src/style/chatbox.css" />
-        <link rel="stylesheet" href="./src/style/button.css" />
     </head>
     <body>
-        <div id="cesiumContainer"></div>
-
-        <!-- 重新加载实体按钮 -->
-        <div
-            id="reload-button"
-            class="custom-reload-button"
-            title="重新加载所有实体"
-        >
-            <svg viewBox="0 0 24 24">
-                <path
-                    d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
-                />
-            </svg>
-        </div>
-
-        <!-- 重置视角按钮 -->
-        <div
-            id="reset-view-button"
-            class="custom-reset-button"
-            title="重置视角到中国"
-        >
-            <svg viewBox="0 0 24 24">
-                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-            </svg>
-        </div>
-
-        <!-- 实体跳转按钮 -->
-        <div
-            id="jump-button"
-            class="custom-jump-button"
-            title="跳转到下一个实体"
-        >
-            <svg viewBox="0 0 24 24">
-                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
-            </svg>
-        </div>
-
-        <!-- 智能体聊天窗口 -->
-        <div id="agent-chat-container" class="agent-chat-container">
-            <div class="agent-header">
-                <span id="agent-title">🦜🔗 GIS Agent</span>
-                <span id="agent-toggle" class="agent-toggle">_</span>
-            </div>
-            <div id="agent-messages" class="agent-messages"></div>
-            <div class="agent-input-area">
-                <input id="agent-input" placeholder="输入指令..." />
-                <button id="agent-send-btn">发送</button>
-            </div>
-        </div>
-
+        <div id="app"></div>
         <script type="module" src="./src/main.js"></script>
     </body>
 </html>
