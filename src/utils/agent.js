@@ -11,12 +11,13 @@ import {
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
+import { loadBarrierEntity, loadReservoirEntity } from "./earth.js";
 import {
     API_ENDPOINT,
     POSITION_PROMPT,
     FILTER_PROMPT,
     SQL_PROMPT,
-} from "./config";
+} from "./config.js";
 
 // 定义不同任务职责的智能体执行器
 let agentExecutors = {
@@ -58,7 +59,7 @@ export async function agentChat(text, callbacks) {
         let resultOutput = "";
         let executor = null;
 
-        // 通知ui开始执行任务
+        // 通知对话窗口ui开始执行任务
         question(intent);
 
         if (intent === "POSITION") {
@@ -95,13 +96,13 @@ export async function agentChat(text, callbacks) {
             chatHistory = chatHistory.slice(chatHistory.length - 10);
         }
 
-        // 通知 UI 更新结果
+        // 通知对话窗口ui更新结果
         answer(finalOutput);
     } catch (e) {
         console.error("消息处理出错:", e);
         const errorMsg = e.message.includes("404") ? "服务未响应" : e.message;
 
-        // 通知ui发生错误
+        // 通知对话窗口ui发生错误
         handle(`执行出错:${errorMsg}`);
     }
 }
@@ -342,9 +343,9 @@ async function sqlFilter(viewer, sql) {
 
             data.forEach((item) => {
                 if (type === "barrier") {
-                    window.loadBarrierEntity(viewer, item);
+                    loadBarrierEntity(viewer, item);
                 } else if (type === "reservoir") {
-                    window.loadReservoirEntity(viewer, item);
+                    loadReservoirEntity(viewer, item);
                 }
             });
             // 调整地图相机视角适应所有实体

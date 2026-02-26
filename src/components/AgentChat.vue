@@ -10,7 +10,7 @@
             <span id="agent-title"
                 >GIS Agent({{ agentMode }}) - {{ modelName }}</span
             >
-            <span class="agent-toggle">{{ isMinimized ? "+" : "_" }}</span>
+            <span class="agent-toggle">{{ isMinimized ? "+" : "-" }}</span>
         </div>
         <div class="agent-messages" ref="messagesContainer">
             <div

@@ -9,13 +9,11 @@ import "cesium/Build/Cesium/Widgets/widgets.css";
 import {
     showLightBarrier,
     showLightReservoir,
-    loadBarrierEntity,
-    loadReservoirEntity,
     entitySelectedEvent,
-} from "../utils/app.js";
+} from "../utils/earth.js";
 
-const emit = defineEmits(["viewer-ready"]);
 const cesiumContainer = ref(null);
+const emit = defineEmits(["viewer-ready"]);
 
 onMounted(() => {
     const viewer = new Cesium.Viewer(cesiumContainer.value, {
@@ -37,18 +35,13 @@ onMounted(() => {
     // 隐藏开源三维地球版权信息
     viewer._cesiumWidget._creditContainer.style.display = "none";
 
-    window.loadBarrierEntity = loadBarrierEntity;
-    window.loadReservoirEntity = loadReservoirEntity;
-    window.showLightBarrier = showLightBarrier;
-    window.showLightReservoir = showLightReservoir;
-
     // 加载并显示大坝和水库实体
     showLightBarrier(viewer);
     showLightReservoir(viewer);
-
     // 绑定详情事件
     entitySelectedEvent(viewer);
 
+    // 完成viewer初始化后触发事件
     emit("viewer-ready", viewer);
 });
 </script>

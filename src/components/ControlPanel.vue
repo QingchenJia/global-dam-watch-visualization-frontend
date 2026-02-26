@@ -35,7 +35,7 @@
 <script setup>
 import * as Cesium from "cesium";
 import { toRaw } from "vue";
-import { showLightBarrier, showLightReservoir } from "../utils/app.js";
+import { showLightBarrier, showLightReservoir } from "../utils/earth.js";
 
 const globalVar = defineProps({
     viewer: {

@@ -1,6 +1,6 @@
 import axios from "axios";
 import * as Cesium from "cesium";
-import { API_ENDPOINT, FIELD_MAP, IGNORE_FIELD } from "./config.js";
+import { API_ENDPOINT, FIELD_MAP, IGNORE_FIELD } from "./config";
 
 export function loadBarrierEntity(viewer, item) {
     const gdwId = item.gdwId;
