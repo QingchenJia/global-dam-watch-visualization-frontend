@@ -8,3 +8,82 @@ body,
     padding: 0;
     overflow: hidden;
 }
+
+/* ===== 统计面板下拉按钮 ===== */
+.stats-toggle-btn {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 20px;
+    background: rgba(30, 33, 40, 0.92);
+    color: #bbb;
+    border: 1px solid #3a3f4b;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    cursor: pointer;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-size: 13px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: all 0.25s ease;
+    user-select: none;
+}
+
+.stats-toggle-btn:hover {
+    background: rgba(45, 50, 60, 0.95);
+    color: #eee;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.stats-toggle-btn.active {
+    background: rgba(50, 55, 68, 0.95);
+    color: #5cc5f0;
+    border-color: #5cc5f0;
+}
+
+.stats-toggle-icon {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+.stats-toggle-text {
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.stats-toggle-arrow {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+    transition: transform 0.3s ease;
+}
+
+.stats-toggle-btn.active .stats-toggle-arrow {
+    transform: rotate(180deg);
+}
+
+/* ===== 统计面板滑出动画 ===== */
+.stats-slide-enter-active,
+.stats-slide-leave-active {
+    transition:
+        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.35s ease;
+}
+
+.stats-slide-enter-from,
+.stats-slide-leave-to {
+    transform: translateX(-50%) translateY(-100%);
+    opacity: 0;
+}
+
+.stats-slide-enter-to,
+.stats-slide-leave-from {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}

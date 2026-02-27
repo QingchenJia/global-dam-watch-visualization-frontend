@@ -20,7 +20,7 @@ import {
 } from "./config.js";
 
 // 定义不同任务职责的智能体执行器
-let agentExecutors = {
+let totalAgent = {
     router: null,
     position: null,
     filter: null,
@@ -47,11 +47,11 @@ export const llmConfig = {
 let chatHistory = [];
 
 // 核心对话处理函数
-export async function agentChat(text, callbacks) {
+export async function chatToAgent(text, callbacks) {
     const { question, answer, handle } = callbacks;
 
     try {
-        const intent = await agentExecutors.router.invoke({
+        const intent = await totalAgent.router.invoke({
             input: text,
             chat_history: chatHistory,
         });
@@ -62,12 +62,10 @@ export async function agentChat(text, callbacks) {
         // 通知对话窗口ui开始执行任务
         question(intent);
 
-        if (intent === "POSITION") {
-            executor = agentExecutors.position;
-        } else if (intent === "FILTER") {
-            executor = agentExecutors.filter;
+        if (intent === "CHAT") {
+            executor = totalAgent.chat;
         } else {
-            executor = agentExecutors.chat;
+            executor = totalAgent[intent.toLowerCase()].executor;
         }
 
         const result = await executor.invoke({
@@ -140,13 +138,13 @@ function defineLlm() {
     return { llm, chatLlm };
 }
 
-export function defineAgentExecutors(viewer) {
+export function defineTotalAgent(viewer) {
     // 定义大语言模型与聊天模型
     const { llm, chatLlm } = defineLlm();
     // 初始化定义智能体所需的工具
     const [searchAndFlyTool, flyToTool, sqlFilterTool] = defineTools(viewer);
 
-    agentExecutors.router = {
+    totalAgent.router = {
         invoke: async ({ input }) => {
             const text = input.trim();
 
@@ -170,18 +168,23 @@ export function defineAgentExecutors(viewer) {
         ["human", "{input}"],
         new MessagesPlaceholder("agent_scratchpad"),
     ]);
+
     const positionAgent = createToolCallingAgent({
         llm: llm,
         tools: [searchAndFlyTool, flyToTool],
         prompt: positionPrompt,
     });
+
     // 定义实体定位智能体执行器
-    agentExecutors.position = new AgentExecutor({
+    totalAgent.position = {
         agent: positionAgent,
-        tools: [searchAndFlyTool, flyToTool],
-        handleParsingErrors: true,
-        maxIterations: 4,
-    });
+        executor: new AgentExecutor({
+            agent: positionAgent,
+            tools: [searchAndFlyTool, flyToTool],
+            handleParsingErrors: true,
+            maxIterations: 4,
+        }),
+    };
 
     const filterPrompt = ChatPromptTemplate.fromMessages([
         ["system", `${FILTER_PROMPT}`],
@@ -189,18 +192,23 @@ export function defineAgentExecutors(viewer) {
         ["human", "{input}"],
         new MessagesPlaceholder("agent_scratchpad"),
     ]);
+
     const filterAgent = createToolCallingAgent({
         llm: llm,
         tools: [sqlFilterTool],
         prompt: filterPrompt,
     });
+
     // 定义条件筛选智能体执行器
-    agentExecutors.filter = new AgentExecutor({
+    totalAgent.filter = {
         agent: filterAgent,
-        tools: [sqlFilterTool],
-        handleParsingErrors: true,
-        maxIterations: 4,
-    });
+        executor: new AgentExecutor({
+            agent: filterAgent,
+            tools: [sqlFilterTool],
+            handleParsingErrors: true,
+            maxIterations: 4,
+        }),
+    };
 
     const chatPrompt = ChatPromptTemplate.fromMessages([
         [
@@ -210,7 +218,8 @@ export function defineAgentExecutors(viewer) {
         new MessagesPlaceholder("chat_history"),
         ["human", "{input}"],
     ]);
-    agentExecutors.chat = chatPrompt
+
+    totalAgent.chat = chatPrompt
         .pipe(chatLlm)
         .pipe(new StringOutputParser())
         .pipe((text) => {

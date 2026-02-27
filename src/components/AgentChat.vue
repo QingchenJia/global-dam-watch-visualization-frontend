@@ -36,7 +36,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick, computed } from "vue";
-import { agentChat, llmConfig, defineAgentExecutors } from "../utils/agent.js";
+import { chatToAgent, llmConfig, defineTotalAgent } from "../utils/agent.js";
 
 const globalVar = defineProps({
     viewer: {
@@ -117,31 +117,25 @@ const sendMessage = async () => {
     inputText.value = "";
     loading.value = true;
 
-    try {
-        await agentChat(text, {
-            question: (intent) => {
-                // 发起对话反馈正在执行任务
-                addMessage("agent", `执行任务(${intent})...`, true);
-            },
-            answer: (finalOutput) => {
-                // 任务完成更新对话结果
-                updateLoadingMessage(finalOutput);
-                loading.value = false;
-                nextTick(() => inputInput.value?.focus());
-            },
-            handle: (errorMsg) => {
-                handleError(errorMsg);
-            },
-        });
-    } catch (err) {
-        if (loading.value) {
-            handleError(`执行出错:${err.message}`);
-        }
-    }
+    await chatToAgent(text, {
+        question: (intent) => {
+            // 发起对话反馈正在执行任务
+            addMessage("agent", `执行任务(${intent})...`, true);
+        },
+        answer: (finalOutput) => {
+            // 任务完成更新对话结果
+            updateLoadingMessage(finalOutput);
+            loading.value = false;
+            nextTick(() => inputInput.value?.focus());
+        },
+        handle: (errorMsg) => {
+            handleError(errorMsg);
+        },
+    });
 };
 
 onMounted(() => {
-    defineAgentExecutors(globalVar.viewer);
+    defineTotalAgent(globalVar.viewer);
     // 添加智能体的欢迎消息
     addMessage(
         "agent",
