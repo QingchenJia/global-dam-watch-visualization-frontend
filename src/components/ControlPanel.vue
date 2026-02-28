@@ -60,7 +60,7 @@ const resetView = () => {
     // 调整视角至自定义初始位置
     globalVar.viewer.camera.flyTo({
         // 设置初始视角位置为中国上空
-        destination: Cesium.Cartesian3.fromDegrees(105.0, 35.0, 20000000),
+        destination: Cesium.Cartesian3.fromDegrees(105.0, 35.0, 23750000),
         duration: 1.5,
     });
 };

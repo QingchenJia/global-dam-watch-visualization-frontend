@@ -12,12 +12,12 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
 import { loadBarrierEntity, loadReservoirEntity } from "./earth.js";
+import { API_ENDPOINT } from "../configs/api.js";
 import {
-    API_ENDPOINT,
     POSITION_PROMPT,
     FILTER_PROMPT,
     SQL_PROMPT,
-} from "./config.js";
+} from "../configs/prompt.js";
 
 // 定义不同任务职责的智能体执行器
 let totalAgent = {
