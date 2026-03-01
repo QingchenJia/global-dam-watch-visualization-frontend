@@ -187,6 +187,11 @@ function generateDescriptionForm(data, mapping) {
     return html;
 }
 
+/*
+ * 解析数据的地理信息字段
+ * 分别处理大坝的点信息和水库的多边形信息
+ * 水库多边形选取第一个多边形环作为外环进行渲染
+ * */
 function parseGeometry(rawGeometry) {
     if (!rawGeometry) return null;
 

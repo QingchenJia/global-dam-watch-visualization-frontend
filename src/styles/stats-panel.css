@@ -3,8 +3,8 @@
     top: 46px;
     left: 50%;
     transform: translateX(-50%);
-    width: 990px;
-    max-height: calc(100vh - 60px);
+    width: 1188px;
+    max-height: calc(100vh - 24px);
     background: rgba(25, 28, 34, 0.96);
     color: #e0e0e0;
     border-radius: 0 0 12px 12px;
@@ -23,7 +23,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 20px;
+    padding: 14px 24px;
     background: rgba(40, 44, 52, 0.95);
     border-radius: 0;
     border-bottom: 1px solid #3a3f4b;
@@ -164,18 +164,18 @@
     display: flex;
     flex: 1;
     overflow: hidden;
-    min-height: 520px;
+    min-height: 624px;
 }
 
 .stats-filter {
-    width: 240px;
-    min-width: 240px;
-    padding: 16px;
+    width: 288px;
+    min-width: 288px;
+    padding: 20px;
     border-right: 1px solid #3a3f4b;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .stats-filter::-webkit-scrollbar {
@@ -240,7 +240,7 @@ select.filter-input {
     cursor: pointer;
     appearance: none;
     -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+    background-image: url("../assets/select-input.svg");
     background-repeat: no-repeat;
     background-position: right 8px center;
     padding-right: 24px;
@@ -269,7 +269,7 @@ select.filter-input option {
 
 .stats-charts {
     flex: 1;
-    padding: 16px;
+    padding: 20px; /* 16 -> 20 */
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -292,7 +292,7 @@ select.filter-input option {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 12px;
+    gap: 14px;
     flex: 1;
 }
 
@@ -321,7 +321,7 @@ select.filter-input option {
 
 .chart-container {
     flex: 1;
-    min-height: 200px;
+    min-height: 240px;
 }
 
 .stats-summary {
@@ -337,7 +337,6 @@ select.filter-input option {
     font-size: 15px;
 }
 
-/* ===== 多选下拉组件 ===== */
 .multi-select {
     position: relative;
 }
@@ -452,7 +451,6 @@ select.filter-input option {
     transform: rotate(45deg);
 }
 
-/* ===== 单选区间下拉选项 ===== */
 .range-select-option {
     padding: 7px 12px;
     font-size: 12px;
@@ -476,7 +474,6 @@ select.filter-input option {
     font-weight: 500;
 }
 
-/* ===== 单选区间下拉选项 ===== */
 .range-select-option {
     padding: 7px 12px;
     font-size: 12px;

@@ -42,7 +42,10 @@
                 <template v-for="field in activeFormField" :key="field.key">
                     <div
                         class="filter-group"
-                        v-if="field.type === 'multiSelect'"
+                        v-if="
+                            field.type === 'multiSelect' ||
+                            field.type === 'singleSelect'
+                        "
                     >
                         <label class="filter-label">{{ field.label }}</label>
                         <div
@@ -57,7 +60,7 @@
                                 @click.stop="toggleDropdown(field.key)"
                             >
                                 <span class="multi-select-text">{{
-                                    getMultiSelectText(field.key)
+                                    getSelectText(field)
                                 }}</span>
                                 <svg
                                     class="multi-select-arrow"
@@ -73,80 +76,58 @@
                                     :style="dropdownStyle"
                                     @click.stop
                                 >
-                                    <label
-                                        v-for="opt in field.options"
-                                        :key="opt.value"
-                                        class="multi-select-option"
+                                    <!-- 多选复选框 -->
+                                    <template
+                                        v-if="field.type === 'multiSelect'"
                                     >
-                                        <input
-                                            type="checkbox"
-                                            :value="opt.value"
-                                            v-model="activeForm[field.key]"
-                                        />
-                                        <span>{{ opt.label }}</span>
-                                    </label>
-                                </div>
-                            </Teleport>
-                        </div>
-                    </div>
+                                        <label
+                                            v-for="opt in field.options"
+                                            :key="opt.value"
+                                            class="multi-select-option"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                :value="opt.value"
+                                                v-model="activeForm[field.key]"
+                                            />
+                                            <span>{{ opt.label }}</span>
+                                        </label>
+                                    </template>
 
-                    <!-- 数值区间选择 -->
-                    <div
-                        class="filter-group"
-                        v-else-if="field.type === 'rangeSelect'"
-                    >
-                        <label class="filter-label">{{ field.label }}</label>
-                        <div
-                            class="multi-select"
-                            :class="{
-                                open: openDropdown === field.key,
-                            }"
-                        >
-                            <div
-                                class="multi-select-trigger"
-                                :ref="(el) => setTriggerRef(el, field.key)"
-                                @click.stop="toggleDropdown(field.key)"
-                            >
-                                <span class="multi-select-text">{{
-                                    getRangeSelectText(field.key, field.ranges)
-                                }}</span>
-                                <svg
-                                    class="multi-select-arrow"
-                                    viewBox="0 0 10 6"
-                                >
-                                    <path d="M0 0l5 6 5-6z" />
-                                </svg>
-                            </div>
-                            <Teleport to="body">
-                                <div
-                                    class="multi-select-panel"
-                                    v-show="openDropdown === field.key"
-                                    :style="dropdownStyle"
-                                    @click.stop
-                                >
-                                    <div
-                                        class="range-select-option"
-                                        :class="{
-                                            selected:
-                                                activeForm[field.key] === '',
-                                        }"
-                                        @click="selectRange(field.key, '')"
-                                    >
-                                        全部
-                                    </div>
-                                    <div
-                                        v-for="r in field.ranges"
-                                        :key="r.value"
-                                        class="range-select-option"
-                                        :class="{
-                                            selected:
-                                                activeForm[field.key] ===
-                                                r.value,
-                                        }"
-                                        @click="selectRange(field.key, r.value)"
-                                    >
-                                        {{ r.label }}
-                                    </div>
+                                    <!-- 单选列表项 -->
+                                    <template v-else>
+                                        <div
+                                            class="range-select-option"
+                                            :class="{
+                                                selected: isSingleSelected(
+                                                    field.key,
+                                                    '',
+                                                ),
+                                            }"
+                                            @click="selectSingle(field.key, '')"
+                                        >
+                                            全部
+                                        </div>
+                                        <div
+                                            v-for="opt in field.options"
+                                            :key="opt.value"
+                                            class="range-select-option"
+                                            :class="{
+                                                selected: isSingleSelected(
+                                                    field.key,
+                                                    opt.value,
+                                                ),
+                                            }"
+                                            @click="
+                                                selectSingle(
+                                                    field.key,
+                                                    opt.value,
+                                                )
+                                            "
+                                        >
+                                            {{ opt.label }}
+                                        </div>
+                                    </template>
                                 </div>
                             </Teleport>
                         </div>
@@ -227,7 +208,14 @@ import * as echarts from "echarts";
 import { FORM_FIELD, CHART_CONFIG } from "../configs/chart.js";
 import { dataStats } from "../utils/stats.js";
 
-// 面板状态
+const globalVar = defineProps({
+    show: {
+        type: Boolean,
+        default: false,
+    },
+});
+
+// 统计面板状态参数
 const isLoading = ref(false);
 const dataType = ref("barrier");
 const totalCount = ref(0);
@@ -235,7 +223,7 @@ const totalCount = ref(0);
 let form = {
     barrier: reactive({
         damType: [],
-        powerMw: "",
+        damLenM: "",
         mainBasin: [],
         mainUse: [],
         quality: [],
@@ -255,6 +243,7 @@ let form = {
     }),
 };
 
+// 读取当前数据类型对应的表单和字段配置
 const activeForm = computed(() => form[dataType.value]);
 const activeFormField = computed(() => FORM_FIELD[dataType.value]);
 
@@ -287,26 +276,39 @@ const closeAllDropdowns = () => {
     openDropdown.value = "";
 };
 
-const getMultiSelectText = (key) => {
-    const selected = activeForm.value[key];
-    if (!selected || selected.length === 0) return "全部";
-    if (selected.length === 1) return selected[0];
-    return `已选 ${selected.length} 项`;
-};
-
-// 单选区间下拉辅助
-const getRangeSelectText = (key, ranges) => {
-    const val = activeForm.value[key];
-    if (!val) return "全部";
-    const found = ranges.find((r) => r.value === val);
+// 统一获取下拉选择的显示文本
+const getSelectText = (field) => {
+    const val = activeForm.value[field.key];
+    if (field.type === "multiSelect") {
+        if (!val || val.length === 0) return "全部";
+        if (val.length === 1) {
+            const found = field.options.find((o) => o.value === val[0]);
+            return found ? found.label : val[0];
+        }
+        return `已选 ${val.length} 项`;
+    }
+    // singleSelect
+    if (val === "" || val === undefined || val === null) return "全部";
+    const found = field.options.find(
+        (o) => JSON.stringify(o.value) === JSON.stringify(val),
+    );
     return found ? found.label : "全部";
 };
 
-const selectRange = (key, value) => {
+// 判断单选项是否选中
+const isSingleSelected = (key, value) => {
+    const val = activeForm.value[key];
+    if (value === "") return val === "";
+    return JSON.stringify(val) === JSON.stringify(value);
+};
+
+// 单选选中某项
+const selectSingle = (key, value) => {
     activeForm.value[key] = value;
     openDropdown.value = "";
 };
 
+// 年份输入处理限制为4位数字
 const onYearInput = (field, event) => {
     const raw = event.target.value.replace(/\D/g, "").slice(0, 4);
     event.target.value = raw;
@@ -504,6 +506,28 @@ const initCharts = () => {
     });
 };
 
+/*
+ * 监听面板显示状态
+ * 首次显示时初始化图表
+ * 后续显示时调整图表大小
+ * */
+let hasInit = false;
+watch(
+    () => globalVar.show,
+    (newVal) => {
+        if (newVal) {
+            if (!hasInit) {
+                hasInit = true;
+                initCharts();
+            } else {
+                nextTick(() => {
+                    handleResize();
+                });
+            }
+        }
+    },
+);
+
 // 窗口大小变化时重绘图表
 const handleResize = () => {
     chartInstances.forEach((chart) => {
@@ -514,7 +538,6 @@ const handleResize = () => {
 };
 
 onMounted(() => {
-    initCharts();
     window.addEventListener("resize", handleResize);
     document.addEventListener("click", closeAllDropdowns);
 });

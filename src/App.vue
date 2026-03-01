@@ -24,7 +24,7 @@
 
         <!-- 统计面板 -->
         <transition name="stats-slide">
-            <StatsPanel v-show="showStats" />
+            <StatsPanel v-show="showStats" :show="showStats" />
         </transition>
     </div>
 </template>
@@ -39,7 +39,10 @@ import StatsPanel from "./components/StatsPanel.vue";
 const viewer = ref(null);
 const showStats = ref(false);
 
-// 获取viewer实例作全局变量
+/*
+ * 监听viewer实例初始化就绪事件
+ * 触发后获取viewer实例作为全局变量
+ * */
 const onViewerReady = (v) => {
     viewer.value = v;
 };

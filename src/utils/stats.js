@@ -89,6 +89,10 @@ export function parseStatsChartData(statsData, type) {
     });
 }
 
+/*
+ * 提交数据统计条件筛选表单和数据类型
+ * 统计符合条件的数据总数和各统计维度的分布数据
+ * */
 export async function dataStats({ form, type }) {
     switch (type) {
         case "barrier":

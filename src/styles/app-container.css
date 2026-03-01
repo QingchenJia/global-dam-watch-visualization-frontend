@@ -9,7 +9,6 @@ body,
     overflow: hidden;
 }
 
-/* ===== 统计面板下拉按钮 ===== */
 .stats-toggle-btn {
     position: fixed;
     top: 0;
@@ -68,7 +67,6 @@ body,
     transform: rotate(180deg);
 }
 
-/* ===== 统计面板滑出动画 ===== */
 .stats-slide-enter-active,
 .stats-slide-leave-active {
     transition:
