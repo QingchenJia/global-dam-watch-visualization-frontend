@@ -368,7 +368,7 @@ const resetForm = () => {
     switch (dataType.value) {
         case "barrier":
             form.barrier.damType = [];
-            form.barrier.powerMw = "";
+            form.barrier.damLenM = "";
             form.barrier.damHgtM = "";
             break;
         case "reservoir":

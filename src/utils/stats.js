@@ -28,11 +28,11 @@ function buildBarrierForm(form) {
         params.damType = form.damType;
     }
     if (
-        form.powerMw !== "" &&
-        form.powerMw !== null &&
-        form.powerMw !== undefined
+        form.damLenM !== "" &&
+        form.damLenM !== null &&
+        form.damLenM !== undefined
     ) {
-        params.powerMw = form.powerMw;
+        params.damLenM = form.damLenM;
     }
     if (
         form.damHgtM !== "" &&

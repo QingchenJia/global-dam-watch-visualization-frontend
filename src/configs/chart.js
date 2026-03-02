@@ -94,37 +94,60 @@ export const FORM_FIELD = {
             label: "大坝长度(m)",
             type: "singleSelect",
             options: [
+                /*
+                 * 无效或未填充字段赋值为-1
+                 * 标记为无效数据
+                 * 后端进行解析时过滤掉值为-1的条件
+                 * 部分条件值允许为0
+                 **/
                 {
                     label: "无长度信息",
                     value: {
                         eq: -99,
+                        gt: -1,
+                        ge: -1,
+                        lt: -1,
+                        le: -1,
                     },
                 },
                 {
                     label: "0-10 m",
                     value: {
+                        eq: -1,
                         gt: 0,
+                        ge: -1,
+                        lt: -1,
                         le: 10,
                     },
                 },
                 {
                     label: "10-50 m",
                     value: {
+                        eq: -1,
                         gt: 10,
+                        ge: -1,
+                        lt: -1,
                         le: 50,
                     },
                 },
                 {
                     label: "50-100 m",
                     value: {
+                        eq: -1,
                         gt: 50,
+                        ge: -1,
+                        lt: -1,
                         le: 100,
                     },
                 },
                 {
                     label: ">100 m",
                     value: {
+                        eq: -1,
                         gt: 100,
+                        ge: -1,
+                        lt: -1,
+                        le: -1,
                     },
                 },
             ],
@@ -166,27 +189,41 @@ export const FORM_FIELD = {
                 {
                     label: "<20 m",
                     value: {
+                        eq: -1,
+                        gt: -1,
+                        ge: -1,
                         lt: 20,
+                        le: -1,
                     },
                 },
                 {
                     label: "20-50 m",
                     value: {
+                        eq: -1,
                         gt: 20,
+                        ge: -1,
+                        lt: -1,
                         le: 50,
                     },
                 },
                 {
                     label: "50-100 m",
                     value: {
+                        eq: -1,
                         gt: 50,
+                        ge: -1,
+                        lt: -1,
                         le: 100,
                     },
                 },
                 {
                     label: ">100 m",
                     value: {
+                        eq: -1,
                         gt: 100,
+                        ge: -1,
+                        lt: -1,
+                        le: -1,
                     },
                 },
             ],
@@ -201,34 +238,51 @@ export const FORM_FIELD = {
                 {
                     label: "<1 百万m³",
                     value: {
+                        eq: -1,
+                        gt: -1,
+                        ge: -1,
                         lt: 1,
+                        le: -1,
                     },
                 },
                 {
                     label: "1-10 百万m³",
                     value: {
+                        eq: -1,
                         gt: 1,
+                        ge: -1,
+                        lt: -1,
                         le: 10,
                     },
                 },
                 {
                     label: "10-100 百万m³",
                     value: {
+                        eq: -1,
                         gt: 10,
+                        ge: -1,
+                        lt: -1,
                         le: 100,
                     },
                 },
                 {
                     label: "100-1000 百万m³",
                     value: {
+                        eq: -1,
                         gt: 100,
+                        ge: -1,
+                        lt: -1,
                         le: 1000,
                     },
                 },
                 {
                     label: ">1000 百万m³",
                     value: {
+                        eq: -1,
                         gt: 1000,
+                        ge: -1,
+                        lt: -1,
+                        le: -1,
                     },
                 },
             ],
@@ -241,27 +295,41 @@ export const FORM_FIELD = {
                 {
                     label: "<1 km²",
                     value: {
+                        eq: -1,
+                        gt: -1,
+                        ge: -1,
                         lt: 1,
+                        le: -1,
                     },
                 },
                 {
                     label: "1-10 km²",
                     value: {
+                        eq: -1,
                         gt: 1,
+                        ge: -1,
+                        lt: -1,
                         le: 10,
                     },
                 },
                 {
                     label: "10-100 km²",
                     value: {
+                        eq: -1,
                         gt: 10,
+                        ge: -1,
+                        lt: -1,
                         le: 100,
                     },
                 },
                 {
                     label: ">100 km²",
                     value: {
+                        eq: -1,
                         gt: 100,
+                        ge: -1,
+                        lt: -1,
+                        le: -1,
                     },
                 },
             ],
@@ -303,27 +371,41 @@ export const FORM_FIELD = {
                 {
                     label: "<10 m",
                     value: {
+                        eq: -1,
+                        gt: -1,
+                        ge: -1,
                         lt: 10,
+                        le: -1,
                     },
                 },
                 {
                     label: "10-50 m",
                     value: {
+                        eq: -1,
                         gt: 10,
+                        ge: -1,
+                        lt: -1,
                         le: 50,
                     },
                 },
                 {
                     label: "50-100 m",
                     value: {
+                        eq: -1,
                         gt: 50,
+                        ge: -1,
+                        lt: -1,
                         le: 100,
                     },
                 },
                 {
                     label: ">100 m",
                     value: {
+                        eq: -1,
                         gt: 100,
+                        ge: -1,
+                        lt: -1,
+                        le: -1,
                     },
                 },
             ],
@@ -345,7 +427,7 @@ export const CHART_CONFIG = {
         { title: "表面积等级占比", field: "areaSkm", isNumericRange: true },
         { title: "主要用途占比", field: "mainUse" },
         { title: "数据质量评级占比", field: "quality" },
-        { title: "建成年代区间占比", field: "yearRes", isYearRange: true },
+        { title: "建成年代区间占比", field: "yearDam", isYearRange: true },
         { title: "所在国家或地区占比", field: "country" },
     ],
 };
