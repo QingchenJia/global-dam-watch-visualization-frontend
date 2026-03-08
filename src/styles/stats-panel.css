@@ -126,6 +126,31 @@
     cursor: not-allowed;
 }
 
+.map-sync-btn {
+    padding: 6px 18px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.map-sync-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #34d399, #10b981);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.map-sync-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .btn-loading {
     width: 14px;
     height: 14px;

@@ -19,4 +19,8 @@ export const API_ENDPOINT = {
         barrier: "http://localhost:8100/barrier/stats",
         reservoir: "http://localhost:8100/reservoir/stats",
     },
+    sync: {
+        barrier: "http://localhost:8100/barrier/sync",
+        reservoir: "http://localhost:8100/reservoir/sync",
+    },
 };

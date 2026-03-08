@@ -1,8 +1,5 @@
 export const FIELD_MAP = {
     barrier: {
-        ogcFid: "系统主键",
-        objectid: "原始对象id",
-        gdwId: "全球大坝id",
         resName: "对应水库名称",
         damName: "大坝名称",
         altName: "水库备用名称",
@@ -67,16 +64,9 @@ export const FIELD_MAP = {
         editor: "编辑者",
         origSrc: "原始数据源",
         polySrc: "多边形数据源(引用)",
-        grandId: "GRanD id",
-        hyrivId: "HydroRIVERS id",
         instream: "河道内",
-        hylakId: "HydroLAKES id",
-        hybasL12: "HydroBASINS id",
     },
     reservoir: {
-        ogcFid: "系统主键",
-        objectid: "原始对象id",
-        gdwId: "全球大坝id",
         resName: "水库名称",
         damName: "对应大坝名称",
         altName: "大坝备用名称",
@@ -142,24 +132,8 @@ export const FIELD_MAP = {
         editor: "编辑者",
         origSrc: "原始数据源",
         polySrc: "多边形数据源",
-        grandId: "GRanD id",
-        hyrivId: "HydroRIVERS id",
         instream: "河道内",
-        hylakId: "HydroLAKES id",
-        hybasL12: "HydroBASINS id",
         shapeLength: "形状周长",
         shapeArea: "形状面积",
     },
 };
-
-export const IGNORE_FIELD = new Set([
-    "ogcFid",
-    "objectid",
-    "gdwId",
-    "wkbGeometry",
-    "geojson",
-    "grandId",
-    "hyrivId",
-    "hylakId",
-    "hybasL12",
-]);

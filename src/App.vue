@@ -24,7 +24,13 @@
 
         <!-- 统计面板 -->
         <transition name="stats-slide">
-            <StatsPanel v-show="showStats" :show="showStats" />
+            <StatsPanel
+                v-if="viewer"
+                :viewer="viewer"
+                v-show="showStats"
+                :show="showStats"
+                @request-close="showStats = false"
+            />
         </transition>
     </div>
 </template>

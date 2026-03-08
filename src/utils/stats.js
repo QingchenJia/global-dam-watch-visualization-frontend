@@ -1,6 +1,8 @@
 import axios from "axios";
 import { API_ENDPOINT } from "../configs/api.js";
 import { CHART_CONFIG } from "../configs/chart.js";
+import { loadBarrierEntity, loadReservoirEntity } from "./earth.js";
+import { rotateEarth, computeCenter } from "./camera.js";
 
 function commonParamsCheck(params, form) {
     if (form.mainBasin && form.mainBasin.length > 0) {
@@ -116,4 +118,48 @@ export async function dataStats({ form, type }) {
     const chartDataList = parseStatsChartData(statsData, type);
 
     return { total, chartDataList };
+}
+
+export async function dataSync(viewer, { form, type }, emit) {
+    viewer.entities.removeAll();
+
+    switch (type) {
+        case "barrier":
+            form = buildBarrierForm(form);
+            break;
+        case "reservoir":
+            form = buildReservoirForm(form);
+            break;
+        default:
+            throw new Error(`未知统计类型:${type}`);
+    }
+
+    const url = API_ENDPOINT.sync[type];
+    const res = await axios.post(url, form);
+
+    if (res.data.code !== 1) {
+        throw new Error(res.data.message || "地图同步请求失败");
+    }
+
+    const entities = Array.isArray(res.data.data?.entities)
+        ? res.data.data.entities
+        : Array.isArray(res.data.data)
+          ? res.data.data
+          : [];
+
+    switch (type) {
+        case "barrier":
+            entities.forEach((entity) => loadBarrierEntity(viewer, entity));
+            break;
+        case "reservoir":
+            entities.forEach((entity) => loadReservoirEntity(viewer, entity));
+            break;
+        default:
+            throw new Error(`未知统计类型:${type}`);
+    }
+
+    // 等待实体同步完成后再收起面板切回三维地球视图
+    emit("request-close");
+
+    await rotateEarth(viewer, computeCenter(viewer.entities));
 }

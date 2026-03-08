@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as Cesium from "cesium";
 import { API_ENDPOINT } from "../configs/api.js";
-import { FIELD_MAP, IGNORE_FIELD } from "../configs/field.js";
+import { FIELD_MAP } from "../configs/field.js";
 
 export function loadBarrierEntity(viewer, item) {
     const gdwId = item.gdwId;
@@ -168,21 +168,20 @@ function queryDescription(entity, id, type) {
 
 function generateDescriptionForm(data, mapping) {
     let html = '<table class="cesium-infoBox-defaultTable"><tbody>';
-    for (const key in data) {
-        // 侧边详情栏过滤非必要与空值字段
-        const ignoreField = IGNORE_FIELD;
+    for (const key in mapping) {
+        const label = mapping && mapping[key] ? mapping[key] : key;
+        // 针对无效数据进行统一处理
         if (
-            ignoreField.has(key) ||
             data[key] === null ||
             data[key] === -99 ||
             data[key] === "" ||
             data[key] === " "
-        )
-            continue;
-
-        const label = mapping && mapping[key] ? mapping[key] : key;
+        ) {
+            data[key] = "暂无数据";
+        }
         html += `<tr><th>${label}</th><td>${data[key]}</td></tr>`;
     }
+
     html += "</tbody></table>";
     return html;
 }

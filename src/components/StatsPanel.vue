@@ -26,10 +26,18 @@
                 <button
                     class="query-btn"
                     @click="fetchStats"
-                    :disabled="isLoading"
+                    :disabled="isLoading || isSyncing"
                 >
                     <span v-if="isLoading" class="btn-loading"></span>
                     <span v-else>查询统计</span>
+                </button>
+                <button
+                    class="map-sync-btn"
+                    @click="fetchSync"
+                    :disabled="isLoading || isSyncing"
+                >
+                    <span v-if="isSyncing" class="btn-loading"></span>
+                    <span v-else>地图同步</span>
                 </button>
             </div>
         </div>
@@ -206,17 +214,23 @@ import {
 } from "vue";
 import * as echarts from "echarts";
 import { FORM_FIELD, CHART_CONFIG } from "../configs/chart.js";
-import { dataStats } from "../utils/stats.js";
+import { dataStats, dataSync } from "../utils/stats.js";
 
 const globalVar = defineProps({
+    viewer: {
+        type: Object,
+        required: true,
+    },
     show: {
         type: Boolean,
         default: false,
     },
 });
+const emit = defineEmits(["request-close"]);
 
 // 统计面板状态参数
 const isLoading = ref(false);
+const isSyncing = ref(false);
 const dataType = ref("barrier");
 const totalCount = ref(0);
 
@@ -398,7 +412,7 @@ const fetchStats = async () => {
             renderPieChart(index, data);
         });
     } catch (err) {
-        console.error("统计查询失败：", err);
+        console.error("统计查询失败:", err);
         totalCount.value = 0;
         // 请求失败时置为无数据状态
         chartConfig.value.forEach((config, index) => {
@@ -406,6 +420,25 @@ const fetchStats = async () => {
         });
     } finally {
         isLoading.value = false;
+    }
+};
+
+// 同步地图数据
+const fetchSync = async () => {
+    isSyncing.value = true;
+    try {
+        await dataSync(
+            globalVar.viewer,
+            {
+                form: activeForm.value,
+                type: dataType.value,
+            },
+            emit,
+        );
+    } catch (err) {
+        console.error("地图同步失败:", err);
+    } finally {
+        isSyncing.value = false;
     }
 };
 

@@ -18,6 +18,7 @@ import {
     FILTER_PROMPT,
     SQL_PROMPT,
 } from "../configs/prompt.js";
+import { rotateEarth, computeCenter } from "./camera.js";
 
 // 定义不同任务职责的智能体执行器
 let totalAgent = {
@@ -137,6 +138,7 @@ function defineLlm() {
         apiKey: llmConfig.chat.apiKey,
         configuration: { baseURL: llmConfig.chat.baseUrl },
         model: llmConfig.chat.modelName,
+        streamUsage: false,
     });
 
     return { llm, chatLlm };
@@ -362,7 +364,7 @@ async function sqlFilter(viewer, sql) {
                 }
             });
             // 调整地图相机视角适应所有实体
-            viewer.zoomTo(viewer.entities);
+            await rotateEarth(viewer, computeCenter(viewer.entities));
 
             return `SUCCESS:查询成功!已筛选${data.length}个符合条件的${type}实体.`;
         } else {
