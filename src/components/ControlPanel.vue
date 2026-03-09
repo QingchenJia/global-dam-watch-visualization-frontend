@@ -53,7 +53,7 @@
 
 <script setup>
 import * as Cesium from "cesium";
-import { ref, toRaw } from "vue";
+import { ref, toRaw, onMounted, onUnmounted } from "vue";
 import { showLightBarrier, showLightReservoir } from "../utils/earth.js";
 
 const globalVar = defineProps({
@@ -122,4 +122,18 @@ const toggleEntitiesVisible = () => {
     visible.value = !visible.value;
     switchVisbility(visible.value);
 };
+
+const handleSyncCompleted = () => {
+    // 地图同步后重置可见性为显示
+    visible.value = true;
+    switchVisbility(true);
+};
+
+onMounted(() => {
+    window.addEventListener("map-sync-completed", handleSyncCompleted);
+});
+
+onUnmounted(() => {
+    window.removeEventListener("map-sync-completed", handleSyncCompleted);
+});
 </script>

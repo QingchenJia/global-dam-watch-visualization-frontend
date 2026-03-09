@@ -65,6 +65,7 @@ export const FIELD_MAP = {
         origSrc: "原始数据源",
         polySrc: "多边形数据源(引用)",
         instream: "河道内",
+        hybasL12: "第12级子流域矢量",
     },
     reservoir: {
         resName: "水库名称",
@@ -133,6 +134,7 @@ export const FIELD_MAP = {
         origSrc: "原始数据源",
         polySrc: "多边形数据源",
         instream: "河道内",
+        hybasL12: "第12级子流域矢量",
         shapeLength: "形状周长",
         shapeArea: "形状面积",
     },

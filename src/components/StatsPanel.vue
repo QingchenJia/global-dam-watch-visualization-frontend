@@ -435,6 +435,7 @@ const fetchSync = async () => {
             },
             emit,
         );
+        window.dispatchEvent(new CustomEvent("map-sync-completed"));
     } catch (err) {
         console.error("地图同步失败:", err);
     } finally {

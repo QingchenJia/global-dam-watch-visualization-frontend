@@ -273,11 +273,12 @@ function defineTools(viewer) {
     const sqlFilterTool = new DynamicStructuredTool({
         name: "sql_filter",
         description:
-            "高级过滤工具.根据SQL进行数据库查询实现过滤,请严格按照提示语中SQL语法要求构造查询条件.",
+            "高级过滤工具.根据SQL条件子句进行数据库查询实现过滤,请严格按照提示语中SQL语法要求构造查询条件.",
         schema: z.object({
-            sql: z.string().describe(`${SQL_PROMPT}`),
+            type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
+            condition: z.string().describe(`${SQL_PROMPT}`),
         }),
-        func: async ({ sql }) => sqlFilter(viewer, sql),
+        func: async ({ type, condition }) => sqlFilter(viewer, type, condition),
     });
 
     return [searchAndFlyTool, flyToTool, sqlFilterTool];
@@ -334,18 +335,12 @@ async function searchAndFly(viewer, keyword, type) {
     }
 }
 
-async function sqlFilter(viewer, sql) {
+async function sqlFilter(viewer, type, condition) {
     try {
-        let type = null;
-        // 根据单表查询语句所在表名判断实体类型
-        if (sql.includes("public.gdw_barrier")) type = "barrier";
-        else if (sql.includes("public.gdw_reservoir")) type = "reservoir";
-
         const url = API_ENDPOINT.filter[type];
-
         viewer.entities.removeAll();
 
-        const res = await axios.post(url, sql, {
+        const res = await axios.post(url, condition, {
             headers: { "Content-Type": "text/plain" },
         });
 

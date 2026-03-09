@@ -18,7 +18,7 @@ export function loadBarrierEntity(viewer, item) {
     if (!position) return;
 
     let pointColor = Cesium.Color.RED;
-    let pointSize = 6;
+    let pointSize = 4;
 
     // 根据大坝类型调整显示颜色
     if (type.includes("Lake Control Dam")) {
@@ -45,7 +45,23 @@ export function loadBarrierEntity(viewer, item) {
             color: pointColor,
             outlineColor: Cesium.Color.WHITE,
             outlineWidth: 1,
-            scaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.0, 1.5e7, 0.5),
+            /*
+             * 距离缩放
+             * 距离近时放大且不透明
+             * 距离远时缩小
+             * */
+            scaleByDistance: new Cesium.NearFarScalar(1.0e4, 1, 2.0e7, 0.05),
+            /*
+             * 淡出效果
+             * 全局视角下增加透明度
+             * 避免重叠遮挡
+             * */
+            translucencyByDistance: new Cesium.NearFarScalar(
+                1.0e4,
+                1.0,
+                2.0e7,
+                0.75,
+            ),
         },
     });
 }
