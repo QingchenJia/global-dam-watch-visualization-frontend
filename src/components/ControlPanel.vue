@@ -49,12 +49,39 @@
             />
         </svg>
     </div>
+
+    <!-- 数量聚合开关按钮 -->
+    <div
+        class="custom-cluster-button"
+        :class="{ 'is-disabled': !clusterEnabled }"
+        :title="clusterEnabled ? '关闭数量聚合' : '开启数量聚合'"
+        @click="toggleClusterEnabled"
+    >
+        <svg viewBox="0 0 24 24">
+            <!-- 当开启聚合时，显示表示聚合的图标 (使用环绕的圆点和中心大点) -->
+            <path
+                v-if="clusterEnabled"
+                d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm-7.5 4c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5zm15 0c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5zm-7.5-6.5c-.83 0-1.5-.67-1.5-1.5S11.17 4 12 4s1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0 15c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"
+            />
+            <!-- 当关闭聚合时，显示散落的点图标 -->
+            <path
+                v-else
+                d="M8 8c-.83 0-1.5-.67-1.5-1.5S7.17 5 8 5s1.5.67 1.5 1.5S8.83 8 8 8zm8 0c-.83 0-1.5-.67-1.5-1.5S15.17 5 16 5s1.5.67 1.5 1.5S16.83 8 16 8zm-4 8c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm-4 3c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm8 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"
+            />
+        </svg>
+    </div>
 </template>
 
 <script setup>
 import * as Cesium from "cesium";
 import { ref, toRaw, onMounted, onUnmounted } from "vue";
-import { showLightBarrier, showLightReservoir } from "../utils/earth.js";
+import {
+    showLightBarrier,
+    showLightReservoir,
+    clearAllEntities,
+    setBarrierDataSourceVisible,
+    getBarrierDataSource,
+} from "../hooks/earth.js";
 
 const globalVar = defineProps({
     viewer: {
@@ -65,6 +92,7 @@ const globalVar = defineProps({
 
 let entityIndex = 0;
 const visible = ref(true);
+const clusterEnabled = ref(true);
 
 // 切换所有实体的可见性
 const switchVisbility = (visible) => {
@@ -72,6 +100,9 @@ const switchVisbility = (visible) => {
     entities.forEach((entity) => {
         entity.show = visible;
     });
+
+    // 大坝数据源整体显隐
+    setBarrierDataSourceVisible(visible);
 
     // 如果实体被隐藏则取消当前的实体选中状态
     if (!visible) {
@@ -81,7 +112,7 @@ const switchVisbility = (visible) => {
 
 const reloadAll = () => {
     // 移除当前地图上的所有实体
-    globalVar.viewer.entities.removeAll();
+    clearAllEntities(globalVar.viewer);
     showLightBarrier(globalVar.viewer);
     showLightReservoir(globalVar.viewer);
 
@@ -121,6 +152,23 @@ const jumpNext = () => {
 const toggleEntitiesVisible = () => {
     visible.value = !visible.value;
     switchVisbility(visible.value);
+};
+
+const toggleClusterEnabled = () => {
+    clusterEnabled.value = !clusterEnabled.value;
+    const bds = getBarrierDataSource(globalVar.viewer);
+    if (bds) {
+        bds.clustering.enabled = clusterEnabled.value;
+        // Cesium重绘hack
+        const prevRange = bds.clustering.pixelRange;
+        bds.clustering.pixelRange = prevRange + 0.1;
+        setTimeout(() => {
+            bds.clustering.pixelRange = prevRange;
+            if (globalVar.viewer.scene) {
+                globalVar.viewer.scene.requestRender();
+            }
+        }, 0);
+    }
 };
 
 const handleSyncCompleted = () => {

@@ -1,8 +1,13 @@
 import axios from "axios";
 import { API_ENDPOINT } from "../configs/api.js";
 import { CHART_CONFIG } from "../configs/chart.js";
-import { loadBarrierEntity, loadReservoirEntity } from "./earth.js";
-import { rotateEarth, computeCenter } from "./camera.js";
+import {
+    loadBarrierEntity,
+    loadReservoirEntity,
+    clearAllEntities,
+    getAllEntities,
+} from "./earth.js";
+import { rotateEarth, computeCenter } from "../utils/camera.js";
 
 function commonParamsCheck(params, form) {
     if (form.mainBasin && form.mainBasin.length > 0) {
@@ -121,7 +126,7 @@ export async function dataStats({ form, type }) {
 }
 
 export async function dataSync(viewer, { form, type }, emit) {
-    viewer.entities.removeAll();
+    clearAllEntities(viewer);
 
     switch (type) {
         case "barrier":
@@ -161,5 +166,5 @@ export async function dataSync(viewer, { form, type }, emit) {
     // 等待实体同步完成后再收起面板切回三维地球视图
     emit("request-close");
 
-    await rotateEarth(viewer, computeCenter(viewer.entities));
+    await rotateEarth(viewer, computeCenter(getAllEntities(viewer)));
 }

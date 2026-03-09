@@ -262,14 +262,14 @@
 .message-bubble.agent {
     background: rgba(30, 40, 56, 0.85);
     border: 1px solid rgba(92, 197, 240, 0.12);
-    border-bottom-left-radius: 3px;
+    border-radius: 2px 12px 12px 12px;
     color: #d0dde8;
 }
 
 .message-bubble.user {
     background: linear-gradient(135deg, #1a6ea8, #1581c4);
     border: 1px solid rgba(92, 197, 240, 0.2);
-    border-bottom-right-radius: 3px;
+    border-radius: 12px 2px 12px 12px;
     color: #e8f4ff;
 }
 

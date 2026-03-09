@@ -2,6 +2,41 @@ import axios from "axios";
 import * as Cesium from "cesium";
 import { API_ENDPOINT } from "../configs/api.js";
 import { FIELD_MAP } from "../configs/field.js";
+import { enableEntityClustering } from "../utils/cluster.js";
+
+let barrierDataSource = null;
+
+// 获取或创建大坝自定义数据源
+export function getBarrierDataSource(viewer) {
+    if (!barrierDataSource) {
+        barrierDataSource = new Cesium.CustomDataSource("barriers");
+        viewer.dataSources.add(barrierDataSource);
+        enableEntityClustering(barrierDataSource, viewer);
+    }
+    return barrierDataSource;
+}
+
+export function clearAllEntities(viewer) {
+    viewer.entities.removeAll();
+    if (barrierDataSource) {
+        barrierDataSource.entities.removeAll();
+    }
+}
+
+export function getAllEntities(viewer) {
+    const result = [...viewer.entities.values];
+    if (barrierDataSource) {
+        result.push(...barrierDataSource.entities.values);
+    }
+    return result;
+}
+
+// 切换大坝数据源的可见性
+export function setBarrierDataSourceVisible(show) {
+    if (barrierDataSource) {
+        barrierDataSource.show = show;
+    }
+}
 
 export function loadBarrierEntity(viewer, item) {
     const gdwId = item.gdwId;
@@ -18,7 +53,7 @@ export function loadBarrierEntity(viewer, item) {
     if (!position) return;
 
     let pointColor = Cesium.Color.RED;
-    let pointSize = 4;
+    let pointSize = 6;
 
     // 根据大坝类型调整显示颜色
     if (type.includes("Lake Control Dam")) {
@@ -29,12 +64,11 @@ export function loadBarrierEntity(viewer, item) {
         pointColor = Cesium.Color.BLUE;
     }
 
-    viewer.entities.add({
-        // 显式定义大坝id
+    const bds = getBarrierDataSource(viewer);
+    bds.entities.add({
         id: "b-" + gdwId,
         name: name,
         position: position,
-        // 存储大坝关键属性
         properties: {
             dataType: "barrier",
             gdwId: gdwId,
@@ -45,17 +79,7 @@ export function loadBarrierEntity(viewer, item) {
             color: pointColor,
             outlineColor: Cesium.Color.WHITE,
             outlineWidth: 1,
-            /*
-             * 距离缩放
-             * 距离近时放大且不透明
-             * 距离远时缩小
-             * */
-            scaleByDistance: new Cesium.NearFarScalar(1.0e4, 1, 2.0e7, 0.05),
-            /*
-             * 淡出效果
-             * 全局视角下增加透明度
-             * 避免重叠遮挡
-             * */
+            scaleByDistance: new Cesium.NearFarScalar(1.0e4, 1.05, 2.0e7, 0.05),
             translucencyByDistance: new Cesium.NearFarScalar(
                 1.0e4,
                 1.0,
@@ -202,11 +226,11 @@ function generateDescriptionForm(data, mapping) {
     return html;
 }
 
-/*
+/* *
  * 解析数据的地理信息字段
  * 分别处理大坝的点信息和水库的多边形信息
  * 水库多边形选取第一个多边形环作为外环进行渲染
- * */
+ */
 function parseGeometry(rawGeometry) {
     if (!rawGeometry) return null;
 

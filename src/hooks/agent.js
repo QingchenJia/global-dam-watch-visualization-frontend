@@ -11,14 +11,19 @@ import {
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { AgentExecutor, createToolCallingAgent } from "langchain/agents";
-import { loadBarrierEntity, loadReservoirEntity } from "./earth.js";
+import {
+    loadBarrierEntity,
+    loadReservoirEntity,
+    clearAllEntities,
+    getAllEntities,
+} from "./earth.js";
 import { API_ENDPOINT } from "../configs/api.js";
 import {
     POSITION_PROMPT,
     FILTER_PROMPT,
     SQL_PROMPT,
 } from "../configs/prompt.js";
-import { rotateEarth, computeCenter } from "./camera.js";
+import { rotateEarth, computeCenter } from "../utils/camera.js";
 
 // 定义不同任务职责的智能体执行器
 let totalAgent = {
@@ -342,7 +347,7 @@ async function searchAndFly(viewer, keyword, type) {
 async function sqlFilter(viewer, type, condition) {
     try {
         const url = API_ENDPOINT.filter[type];
-        viewer.entities.removeAll();
+        clearAllEntities(viewer);
 
         const res = await axios.post(url, condition, {
             headers: { "Content-Type": "text/plain" },
@@ -363,7 +368,7 @@ async function sqlFilter(viewer, type, condition) {
                 }
             });
             // 调整地图相机视角适应所有实体
-            await rotateEarth(viewer, computeCenter(viewer.entities));
+            await rotateEarth(viewer, computeCenter(getAllEntities(viewer)));
 
             return `SUCCESS:查询成功!已筛选${data.length}个符合条件的${type}实体.`;
         } else {

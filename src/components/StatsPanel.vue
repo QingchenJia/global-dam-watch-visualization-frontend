@@ -214,7 +214,7 @@ import {
 } from "vue";
 import * as echarts from "echarts";
 import { FORM_FIELD, CHART_CONFIG } from "../configs/chart.js";
-import { dataStats, dataSync } from "../utils/stats.js";
+import { dataStats, dataSync } from "../hooks/stats.js";
 
 const globalVar = defineProps({
     viewer: {

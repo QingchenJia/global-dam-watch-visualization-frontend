@@ -10,7 +10,7 @@ import {
     showLightBarrier,
     showLightReservoir,
     entitySelectedEvent,
-} from "../utils/earth.js";
+} from "../hooks/earth.js";
 
 const cesiumContainer = ref(null);
 const emit = defineEmits(["viewer-ready"]);

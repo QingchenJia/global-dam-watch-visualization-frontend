@@ -159,7 +159,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick, computed } from "vue";
-import { chatToAgent, llmConfig, defineTotalAgent } from "../utils/agent.js";
+import { chatToAgent, llmConfig, defineTotalAgent } from "../hooks/agent.js";
 
 const globalVar = defineProps({
     viewer: {
