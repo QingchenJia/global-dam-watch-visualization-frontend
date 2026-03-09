@@ -131,6 +131,7 @@ function defineLlm() {
             temperature: 0,
             // 关闭用量统计提高云服务接口兼容
             streamUsage: false,
+            streaming: false,
         });
     }
 
@@ -139,6 +140,7 @@ function defineLlm() {
         configuration: { baseURL: llmConfig.chat.baseUrl },
         model: llmConfig.chat.modelName,
         streamUsage: false,
+        streaming: false,
     });
 
     return { llm, chatLlm };
@@ -179,6 +181,7 @@ export function defineTotalAgent(viewer) {
         llm: llm,
         tools: [searchAndFlyTool, flyToTool],
         prompt: positionPrompt,
+        streamRunnable: false,
     });
 
     // 定义实体定位智能体执行器
@@ -203,6 +206,7 @@ export function defineTotalAgent(viewer) {
         llm: llm,
         tools: [sqlFilterTool],
         prompt: filterPrompt,
+        streamRunnable: false,
     });
 
     // 定义条件筛选智能体执行器

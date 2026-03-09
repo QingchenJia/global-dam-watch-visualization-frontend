@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <!-- 外圆 -->
+  <circle cx="12" cy="12" r="10" stroke="#5cc5f0" stroke-width="1.5"/>
+  <!-- 经线椭圆 -->
+  <ellipse cx="12" cy="12" rx="4.5" ry="10" stroke="#5cc5f0" stroke-width="1"/>
+  <!-- 纬线 -->
+  <line x1="2" y1="12" x2="22" y2="12" stroke="#5cc5f0" stroke-width="1"/>
+  <line x1="4.2" y1="7.5" x2="19.8" y2="7.5" stroke="#5cc5f0" stroke-width="0.8"/>
+  <line x1="4.2" y1="16.5" x2="19.8" y2="16.5" stroke="#5cc5f0" stroke-width="0.8"/>
+  <!-- 中心点 -->
+  <circle cx="12" cy="12" r="2" fill="#5cc5f0" opacity="0.55"/>
+</svg>

@@ -5,31 +5,154 @@
         :class="{ minimized: isMinimized }"
         ref="chatContainer"
     >
+        <!-- 头部 -->
         <div class="agent-header" @click="toggleMinimize">
-            <!-- 动态显示模型名称 -->
-            <span id="agent-title"
-                >GIS Agent({{ agentMode }}) - {{ modelName }}</span
-            >
-            <span class="agent-toggle">{{ isMinimized ? "+" : "-" }}</span>
+            <div class="agent-header-left">
+                <div class="agent-avatar-icon">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <circle
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                        />
+                        <path
+                            d="M8 12h8M12 8v8"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                        />
+                        <circle
+                            cx="12"
+                            cy="12"
+                            r="3"
+                            fill="currentColor"
+                            opacity="0.4"
+                        />
+                    </svg>
+                </div>
+                <div class="agent-header-info">
+                    <span class="agent-title">GIS Agent</span>
+                    <span class="agent-subtitle"
+                        >{{ agentMode }} · {{ modelName }}</span
+                    >
+                </div>
+            </div>
+            <div class="agent-header-right">
+                <span
+                    class="agent-status-dot"
+                    :class="{ active: !loading }"
+                ></span>
+                <button
+                    class="agent-minimize-btn"
+                    :title="isMinimized ? '展开' : '收起'"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            :d="
+                                isMinimized ? 'M18 15l-6-6-6 6' : 'M6 9l6 6 6-6'
+                            "
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                    </svg>
+                </button>
+            </div>
         </div>
+
+        <!-- 消息区 -->
         <div class="agent-messages" ref="messagesContainer">
             <div
                 v-for="(msg, index) in messages"
                 :key="index"
-                :class="['message', msg.sender, { loading: msg.loading }]"
+                :class="['message-row', msg.sender]"
             >
-                <div class="message-content" v-html="msg.content"></div>
+                <!-- 智能体消息头像 -->
+                <div
+                    v-if="msg.sender === 'agent'"
+                    class="msg-avatar agent-msg-avatar"
+                >
+                    <img src="../assets/agent-avatar.svg" alt="GIS Agent" />
+                </div>
+
+                <div
+                    :class="[
+                        'message-bubble',
+                        msg.sender,
+                        { loading: msg.loading },
+                    ]"
+                >
+                    <!-- 打字动画 -->
+                    <template v-if="msg.loading">
+                        <div class="typing-indicator">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span class="typing-label">{{ msg.content }}</span>
+                    </template>
+                    <div
+                        v-else
+                        class="message-content"
+                        v-html="msg.content"
+                    ></div>
+                </div>
+
+                <!-- 用户消息头像 -->
+                <div
+                    v-if="msg.sender === 'user'"
+                    class="msg-avatar user-msg-avatar"
+                >
+                    <img src="../assets/user-avatar.svg" alt="User" />
+                </div>
             </div>
         </div>
+
+        <!-- 输入区 -->
         <div class="agent-input-area">
             <input
                 v-model="inputText"
                 @keyup.enter="sendMessage"
-                placeholder="输入指令..."
+                placeholder="向GIS Agent发送指令…"
                 :disabled="loading"
                 ref="inputInput"
             />
-            <button @click="sendMessage" :disabled="loading">发送</button>
+            <button
+                class="send-btn"
+                @click="sendMessage"
+                :disabled="loading"
+                title="发送"
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        d="M22 2L11 13"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                    <path
+                        d="M22 2L15 22L11 13L2 9L22 2Z"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+            </button>
         </div>
     </div>
 </template>
