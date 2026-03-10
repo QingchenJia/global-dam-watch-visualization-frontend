@@ -53,7 +53,7 @@ export function loadBarrierEntity(viewer, item) {
     if (!position) return;
 
     let pointColor = Cesium.Color.RED;
-    let pointSize = 6;
+    let pointSize = 5;
 
     // 根据大坝类型调整显示颜色
     if (type.includes("Lake Control Dam")) {

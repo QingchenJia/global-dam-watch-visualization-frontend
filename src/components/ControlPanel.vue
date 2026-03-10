@@ -109,6 +109,7 @@ import {
     setBarrierDataSourceVisible,
     getBarrierDataSource,
 } from "../hooks/earth.js";
+import { setAutoClusterEnabled } from "../utils/cluster.js";
 
 const globalVar = defineProps({
     viewer: {
@@ -168,19 +169,16 @@ const applyReservoirVisible = (nextVisible) => {
     }
 };
 
-// 切换所有实体的可见性可按需定义
-// ...
-
 const reloadAll = () => {
     // 移除当前地图上的所有实体
     clearAllEntities(globalVar.viewer);
     showLightBarrier(globalVar.viewer);
     showLightReservoir(globalVar.viewer);
-
-    // 重新加载后保持当前的系统数据源级别可见性状态
-    // 注：由于水库实体是异步加载并直接添至 viewer.entities，加载完成时默认显示
-    // 若需要在加载后保持隐藏状态，需在 loadReservoirEntity 注入状态参数
+    // 重新应用当前的可见性设置
     applyBarrierVisible(barrierVisible.value);
+    applyReservoirVisible(reservoirVisible.value);
+    // 更新全局可见性状态
+    updateGlobalVisibleState();
 };
 
 const resetView = () => {
@@ -240,6 +238,7 @@ const handleOutsideClick = (event) => {
 
 const toggleClusterEnabled = () => {
     clusterEnabled.value = !clusterEnabled.value;
+    setAutoClusterEnabled(clusterEnabled.value);
     const bds = getBarrierDataSource(globalVar.viewer);
     if (bds) {
         bds.clustering.enabled = clusterEnabled.value;

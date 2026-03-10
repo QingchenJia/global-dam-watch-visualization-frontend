@@ -68,6 +68,12 @@ function getClusterPin(count) {
     return url;
 }
 
+export let autoClusterEnabled = true;
+
+export function setAutoClusterEnabled(enabled) {
+    autoClusterEnabled = enabled;
+}
+
 export function enableEntityClustering(dataSource, viewer) {
     dataSource.clustering.enabled = true;
     dataSource.clustering.pixelRange = CLUSTER_PIXEL_RANGE;
@@ -104,6 +110,7 @@ export function enableEntityClustering(dataSource, viewer) {
      */
     if (viewer) {
         const updateClusteringState = () => {
+            if (!autoClusterEnabled) return;
             if (!viewer.camera || !viewer.camera.positionCartographic) return;
 
             const height = viewer.camera.positionCartographic.height;
