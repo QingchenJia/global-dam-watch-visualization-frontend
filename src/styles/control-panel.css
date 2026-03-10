@@ -82,11 +82,14 @@
     fill: #edffff;
 }
 
-.custom-visibility-button {
+.custom-visibility-controls {
     position: absolute;
     top: 10px;
     left: 136px;
     z-index: 999;
+}
+
+.custom-visibility-button {
     width: 32px;
     height: 32px;
     display: flex;
@@ -112,6 +115,89 @@
     width: 20px;
     height: 20px;
     fill: #edffff;
+}
+
+.visibility-options-panel {
+    position: absolute;
+    top: 38px;
+    left: 0;
+    min-width: 90px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #4a4a4a;
+    background-color: rgba(29, 29, 29, 0.95);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+
+.visibility-option-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: transparent;
+    color: #edffff;
+    padding: 0px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* 滑动开关样式 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 18px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #6e2a2a;
+    transition: 0.4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.4s;
+}
+
+input:checked + .slider {
+    background-color: #2a6e3d;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2a6e3d;
+}
+
+input:checked + .slider:before {
+    transform: translateX(16px);
+}
+
+.slider.round {
+    border-radius: 18px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
 }
 
 .custom-cluster-button {

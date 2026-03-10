@@ -32,22 +32,49 @@
     </div>
 
     <!-- 实体显示或隐藏按钮 -->
-    <div
-        class="custom-visibility-button"
-        :class="{ 'is-hidden': !visible }"
-        :title="visible ? '隐藏所有实体' : '显示所有实体'"
-        @click="toggleEntitiesVisible"
-    >
-        <svg viewBox="0 0 24 24">
-            <path
-                v-if="visible"
-                d="M12 6c-4.8 0-8.87 2.98-10.52 7.2a.8.8 0 0 0 0 .6C3.13 18.02 7.2 21 12 21s8.87-2.98 10.52-7.2a.8.8 0 0 0 0-.6C20.87 8.98 16.8 6 12 6zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
-            />
-            <path
-                v-else
-                d="M3.27 2 2 3.27l2.45 2.45C3.13 6.92 2.09 8.42 1.48 10a.8.8 0 0 0 0 .6C3.13 14.82 7.2 17.8 12 17.8c1.92 0 3.7-.47 5.24-1.29L20.73 20 22 18.73 3.27 2zM12 15.8c-2.76 0-5-2.24-5-5 0-.84.21-1.63.57-2.33l1.56 1.56a3 3 0 0 0 3.2 3.2l1.56 1.56c-.7.36-1.49.57-2.33.57zm0-10.8c4.8 0 8.87 2.98 10.52 7.2a.8.8 0 0 1 0 .6c-.38.96-.9 1.86-1.55 2.66l-1.43-1.43c.31-.43.58-.9.78-1.4C18.97 9.58 15.68 7 12 7c-1.25 0-2.45.3-3.51.83L6.94 6.28A11.2 11.2 0 0 1 12 5z"
-            />
-        </svg>
+    <div ref="visibilityControlRef" class="custom-visibility-controls">
+        <div
+            class="custom-visibility-button"
+            :class="{ 'is-hidden': !visible }"
+            :title="visible ? '隐藏所有实体' : '显示所有实体'"
+            @click="toggleVisibilityOptions"
+        >
+            <svg viewBox="0 0 24 24">
+                <path
+                    v-if="visible"
+                    d="M12 6c-4.8 0-8.87 2.98-10.52 7.2a.8.8 0 0 0 0 .6C3.13 18.02 7.2 21 12 21s8.87-2.98 10.52-7.2a.8.8 0 0 0 0-.6C20.87 8.98 16.8 6 12 6zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
+                />
+                <path
+                    v-else
+                    d="M3.27 2 2 3.27l2.45 2.45C3.13 6.92 2.09 8.42 1.48 10a.8.8 0 0 0 0 .6C3.13 14.82 7.2 17.8 12 17.8c1.92 0 3.7-.47 5.24-1.29L20.73 20 22 18.73 3.27 2zM12 15.8c-2.76 0-5-2.24-5-5 0-.84.21-1.63.57-2.33l1.56 1.56a3 3 0 0 0 3.2 3.2l1.56 1.56c-.7.36-1.49.57-2.33.57zm0-10.8c4.8 0 8.87 2.98 10.52 7.2a.8.8 0 0 1 0 .6c-.38.96-.9 1.86-1.55 2.66l-1.43-1.43c.31-.43.58-.9.78-1.4C18.97 9.58 15.68 7 12 7c-1.25 0-2.45.3-3.51.83L6.94 6.28A11.2 11.2 0 0 1 12 5z"
+                />
+            </svg>
+        </div>
+
+        <div v-if="visibilityOptionsOpen" class="visibility-options-panel">
+            <div class="visibility-option-item">
+                <span>大坝</span>
+                <label class="switch">
+                    <input
+                        type="checkbox"
+                        :checked="barrierVisible"
+                        @change="toggleBarrierVisible"
+                    />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="visibility-option-item">
+                <span>水库</span>
+                <label class="switch">
+                    <input
+                        type="checkbox"
+                        :checked="reservoirVisible"
+                        @change="toggleReservoirVisible"
+                    />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
     </div>
 
     <!-- 数量聚合开关按钮 -->
@@ -58,12 +85,12 @@
         @click="toggleClusterEnabled"
     >
         <svg viewBox="0 0 24 24">
-            <!-- 当开启聚合时，显示表示聚合的图标 (使用环绕的圆点和中心大点) -->
+            <!-- 当开启聚合时显示表示聚合的图标 -->
             <path
                 v-if="clusterEnabled"
                 d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm-7.5 4c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5zm15 0c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5zm-7.5-6.5c-.83 0-1.5-.67-1.5-1.5S11.17 4 12 4s1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0 15c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"
             />
-            <!-- 当关闭聚合时，显示散落的点图标 -->
+            <!-- 当关闭聚合时显示散落的点图标 -->
             <path
                 v-else
                 d="M8 8c-.83 0-1.5-.67-1.5-1.5S7.17 5 8 5s1.5.67 1.5 1.5S8.83 8 8 8zm8 0c-.83 0-1.5-.67-1.5-1.5S15.17 5 16 5s1.5.67 1.5 1.5S16.83 8 16 8zm-4 8c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm-4 3c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm8 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"
@@ -92,23 +119,57 @@ const globalVar = defineProps({
 
 let entityIndex = 0;
 const visible = ref(true);
+const barrierVisible = ref(true);
+const reservoirVisible = ref(true);
+const visibilityOptionsOpen = ref(false);
+const visibilityControlRef = ref(null);
 const clusterEnabled = ref(true);
 
-// 切换所有实体的可见性
-const switchVisbility = (visible) => {
-    const entities = globalVar.viewer.entities.values;
-    entities.forEach((entity) => {
-        entity.show = visible;
-    });
+const getEntityDataType = (entity) => {
+    if (!entity || !entity.properties || !entity.properties.dataType) {
+        return "";
+    }
 
-    // 大坝数据源整体显隐
-    setBarrierDataSourceVisible(visible);
+    const dataType = entity.properties.dataType;
+    if (typeof dataType.getValue === "function") {
+        return dataType.getValue();
+    }
+    return dataType;
+};
 
-    // 如果实体被隐藏则取消当前的实体选中状态
-    if (!visible) {
-        globalVar.viewer.selectedEntity = null;
+const updateGlobalVisibleState = () => {
+    visible.value = barrierVisible.value && reservoirVisible.value;
+};
+
+const applyBarrierVisible = (nextVisible) => {
+    setBarrierDataSourceVisible(nextVisible);
+
+    if (!nextVisible) {
+        const selectedEntity = globalVar.viewer.selectedEntity;
+        if (getEntityDataType(selectedEntity) === "barrier") {
+            globalVar.viewer.selectedEntity = null;
+        }
     }
 };
+
+const applyReservoirVisible = (nextVisible) => {
+    const entities = globalVar.viewer.entities.values;
+    entities.forEach((entity) => {
+        if (getEntityDataType(entity) === "reservoir") {
+            entity.show = nextVisible;
+        }
+    });
+
+    if (!nextVisible) {
+        const selectedEntity = globalVar.viewer.selectedEntity;
+        if (getEntityDataType(selectedEntity) === "reservoir") {
+            globalVar.viewer.selectedEntity = null;
+        }
+    }
+};
+
+// 切换所有实体的可见性可按需定义
+// ...
 
 const reloadAll = () => {
     // 移除当前地图上的所有实体
@@ -116,8 +177,10 @@ const reloadAll = () => {
     showLightBarrier(globalVar.viewer);
     showLightReservoir(globalVar.viewer);
 
-    // 重新加载后保持当前的可见性状态
-    switchVisbility(visible.value);
+    // 重新加载后保持当前的系统数据源级别可见性状态
+    // 注：由于水库实体是异步加载并直接添至 viewer.entities，加载完成时默认显示
+    // 若需要在加载后保持隐藏状态，需在 loadReservoirEntity 注入状态参数
+    applyBarrierVisible(barrierVisible.value);
 };
 
 const resetView = () => {
@@ -149,9 +212,30 @@ const jumpNext = () => {
     });
 };
 
-const toggleEntitiesVisible = () => {
-    visible.value = !visible.value;
-    switchVisbility(visible.value);
+const toggleVisibilityOptions = () => {
+    visibilityOptionsOpen.value = !visibilityOptionsOpen.value;
+};
+
+const toggleBarrierVisible = () => {
+    barrierVisible.value = !barrierVisible.value;
+    applyBarrierVisible(barrierVisible.value);
+    updateGlobalVisibleState();
+};
+
+const toggleReservoirVisible = () => {
+    reservoirVisible.value = !reservoirVisible.value;
+    applyReservoirVisible(reservoirVisible.value);
+    updateGlobalVisibleState();
+};
+
+const handleOutsideClick = (event) => {
+    if (
+        visibilityOptionsOpen.value &&
+        visibilityControlRef.value &&
+        !visibilityControlRef.value.contains(event.target)
+    ) {
+        visibilityOptionsOpen.value = false;
+    }
 };
 
 const toggleClusterEnabled = () => {
@@ -173,15 +257,20 @@ const toggleClusterEnabled = () => {
 
 const handleSyncCompleted = () => {
     // 地图同步后重置可见性为显示
-    visible.value = true;
-    switchVisbility(true);
+    barrierVisible.value = true;
+    reservoirVisible.value = true;
+    applyBarrierVisible(true);
+    applyReservoirVisible(true);
+    updateGlobalVisibleState();
 };
 
 onMounted(() => {
     window.addEventListener("map-sync-completed", handleSyncCompleted);
+    window.addEventListener("click", handleOutsideClick);
 });
 
 onUnmounted(() => {
     window.removeEventListener("map-sync-completed", handleSyncCompleted);
+    window.removeEventListener("click", handleOutsideClick);
 });
 </script>
