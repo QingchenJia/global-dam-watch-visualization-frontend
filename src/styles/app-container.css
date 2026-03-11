@@ -85,3 +85,48 @@ body,
     transform: translateX(-50%) translateY(0);
     opacity: 1;
 }
+
+.timeline-toggle-btn {
+    position: fixed;
+    bottom: 0;
+    right: 220px;
+    z-index: 9991;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 16px;
+    background: rgba(30, 33, 40, 0.92);
+    color: #bbb;
+    border: 1px solid #3a3f4b;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    cursor: pointer;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-size: 13px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.35);
+    transition: all 0.25s ease;
+    user-select: none;
+}
+
+.timeline-toggle-btn:hover {
+    background: rgba(45, 50, 60, 0.95);
+    color: #eee;
+}
+
+.timeline-toggle-btn.active {
+    background: rgba(50, 55, 68, 0.95);
+    color: #5cc5f0;
+    border-color: #5cc5f0;
+}
+
+.timeline-toggle-icon {
+    width: 15px;
+    height: 15px;
+    fill: currentColor;
+}
+
+.timeline-toggle-text {
+    font-weight: 600;
+    letter-spacing: 1px;
+}

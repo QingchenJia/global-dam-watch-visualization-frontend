@@ -38,6 +38,32 @@ export function setBarrierDataSourceVisible(show) {
     }
 }
 
+// 按年份过滤大坝实体
+export function filterEntitiesByYear(maxYear) {
+    if (!barrierDataSource) return;
+    const entities = barrierDataSource.entities.values;
+    for (let i = 0; i < entities.length; i++) {
+        const entity = entities[i];
+        const yearProp = entity.properties && entity.properties.yearDam;
+        const year = yearProp ? yearProp.getValue() : null;
+        if (year !== null && year !== -99 && year !== "" && year !== " ") {
+            entity.show = Number(year) <= maxYear;
+        } else {
+            // 无建成年份的大坝始终显示
+            entity.show = true;
+        }
+    }
+}
+
+// 关闭时间轴时恢复所有大坝显示
+export function restoreAllEntities() {
+    if (!barrierDataSource) return;
+    const entities = barrierDataSource.entities.values;
+    for (let i = 0; i < entities.length; i++) {
+        entities[i].show = true;
+    }
+}
+
 export function loadBarrierEntity(viewer, item) {
     const gdwId = item.gdwId;
     const type = item.damType || "Unknown";
@@ -64,6 +90,8 @@ export function loadBarrierEntity(viewer, item) {
         pointColor = Cesium.Color.BLUE;
     }
 
+    const yearDam = item.yearDam || null;
+
     const bds = getBarrierDataSource(viewer);
     bds.entities.add({
         id: "b-" + gdwId,
@@ -73,6 +101,7 @@ export function loadBarrierEntity(viewer, item) {
             dataType: "barrier",
             gdwId: gdwId,
             damType: type,
+            yearDam: yearDam,
         },
         point: {
             pixelSize: pointSize,
