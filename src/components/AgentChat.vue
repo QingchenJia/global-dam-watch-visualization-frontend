@@ -83,7 +83,10 @@
                     v-if="msg.sender === 'agent'"
                     class="msg-avatar agent-msg-avatar"
                 >
-                    <img src="../assets/agent-avatar.svg" alt="GIS Agent" />
+                    <img
+                        src="../assets/images/agent-avatar.svg"
+                        alt="GIS Agent"
+                    />
                 </div>
 
                 <div
@@ -112,7 +115,7 @@
                     v-if="msg.sender === 'user'"
                     class="msg-avatar user-msg-avatar"
                 >
-                    <img src="../assets/user-avatar.svg" alt="User" />
+                    <img src="../assets/images/user-avatar.svg" alt="User" />
                 </div>
             </div>
         </div>
@@ -122,7 +125,7 @@
             <input
                 v-model="inputText"
                 @keyup.enter="sendMessage"
-                placeholder="向GIS Agent发送指令…"
+                placeholder="向GIS Agent发送指令..."
                 :disabled="loading"
                 ref="inputInput"
             />

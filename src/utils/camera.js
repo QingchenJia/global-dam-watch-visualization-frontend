@@ -67,3 +67,42 @@ export function rotateEarth(viewer, center) {
         });
     });
 }
+
+// 读取当前相机状态
+export function captureCamera(viewer) {
+    const v = viewer?.camera ? viewer : viewer?.value;
+    if (!v) return null;
+    const camera = v.camera;
+    const carto = camera.positionCartographic;
+    return {
+        lon: Cesium.Math.toDegrees(carto.longitude),
+        lat: Cesium.Math.toDegrees(carto.latitude),
+        height: carto.height,
+        heading: camera.heading,
+        pitch: camera.pitch,
+        roll: camera.roll || 0,
+    };
+}
+
+// 飞行到指定相机状态
+export function flyCamera(viewer, cameraState) {
+    const v = viewer?.camera ? viewer : viewer?.value;
+    if (!v || !cameraState) return Promise.resolve();
+    return new Promise((resolve) => {
+        v.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(
+                cameraState.lon,
+                cameraState.lat,
+                cameraState.height,
+            ),
+            orientation: {
+                heading: cameraState.heading ?? 0,
+                pitch: cameraState.pitch ?? -1.57,
+                roll: cameraState.roll ?? 0,
+            },
+            duration: 1.2,
+            complete: resolve,
+            cancel: resolve,
+        });
+    });
+}

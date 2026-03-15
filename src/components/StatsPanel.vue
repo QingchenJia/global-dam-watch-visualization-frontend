@@ -203,18 +203,10 @@
 </template>
 
 <script setup>
-import {
-    ref,
-    reactive,
-    computed,
-    onMounted,
-    onUnmounted,
-    nextTick,
-    watch,
-} from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import * as echarts from "echarts";
 import { FORM_FIELD, CHART_CONFIG } from "../configs/chart.js";
-import { dataStats, dataSync } from "../hooks/stats.js";
+import { dataStats, dataSync, useFilter } from "../hooks/stats.js";
 
 const globalVar = defineProps({
     viewer: {
@@ -228,37 +220,20 @@ const globalVar = defineProps({
 });
 const emit = defineEmits(["request-close"]);
 
+// 引入共享状态和方法
+const {
+    dataType,
+    activeForm,
+    setDataType,
+    resetForm: resetSharedForm,
+} = useFilter();
+
 // 统计面板状态参数
 const isLoading = ref(false);
 const isSyncing = ref(false);
-const dataType = ref("barrier");
 const totalCount = ref(0);
 
-let form = {
-    barrier: reactive({
-        damType: [],
-        damLenM: "",
-        mainBasin: [],
-        mainUse: [],
-        quality: [],
-        year: [],
-        country: [],
-        damHgtM: "",
-    }),
-    reservoir: reactive({
-        capMcm: "",
-        areaSkm: "",
-        mainBasin: [],
-        mainUse: [],
-        quality: [],
-        year: [],
-        country: [],
-        depthM: "",
-    }),
-};
-
-// 读取当前数据类型对应的表单和字段配置
-const activeForm = computed(() => form[dataType.value]);
+// 读取当前数据类型对应的字段配置
 const activeFormField = computed(() => FORM_FIELD[dataType.value]);
 
 const openDropdown = ref("");
@@ -330,10 +305,10 @@ const onYearInput = (field, event) => {
 
     switch (field) {
         case "yearFrom":
-            form[dataType.value].year[0] = val;
+            activeForm.value.year[0] = val;
             break;
         case "yearTo":
-            form[dataType.value].year[1] = val;
+            activeForm.value.year[1] = val;
             break;
     }
 };
@@ -348,62 +323,41 @@ const setChartRef = (el, index) => {
     }
 };
 
-// 切换大坝或水库数据类型
-const toggleDataType = () => {
-    switch (dataType.value) {
-        case "barrier":
-            dataType.value = "reservoir";
-            break;
-        case "reservoir":
-            dataType.value = "barrier";
-            break;
-    }
-};
-
-// 监听数据类型变化时切换图表配置并重置筛选
-watch(dataType, (newType) => {
-    chartConfig.value = [...CHART_CONFIG[newType]];
-    resetForm();
-    nextTick(() => {
-        chartConfig.value.forEach((config, index) => {
-            // 更新图表为无数据状态
-            renderPieChart(index, [], config.title);
-        });
-    });
-});
-
-const resetForm = () => {
-    form[dataType.value].mainBasin = [];
-    form[dataType.value].country = [];
-    form[dataType.value].mainUse = [];
-    form[dataType.value].quality = [];
-    form[dataType.value].year = [];
-
-    switch (dataType.value) {
-        case "barrier":
-            form.barrier.damType = [];
-            form.barrier.damLenM = "";
-            form.barrier.damHgtM = "";
-            break;
-        case "reservoir":
-            form.reservoir.capMcm = "";
-            form.reservoir.areaSkm = "";
-            form.reservoir.depthM = "";
-            break;
-    }
-
+// 手动重置当前面板状态（包含表单和UI状态）
+const handleReset = () => {
+    resetSharedForm();
     openDropdown.value = "";
     totalCount.value = 0;
 };
+
+// 切换大坝或水库数据类型
+const toggleDataType = () => {
+    const nextType = dataType.value === "barrier" ? "reservoir" : "barrier";
+    setDataType(nextType);
+    handleReset();
+};
+
+// 监听数据类型变化时切换图表配置
+watch(
+    dataType,
+    (newType) => {
+        chartConfig.value = [...CHART_CONFIG[newType]];
+
+        // 初始化空图表
+        nextTick(() => {
+            chartConfig.value.forEach((config, index) => {
+                renderPieChart(index, [], config.title);
+            });
+        });
+    },
+    { immediate: true },
+);
 
 // 查询统计数据
 const fetchStats = async () => {
     isLoading.value = true;
     try {
-        const result = await dataStats({
-            form: activeForm.value,
-            type: dataType.value,
-        });
+        const result = await dataStats(activeForm.value, dataType.value);
 
         totalCount.value = result.total;
 
@@ -429,10 +383,8 @@ const fetchSync = async () => {
     try {
         await dataSync(
             globalVar.viewer,
-            {
-                form: activeForm.value,
-                type: dataType.value,
-            },
+            activeForm.value,
+            dataType.value,
             emit,
         );
         window.dispatchEvent(new CustomEvent("map-sync-completed"));

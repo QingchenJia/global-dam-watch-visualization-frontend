@@ -8,6 +8,7 @@
             :show-timeline="showTimeline"
             @toggle-stats="showStats = !showStats"
             @toggle-timeline="showTimeline = !showTimeline"
+            @open-bookmark="showBookmark = true"
         />
         <AgentChat v-if="viewer" :viewer="viewer" />
 
@@ -21,6 +22,14 @@
                 @request-close="showStats = false"
             />
         </transition>
+
+        <!-- 书签面板 -->
+        <BookmarkPanel
+            v-if="viewer"
+            :viewer="viewer"
+            :show="showBookmark"
+            @close="showBookmark = false"
+        />
 
         <!-- 时间轴面板 -->
         <TimelineSlider
@@ -39,10 +48,12 @@ import ControlPanel from "./components/ControlPanel.vue";
 import AgentChat from "./components/AgentChat.vue";
 import StatsPanel from "./components/StatsPanel.vue";
 import TimelineSlider from "./components/TimelineSlider.vue";
+import BookmarkPanel from "./components/BookmarkPanel.vue";
 
 const viewer = ref(null);
 const showStats = ref(false);
 const showTimeline = ref(false);
+const showBookmark = ref(false);
 
 /*
  * 监听viewer实例初始化就绪事件

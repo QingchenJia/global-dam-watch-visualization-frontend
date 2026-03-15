@@ -1,7 +1,7 @@
 .agent-chat-container {
     position: fixed;
     bottom: 24px;
-    left: 24px;
+    left: 18px;
     width: 340px;
     height: 480px;
     display: flex;

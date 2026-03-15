@@ -130,6 +130,19 @@
             />
         </svg>
     </div>
+
+    <!-- 收藏视角与筛选按钮 -->
+    <div
+        class="bookmark-button"
+        title="收藏当前视角与筛选"
+        @click="$emit('open-bookmark')"
+    >
+        <svg viewBox="0 0 24 24">
+            <path
+                d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21z"
+            />
+        </svg>
+    </div>
 </template>
 
 <script setup>
@@ -159,7 +172,7 @@ const globalVar = defineProps({
     },
 });
 
-defineEmits(["toggle-stats", "toggle-timeline"]);
+defineEmits(["toggle-stats", "toggle-timeline", "open-bookmark"]);
 
 let entityIndex = 0;
 const visible = ref(true);

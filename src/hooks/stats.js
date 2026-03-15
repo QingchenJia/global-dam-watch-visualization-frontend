@@ -1,4 +1,5 @@
 import axios from "axios";
+import { reactive, computed } from "vue";
 import { API_ENDPOINT } from "../configs/api.js";
 import { CHART_CONFIG } from "../configs/chart.js";
 import {
@@ -100,7 +101,7 @@ export function parseStatsChartData(statsData, type) {
  * 提交数据统计条件筛选表单和数据类型
  * 统计符合条件的数据总数和各统计维度的分布数据
  * */
-export async function dataStats({ form, type }) {
+export async function dataStats(form, type) {
     switch (type) {
         case "barrier":
             form = buildBarrierForm(form);
@@ -125,7 +126,7 @@ export async function dataStats({ form, type }) {
     return { total, chartDataList };
 }
 
-export async function dataSync(viewer, { form, type }, emit) {
+export async function dataSync(viewer, form, type, emit) {
     clearAllEntities(viewer);
 
     switch (type) {
@@ -167,4 +168,106 @@ export async function dataSync(viewer, { form, type }, emit) {
     emit("request-close");
 
     await rotateEarth(viewer, computeCenter(getAllEntities(viewer)));
+}
+
+const createBarrierFormState = () => ({
+    damType: [],
+    damLenM: "",
+    mainBasin: [],
+    mainUse: [],
+    quality: [],
+    year: [],
+    country: [],
+    damHgtM: "",
+});
+
+const createReservoirFormState = () => ({
+    capMcm: "",
+    areaSkm: "",
+    mainBasin: [],
+    mainUse: [],
+    quality: [],
+    year: [],
+    country: [],
+    depthM: "",
+});
+
+// 使用单例模式保存状态确保多组件共享同一份数据
+const state = reactive({
+    dataType: "barrier",
+    barrier: createBarrierFormState(),
+    reservoir: createReservoirFormState(),
+});
+
+export function useFilter() {
+    // 切换数据类型
+    const setDataType = (type) => {
+        if (type !== "barrier" && type !== "reservoir") return;
+        state.dataType = type;
+    };
+
+    // 获取当前激活的表单
+    const activeForm = computed(() => state[state.dataType]);
+
+    // 重置当前类型的表单
+    const resetForm = () => {
+        let defaults;
+        switch (state.dataType) {
+            case "barrier":
+                defaults = createBarrierFormState();
+                break;
+            case "reservoir":
+                defaults = createReservoirFormState();
+                break;
+            default:
+                return;
+        }
+        Object.assign(state[state.dataType], defaults);
+    };
+
+    // 应用表单数据用于书签恢复
+    const applyForm = (type, data) => {
+        if (type !== "barrier" && type !== "reservoir") return;
+
+        const target = state[type];
+
+        let defaults;
+        switch (type) {
+            case "barrier":
+                defaults = createBarrierFormState();
+                break;
+            case "reservoir":
+                defaults = createReservoirFormState();
+                break;
+            default:
+                return;
+        }
+
+        // 精确赋值以保留响应性
+        Object.keys(defaults).forEach((key) => {
+            const val = data[key];
+            target[key] = val !== undefined ? val : defaults[key];
+        });
+    };
+
+    // 获取当前状态用于书签保存
+    const getSnapshot = () => {
+        return {
+            dataType: state.dataType,
+            form: JSON.parse(JSON.stringify(state[state.dataType])),
+        };
+    };
+
+    return {
+        dataType: computed({
+            get: () => state.dataType,
+            set: setDataType,
+        }),
+        activeForm,
+        form: state,
+        setDataType,
+        resetForm,
+        applyForm,
+        getSnapshot,
+    };
 }
