@@ -5,7 +5,7 @@
             <div
                 class="timeline-progress-bar"
                 :style="{ width: progressPct + '%' }"
-            />
+            ></div>
 
             <!-- 标题行 -->
             <div class="timeline-header">
@@ -94,7 +94,9 @@
 
                 <!-- 年份和计数 -->
                 <div class="timeline-status">
-                    <span class="timeline-year-label">{{ currentYear }}</span>
+                    <span class="timeline-year-label"
+                        >当前 {{ currentYear }} 年</span
+                    >
                     <span class="timeline-dam-count"
                         >已建成 {{ visibleCount }} 座</span
                     >
@@ -109,12 +111,12 @@ import { ref, computed, watch, onUnmounted } from "vue";
 import { filterEntitiesByYear, restoreAllEntities } from "../hooks/earth.js";
 
 const globalVar = defineProps({
-    show: {
-        type: Boolean,
-        required: true,
-    },
     viewer: {
         type: Object,
+        required: true,
+    },
+    show: {
+        type: Boolean,
         required: true,
     },
 });
@@ -144,8 +146,12 @@ const progressPct = computed(
 
 const axisTicks = computed(() => {
     const ticks = [];
-    for (let y = MIN_YEAR; y <= MAX_YEAR; y += TICK_STEP) ticks.push(y);
-    if (ticks[ticks.length - 1] !== MAX_YEAR) ticks.push(MAX_YEAR);
+    for (let y = MIN_YEAR; y <= MAX_YEAR; y += TICK_STEP) {
+        ticks.push(y);
+    }
+    if (ticks[ticks.length - 1] !== MAX_YEAR) {
+        ticks.push(MAX_YEAR);
+    }
     return ticks;
 });
 
@@ -157,9 +163,10 @@ function updateVisibleCount() {
         return;
     }
     try {
-        const ds = globalVar.viewer.dataSources.getByName("barriers")[0];
-        visibleCount.value = ds
-            ? ds.entities.values.filter((e) => e.show).length
+        const barrierDataSource =
+            globalVar.viewer.dataSources.getByName("barriers")[0];
+        visibleCount.value = barrierDataSource
+            ? barrierDataSource.entities.values.filter((e) => e.show).length
             : 0;
     } catch {
         visibleCount.value = 0;

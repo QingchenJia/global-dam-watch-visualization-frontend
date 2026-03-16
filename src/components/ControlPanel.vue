@@ -182,7 +182,7 @@ const visibilityOptionsOpen = ref(false);
 const visibilityControlRef = ref(null);
 const clusterEnabled = ref(true);
 
-const getEntityDataType = (entity) => {
+function getEntityDataType(entity) {
     if (!entity || !entity.properties || !entity.properties.dataType) {
         return "";
     }
@@ -192,40 +192,42 @@ const getEntityDataType = (entity) => {
         return dataType.getValue();
     }
     return dataType;
-};
+}
 
-const updateGlobalVisibleState = () => {
+function updateGlobalVisibleState() {
     visible.value = barrierVisible.value && reservoirVisible.value;
-};
+}
 
-const applyBarrierVisible = (nextVisible) => {
-    setBarrierDataSourceVisible(nextVisible);
+function applyBarrierVisible(visibility) {
+    setBarrierDataSourceVisible(visibility);
 
-    if (!nextVisible) {
-        const selectedEntity = globalVar.viewer.selectedEntity;
-        if (getEntityDataType(selectedEntity) === "barrier") {
+    if (!visibility) {
+        // 当前选中实体的类型被隐藏后取消选中状态
+        if (getEntityDataType(globalVar.viewer.selectedEntity) === "barrier") {
             globalVar.viewer.selectedEntity = null;
         }
     }
-};
+}
 
-const applyReservoirVisible = (nextVisible) => {
+function applyReservoirVisible(visibility) {
     const entities = globalVar.viewer.entities.values;
     entities.forEach((entity) => {
         if (getEntityDataType(entity) === "reservoir") {
-            entity.show = nextVisible;
+            entity.show = visibility;
         }
     });
 
-    if (!nextVisible) {
-        const selectedEntity = globalVar.viewer.selectedEntity;
-        if (getEntityDataType(selectedEntity) === "reservoir") {
+    if (!visibility) {
+        // 当前选中实体的类型被隐藏后取消选中状态
+        if (
+            getEntityDataType(globalVar.viewer.selectedEntity) === "reservoir"
+        ) {
             globalVar.viewer.selectedEntity = null;
         }
     }
-};
+}
 
-const reloadAll = () => {
+function reloadAll() {
     // 移除当前地图上的所有实体
     clearAllEntities(globalVar.viewer);
     showLightBarrier(globalVar.viewer);
@@ -235,9 +237,9 @@ const reloadAll = () => {
     applyReservoirVisible(reservoirVisible.value);
     // 更新全局可见性状态
     updateGlobalVisibleState();
-};
+}
 
-const resetView = () => {
+function resetView() {
     // 取消当前的实体选中状态
     globalVar.viewer.selectedEntity = null;
 
@@ -247,9 +249,9 @@ const resetView = () => {
         destination: Cesium.Cartesian3.fromDegrees(105.0, 35.0, 23750000),
         duration: 1.5,
     });
-};
+}
 
-const jumpNext = () => {
+function jumpNext() {
     const entities = globalVar.viewer.entities.values;
     const visibleEntities = entities.filter((entity) => entity.show !== false);
 
@@ -264,25 +266,25 @@ const jumpNext = () => {
     globalVar.viewer.flyTo(toRaw(globalVar.viewer.selectedEntity), {
         duration: 1.5,
     });
-};
+}
 
-const toggleVisibilityOptions = () => {
+function toggleVisibilityOptions() {
     visibilityOptionsOpen.value = !visibilityOptionsOpen.value;
-};
+}
 
-const toggleBarrierVisible = () => {
+function toggleBarrierVisible() {
     barrierVisible.value = !barrierVisible.value;
     applyBarrierVisible(barrierVisible.value);
     updateGlobalVisibleState();
-};
+}
 
-const toggleReservoirVisible = () => {
+function toggleReservoirVisible() {
     reservoirVisible.value = !reservoirVisible.value;
     applyReservoirVisible(reservoirVisible.value);
     updateGlobalVisibleState();
-};
+}
 
-const handleOutsideClick = (event) => {
+function handleOutsideClick(event) {
     if (
         visibilityOptionsOpen.value &&
         visibilityControlRef.value &&
@@ -290,9 +292,9 @@ const handleOutsideClick = (event) => {
     ) {
         visibilityOptionsOpen.value = false;
     }
-};
+}
 
-const toggleClusterEnabled = () => {
+function toggleClusterEnabled() {
     clusterEnabled.value = !clusterEnabled.value;
     setAutoClusterEnabled(clusterEnabled.value);
     const bds = getBarrierDataSource(globalVar.viewer);
@@ -308,16 +310,16 @@ const toggleClusterEnabled = () => {
             }
         }, 0);
     }
-};
+}
 
-const handleSyncCompleted = () => {
+function handleSyncCompleted() {
     // 地图同步后重置可见性为显示
     barrierVisible.value = true;
     reservoirVisible.value = true;
     applyBarrierVisible(true);
     applyReservoirVisible(true);
     updateGlobalVisibleState();
-};
+}
 
 onMounted(() => {
     window.addEventListener("map-sync-completed", handleSyncCompleted);

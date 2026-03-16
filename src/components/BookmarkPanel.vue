@@ -144,16 +144,16 @@ function loadBookmarks() {
     }
 }
 
-const clone = (obj) => {
+function clone(obj) {
     try {
         return JSON.parse(JSON.stringify(obj || {}));
     } catch (e) {
         console.warn("书签数据复制失败", e);
         return {};
     }
-};
+}
 
-const handleSave = (viewer) => {
+function handleSave(viewer) {
     if (!viewer) return;
     isSaving.value = true;
     try {
@@ -177,13 +177,13 @@ const handleSave = (viewer) => {
     } finally {
         isSaving.value = false;
     }
-};
+}
 
-const deleteBookmark = (id) => {
+function deleteBookmark(id) {
     bookmarks.value = bookmarks.value.filter((bookmark) => bookmark.id !== id);
-};
+}
 
-const applyBookmark = async (bookmark, viewer) => {
+async function applyBookmark(bookmark, viewer) {
     if (!bookmark || !viewer) return;
     isApplying.value = true;
     try {
@@ -205,45 +205,47 @@ const applyBookmark = async (bookmark, viewer) => {
     } finally {
         isApplying.value = false;
     }
-};
+}
 
-const formatDate = (dateStr) => {
-    if (!dateStr) return "";
+function formatDate(dateStr) {
+    if (!dateStr) {
+        return "";
+    }
     const date = new Date(dateStr);
-    if (Number.isNaN(date.getTime())) return "";
+    if (Number.isNaN(date.getTime())) {
+        return "";
+    }
     return date.toLocaleString("zh-CN", {
         month: "2-digit",
         day: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
     });
-};
+}
 
-const formatCamera = (camera) => {
-    if (!camera) return "--";
+function formatCamera(camera) {
+    if (!camera) {
+        return "--";
+    }
     const heightKm = camera.height ? Math.round(camera.height / 1000) : 0;
     return `${camera.lon?.toFixed?.(1) ?? "-"}°, ${camera.lat?.toFixed?.(1) ?? "-"}° / ${heightKm}km`;
-};
+}
 
-const getBadgeClass = (dataType) => {
+function getBadgeClass(dataType) {
     switch (dataType) {
         case "barrier":
             return "badge-barrier";
         case "reservoir":
             return "badge-reservoir";
-        default:
-            return "";
     }
-};
+}
 
-const getBadgeLabel = (dataType) => {
+function getBadgeLabel(dataType) {
     switch (dataType) {
         case "barrier":
             return "大坝";
         case "reservoir":
             return "水库";
-        default:
-            return "未知类型";
     }
-};
+}
 </script>

@@ -240,11 +240,13 @@ const openDropdown = ref("");
 const dropdownStyle = ref({});
 const triggerRefs = {};
 
-const setTriggerRef = (el, key) => {
-    if (el) triggerRefs[key] = el;
-};
+function setTriggerRef(el, key) {
+    if (el) {
+        triggerRefs[key] = el;
+    }
+}
 
-const toggleDropdown = (key) => {
+function toggleDropdown(key) {
     if (openDropdown.value === key) {
         openDropdown.value = "";
         return;
@@ -259,14 +261,14 @@ const toggleDropdown = (key) => {
         };
     }
     openDropdown.value = key;
-};
+}
 
-const closeAllDropdowns = () => {
+function closeAllDropdowns() {
     openDropdown.value = "";
-};
+}
 
 // 统一获取下拉选择的显示文本
-const getSelectText = (field) => {
+function getSelectText(field) {
     const val = activeForm.value[field.key];
     if (field.type === "multiSelect") {
         if (!val || val.length === 0) return "全部";
@@ -282,23 +284,25 @@ const getSelectText = (field) => {
         (o) => JSON.stringify(o.value) === JSON.stringify(val),
     );
     return found ? found.label : "全部";
-};
+}
 
 // 判断单选项是否选中
-const isSingleSelected = (key, value) => {
+function isSingleSelected(key, value) {
     const val = activeForm.value[key];
-    if (value === "") return val === "";
+    if (value === "") {
+        return val === "";
+    }
     return JSON.stringify(val) === JSON.stringify(value);
-};
+}
 
 // 单选选中某项
-const selectSingle = (key, value) => {
+function selectSingle(key, value) {
     activeForm.value[key] = value;
     openDropdown.value = "";
-};
+}
 
 // 年份输入处理限制为4位数字
-const onYearInput = (field, event) => {
+function onYearInput(field, event) {
     const raw = event.target.value.replace(/\D/g, "").slice(0, 4);
     event.target.value = raw;
     const val = raw ? parseInt(raw) : null;
@@ -311,31 +315,39 @@ const onYearInput = (field, event) => {
             activeForm.value.year[1] = val;
             break;
     }
-};
+}
 
 const chartConfig = ref([...CHART_CONFIG.barrier]);
 const chartInstances = [];
 const chartRefs = [];
 
-const setChartRef = (el, index) => {
+function setChartRef(el, index) {
     if (el) {
         chartRefs[index] = el;
     }
-};
+}
 
-// 手动重置当前面板状态（包含表单和UI状态）
-const handleReset = () => {
+// 手动重置当前面板状态
+function handleReset() {
     resetSharedForm();
     openDropdown.value = "";
     totalCount.value = 0;
-};
+}
 
 // 切换大坝或水库数据类型
-const toggleDataType = () => {
-    const nextType = dataType.value === "barrier" ? "reservoir" : "barrier";
+function toggleDataType() {
+    let nextType;
+    switch (dataType.value) {
+        case "barrier":
+            nextType = "reservoir";
+            break;
+        case "reservoir":
+            nextType = "barrier";
+            break;
+    }
     setDataType(nextType);
     handleReset();
-};
+}
 
 // 监听数据类型变化时切换图表配置
 watch(
@@ -354,7 +366,7 @@ watch(
 );
 
 // 查询统计数据
-const fetchStats = async () => {
+async function fetchStats() {
     isLoading.value = true;
     try {
         const result = await dataStats(activeForm.value, dataType.value);
@@ -375,10 +387,10 @@ const fetchStats = async () => {
     } finally {
         isLoading.value = false;
     }
-};
+}
 
 // 同步地图数据
-const fetchSync = async () => {
+async function fetchSync() {
     isSyncing.value = true;
     try {
         await dataSync(
@@ -393,10 +405,10 @@ const fetchSync = async () => {
     } finally {
         isSyncing.value = false;
     }
-};
+}
 
 // 渲染饼图
-const renderPieChart = (index, data) => {
+function renderPieChart(index, data) {
     const dom = chartRefs[index];
     if (!dom) return;
 
@@ -482,15 +494,15 @@ const renderPieChart = (index, data) => {
     };
 
     chart.setOption(option);
-};
+}
 
-const initCharts = () => {
+function initCharts() {
     nextTick(() => {
         chartConfig.value.forEach((config, index) => {
             renderPieChart(index, [], config.title);
         });
     });
-};
+}
 
 /*
  * 监听面板显示状态
@@ -515,13 +527,13 @@ watch(
 );
 
 // 窗口大小变化时重绘图表
-const handleResize = () => {
+function handleResize() {
     chartInstances.forEach((chart) => {
         if (chart && !chart.isDisposed()) {
             chart.resize();
         }
     });
-};
+}
 
 onMounted(() => {
     window.addEventListener("resize", handleResize);

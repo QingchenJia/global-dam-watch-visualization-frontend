@@ -184,11 +184,11 @@ const modelName = computed(() => {
     return llmConfig[llmConfig.agentMode]?.modelName || "未知模型";
 });
 
-const toggleMinimize = () => {
+function toggleMinimize() {
     isMinimized.value = !isMinimized.value;
-};
+}
 
-const addMessage = (sender, content, isLoading = false) => {
+function addMessage(sender, content, isLoading = false) {
     // 格式化换行符
     const formattedContent = isLoading
         ? content
@@ -207,9 +207,9 @@ const addMessage = (sender, content, isLoading = false) => {
 
     // 返回消息引用便于后续更新
     return msg;
-};
+}
 
-const updateLoadingMessage = (text) => {
+function updateLoadingMessage(text) {
     const loadingMsg = messages.value.find((m) => m.id === "agent-loading-msg");
     if (loadingMsg) {
         // 更新为最终文本并移除loading状态
@@ -218,24 +218,24 @@ const updateLoadingMessage = (text) => {
         // 移除id以避免误更新
         loadingMsg.id = undefined;
     }
-};
+}
 
-const handleError = (errorText) => {
+function handleError(errorText) {
     updateLoadingMessage(errorText);
     loading.value = false;
     nextTick(() => inputInput.value?.focus());
-};
+}
 
-const scrollToBottom = () => {
+function scrollToBottom() {
     nextTick(() => {
         if (messagesContainer.value) {
             messagesContainer.value.scrollTop =
                 messagesContainer.value.scrollHeight;
         }
     });
-};
+}
 
-const sendMessage = async () => {
+async function sendMessage() {
     if (!inputText.value.trim() || loading.value) return;
 
     const text = inputText.value.trim();
@@ -258,7 +258,7 @@ const sendMessage = async () => {
             handleError(errorMsg);
         },
     });
-};
+}
 
 onMounted(() => {
     defineTotalAgent(globalVar.viewer);

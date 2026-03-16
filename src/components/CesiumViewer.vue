@@ -17,22 +17,29 @@ const emit = defineEmits(["viewer-ready"]);
 onMounted(() => {
     const viewer = new Cesium.Viewer(cesiumContainer.value, {
         animation: false,
-        timeline: false,
-        infoBox: true,
-        selectionIndicator: true,
-        baseLayerPicker: true,
         selectedImageryProviderViewModel:
             Cesium.createDefaultImageryProviderViewModels().find(
                 (viewModel) => viewModel.name === "ArcGIS World Imagery",
             ),
+        fullscreenButton: false,
+        homeButton: false,
         navigationHelpButton: false,
-        homeButton: true,
-        geocoder: true,
-        sceneModePicker: true,
+        geocoder: false,
+        timeline: false,
     });
 
     // 隐藏开源三维地球版权信息
     viewer._cesiumWidget._creditContainer.style.display = "none";
+
+    // 设置初始视图位于中国大陆上空
+    viewer.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(105.0, 35.0, 23750000),
+        orientation: {
+            heading: Cesium.Math.toRadians(0.0),
+            pitch: Cesium.Math.toRadians(-90.0),
+            roll: Cesium.Math.toRadians(0.0),
+        },
+    });
 
     // 加载并显示大坝和水库实体
     showLightBarrier(viewer);
