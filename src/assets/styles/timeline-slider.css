@@ -20,13 +20,13 @@
 .timeline-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 10px;
 }
 
 .timeline-title {
     font-size: 18px;
     font-weight: 600;
-    color: #5cc5f0;
+    color: white;
     letter-spacing: 1px;
     display: flex;
     align-items: center;
@@ -41,6 +41,7 @@
 }
 
 .timeline-close-btn {
+    margin-left: 2px;
     width: 20px;
     height: 20px;
     display: flex;
@@ -65,6 +66,75 @@
     fill: currentColor;
 }
 
+.timeline-type-switch {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 8px;
+    border: 1px solid rgba(92, 197, 240, 0.25);
+    border-radius: 999px;
+    background: rgba(10, 20, 30, 0.38);
+}
+
+.timeline-type-label {
+    font-size: 12px;
+    color: #6f8395;
+    transition: color 0.2s;
+}
+
+.timeline-type-label.active {
+    color: #3cbcef;
+}
+
+.timeline-switch {
+    position: relative;
+    width: 42px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.timeline-switch input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    margin: 0;
+}
+
+.timeline-switch-track {
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    border: 1px solid rgba(92, 197, 240, 0.5);
+    background: rgba(92, 197, 240, 0.16);
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.timeline-switch-track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #b9e9fc;
+    box-shadow: 0 0 8px rgba(92, 197, 240, 0.45);
+    transition: transform 0.2s ease;
+}
+
+.timeline-switch input:checked + .timeline-switch-track {
+    background: rgba(48, 170, 220, 0.28);
+}
+
+.timeline-switch input:checked + .timeline-switch-track::after {
+    transform: translateX(20px);
+}
+
 .timeline-year-row {
     display: flex;
     align-items: center;
@@ -78,7 +148,7 @@
     min-width: 58px;
     padding: 2px 0;
     font-size: 18px;
-    font-weight: 700;
+    font-weight: 450;
     line-height: 1;
     letter-spacing: -0.5px;
     color: #96d7f0;

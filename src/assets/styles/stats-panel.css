@@ -151,6 +151,35 @@
     cursor: not-allowed;
 }
 
+.export-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.export-btn {
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #d7dbe3;
+    border: 1px solid #4b5363;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 74px;
+}
+
+.export-btn:hover:not(:disabled) {
+    color: #ffffff;
+    border-color: #6f7a90;
+    background: rgba(111, 122, 144, 0.2);
+}
+
+.export-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .btn-loading {
     width: 14px;
     height: 14px;

@@ -68,7 +68,7 @@ function getClusterPin(count) {
     return url;
 }
 
-export let autoClusterEnabled = true;
+let autoClusterEnabled = true;
 
 export function setAutoClusterEnabled(enabled) {
     autoClusterEnabled = enabled;
@@ -79,6 +79,7 @@ export function enableEntityClustering(dataSource, viewer) {
     dataSource.clustering.pixelRange = CLUSTER_PIXEL_RANGE;
     dataSource.clustering.minimumClusterSize = CLUSTER_MIN_SIZE;
 
+    // 监听聚合事件自定义聚合图标和标签
     dataSource.clustering.clusterEvent.addEventListener(
         function (clusteredEntities, cluster) {
             const count = clusteredEntities.length;
@@ -90,6 +91,7 @@ export function enableEntityClustering(dataSource, viewer) {
             cluster.billboard.disableDepthTestDistance =
                 Number.POSITIVE_INFINITY;
 
+            // 显示聚合数量标签
             cluster.label.show = true;
             cluster.label.text =
                 count >= 1000 ? (count / 1000).toFixed(1) + "k" : String(count);
@@ -104,10 +106,8 @@ export function enableEntityClustering(dataSource, viewer) {
         },
     );
 
-    /**
-     * 监听相机移动结束事件
-     * 根据相机高度动态控制聚合的开关
-     */
+    // 监听相机移动结束事件
+    // 根据相机高度动态控制聚合的开关
     if (viewer) {
         const updateClusteringState = () => {
             if (!autoClusterEnabled) return;
@@ -122,7 +122,8 @@ export function enableEntityClustering(dataSource, viewer) {
                     ? CLUSTER_PIXEL_RANGE + 0.1
                     : 0;
                 setTimeout(() => {
-                    // 下一帧还原正常的聚合范围，并在需要时请求重绘
+                    // 下一帧还原正常的聚合范围
+                    // 并在需要时请求重绘以更新聚合状态
                     dataSource.clustering.pixelRange = shouldCluster
                         ? CLUSTER_PIXEL_RANGE
                         : 0;

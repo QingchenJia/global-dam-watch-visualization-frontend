@@ -82,10 +82,14 @@ function buildReservoirForm(form) {
     return params;
 }
 
+// 解析统计数据以适配图表组件
 export function parseStatsChartData(statsData, type) {
     const config = CHART_CONFIG[type];
+    // 适配后端返回的统计数据格式
+    // 提取图表需要的name和value字段
     return config.map((chartItem) => {
         const raw = statsData[chartItem.field];
+        // 如果数据格式不正确则返回空数组避免图表组件报错
         if (!raw || !Array.isArray(raw) || raw.length === 0) {
             return [];
         }
@@ -97,10 +101,8 @@ export function parseStatsChartData(statsData, type) {
     });
 }
 
-/*
- * 提交数据统计条件筛选表单和数据类型
- * 统计符合条件的数据总数和各统计维度的分布数据
- * */
+// 提交数据统计条件筛选表单和数据类型
+// 统计符合条件的数据总数和各统计维度的分布数据
 export async function dataStats(form, type) {
     switch (type) {
         case "barrier":
@@ -126,9 +128,7 @@ export async function dataStats(form, type) {
     return { total, chartDataList };
 }
 
-export async function dataSync(viewer, form, type, emit) {
-    clearAllEntities(viewer);
-
+export async function dataSync(form, type) {
     switch (type) {
         case "barrier":
             form = buildBarrierForm(form);
@@ -147,11 +147,18 @@ export async function dataSync(viewer, form, type, emit) {
         throw new Error(res.data.message || "地图同步请求失败");
     }
 
-    const entities = Array.isArray(res.data.data?.entities)
+    return Array.isArray(res.data.data?.entities)
         ? res.data.data.entities
         : Array.isArray(res.data.data)
           ? res.data.data
           : [];
+}
+
+export async function mapUpdate(form, type, viewer, emit) {
+    // 根据表单条件请求符合条件的实体数据
+    const entities = await dataSync(form, type);
+
+    clearAllEntities(viewer);
 
     switch (type) {
         case "barrier":
@@ -168,9 +175,11 @@ export async function dataSync(viewer, form, type, emit) {
     emit("request-close");
 
     await rotateEarth(viewer, computeCenter(getAllEntities(viewer)));
+
+    return entities;
 }
 
-const createBarrierFormState = () => ({
+export const createBarrierFormState = () => ({
     damType: [],
     damLenM: "",
     mainBasin: [],
@@ -181,7 +190,7 @@ const createBarrierFormState = () => ({
     damHgtM: "",
 });
 
-const createReservoirFormState = () => ({
+export const createReservoirFormState = () => ({
     capMcm: "",
     areaSkm: "",
     mainBasin: [],
@@ -199,7 +208,7 @@ const state = reactive({
     reservoir: createReservoirFormState(),
 });
 
-export function useFilter() {
+export function filterManager() {
     // 切换数据类型
     const setDataType = (type) => {
         if (type !== "barrier" && type !== "reservoir") return;
@@ -225,39 +234,6 @@ export function useFilter() {
         Object.assign(state[state.dataType], defaults);
     };
 
-    // 应用表单数据用于书签恢复
-    const applyForm = (type, data) => {
-        if (type !== "barrier" && type !== "reservoir") return;
-
-        const target = state[type];
-
-        let defaults;
-        switch (type) {
-            case "barrier":
-                defaults = createBarrierFormState();
-                break;
-            case "reservoir":
-                defaults = createReservoirFormState();
-                break;
-            default:
-                return;
-        }
-
-        // 精确赋值以保留响应性
-        Object.keys(defaults).forEach((key) => {
-            const val = data[key];
-            target[key] = val !== undefined ? val : defaults[key];
-        });
-    };
-
-    // 获取当前状态用于书签保存
-    const getSnapshot = () => {
-        return {
-            dataType: state.dataType,
-            form: JSON.parse(JSON.stringify(state[state.dataType])),
-        };
-    };
-
     return {
         dataType: computed({
             get: () => state.dataType,
@@ -267,7 +243,5 @@ export function useFilter() {
         form: state,
         setDataType,
         resetForm,
-        applyForm,
-        getSnapshot,
     };
 }

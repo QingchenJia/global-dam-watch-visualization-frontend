@@ -139,3 +139,19 @@ export const FIELD_MAP = {
         shapeArea: "形状面积",
     },
 };
+
+export const EXPORT_CSV_FIELDS = {
+    barrier: {
+        gdwId: "GDW数据库id",
+        wkbGeometry: "地理几何数据",
+        damName: "大坝名称",
+        damType: "大坝类型",
+        yearDam: "建成年份",
+    },
+    reservoir: {
+        gdwId: "GDW数据库id",
+        wkbGeometry: "地理几何数据",
+        resName: "水库名称",
+        yearDam: "建成年份",
+    },
+};

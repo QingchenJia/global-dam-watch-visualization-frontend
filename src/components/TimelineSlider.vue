@@ -15,8 +15,30 @@
                             d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.5 2.67-1.26 2.08z"
                         />
                     </svg>
-                    建设历程回放
+                    建设历程回放 · {{ dataTypeLabel }}
                 </span>
+                <div class="timeline-type-switch" title="切换时间轴对象">
+                    <span
+                        class="timeline-type-label"
+                        :class="{ active: dataType === 'barrier' }"
+                    >
+                        大坝
+                    </span>
+                    <label class="timeline-switch">
+                        <input
+                            type="checkbox"
+                            :checked="dataType === 'reservoir'"
+                            @change="toggleDataType"
+                        />
+                        <span class="timeline-switch-track"></span>
+                    </label>
+                    <span
+                        class="timeline-type-label"
+                        :class="{ active: dataType === 'reservoir' }"
+                    >
+                        水库
+                    </span>
+                </div>
                 <button
                     class="timeline-close-btn"
                     title="关闭时间轴"
@@ -98,7 +120,7 @@
                         >当前 {{ currentYear }} 年</span
                     >
                     <span class="timeline-dam-count"
-                        >已建成 {{ visibleCount }} 座</span
+                        >已显示 {{ visibleCount }} 个{{ dataTypeLabel }}</span
                     >
                 </div>
             </div>
@@ -108,7 +130,10 @@
 
 <script setup>
 import { ref, computed, watch, onUnmounted } from "vue";
-import { filterEntitiesByYear, restoreAllEntities } from "../hooks/earth.js";
+import {
+    filterEntitiesByYearByType,
+    restoreAllEntitiesByType,
+} from "../hooks/earth.js";
 
 const globalVar = defineProps({
     viewer: {
@@ -156,6 +181,18 @@ const axisTicks = computed(() => {
 });
 
 const visibleCount = ref(0);
+const dataType = ref("barrier");
+
+const dataTypeLabel = computed(() =>
+    dataType.value === "reservoir" ? "水库" : "大坝",
+);
+
+function toggleDataType(event) {
+    stopPlay();
+    restoreAllEntitiesByType(dataType.value, globalVar.viewer);
+    dataType.value = event.target.checked ? "reservoir" : "barrier";
+    applyYear(currentYear.value);
+}
 
 function updateVisibleCount() {
     if (!globalVar.viewer) {
@@ -163,11 +200,25 @@ function updateVisibleCount() {
         return;
     }
     try {
-        const barrierDataSource =
-            globalVar.viewer.dataSources.getByName("barriers")[0];
-        visibleCount.value = barrierDataSource
-            ? barrierDataSource.entities.values.filter((e) => e.show).length
-            : 0;
+        if (dataType.value === "barrier") {
+            const barrierDataSource =
+                globalVar.viewer.dataSources.getByName("barriers")[0];
+            visibleCount.value = barrierDataSource
+                ? barrierDataSource.entities.values.filter((e) => e.show).length
+                : 0;
+            return;
+        }
+
+        visibleCount.value = globalVar.viewer.entities.values.filter(
+            (entity) => {
+                const typeProp = entity.properties?.dataType;
+                const yearType =
+                    typeof typeProp?.getValue === "function"
+                        ? typeProp.getValue()
+                        : typeProp;
+                return yearType === "reservoir" && entity.show;
+            },
+        ).length;
     } catch {
         visibleCount.value = 0;
     }
@@ -175,7 +226,7 @@ function updateVisibleCount() {
 
 function applyYear(year) {
     currentYear.value = year;
-    filterEntitiesByYear(year);
+    filterEntitiesByYearByType(year, dataType.value, globalVar.viewer);
     updateVisibleCount();
 }
 
@@ -216,9 +267,14 @@ function restart() {
     applyYear(MIN_YEAR);
 }
 
+function restoreAllTimelineEntities() {
+    restoreAllEntitiesByType("barrier", globalVar.viewer);
+    restoreAllEntitiesByType("reservoir", globalVar.viewer);
+}
+
 function handleClose() {
     stopPlay();
-    restoreAllEntities();
+    restoreAllTimelineEntities();
     visibleCount.value = 0;
     emit("close");
 }
@@ -231,7 +287,7 @@ watch(
             applyYear(currentYear.value);
         } else {
             stopPlay();
-            restoreAllEntities();
+            restoreAllTimelineEntities();
         }
     },
 );
@@ -239,6 +295,6 @@ watch(
 // 组件卸载时清理
 onUnmounted(() => {
     stopPlay();
-    restoreAllEntities();
+    restoreAllTimelineEntities();
 });
 </script>

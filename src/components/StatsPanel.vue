@@ -39,6 +39,26 @@
                     <span v-if="isSyncing" class="btn-loading"></span>
                     <span v-else>地图同步</span>
                 </button>
+                <div class="export-btn-group">
+                    <button
+                        class="export-btn"
+                        @click="exportSyncCsv"
+                        :disabled="
+                            isLoading ||
+                            isSyncing ||
+                            syncedEntities.length === 0
+                        "
+                    >
+                        导出CSV
+                    </button>
+                    <button
+                        class="export-btn"
+                        @click="exportChartsPng"
+                        :disabled="isLoading || isSyncing"
+                    >
+                        导出PNG
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -206,7 +226,8 @@
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import * as echarts from "echarts";
 import { FORM_FIELD, CHART_CONFIG } from "../configs/chart.js";
-import { dataStats, dataSync, useFilter } from "../hooks/stats.js";
+import { EXPORT_CSV_FIELDS } from "../configs/field.js";
+import { dataStats, mapUpdate, filterManager } from "../hooks/stats.js";
 
 const globalVar = defineProps({
     viewer: {
@@ -226,12 +247,13 @@ const {
     activeForm,
     setDataType,
     resetForm: resetSharedForm,
-} = useFilter();
+} = filterManager();
 
 // 统计面板状态参数
 const isLoading = ref(false);
 const isSyncing = ref(false);
 const totalCount = ref(0);
+const syncedEntities = ref([]);
 
 // 读取当前数据类型对应的字段配置
 const activeFormField = computed(() => FORM_FIELD[dataType.value]);
@@ -332,6 +354,7 @@ function handleReset() {
     resetSharedForm();
     openDropdown.value = "";
     totalCount.value = 0;
+    syncedEntities.value = [];
 }
 
 // 切换大坝或水库数据类型
@@ -393,17 +416,293 @@ async function fetchStats() {
 async function fetchSync() {
     isSyncing.value = true;
     try {
-        await dataSync(
-            globalVar.viewer,
+        syncedEntities.value = await mapUpdate(
             activeForm.value,
             dataType.value,
+            globalVar.viewer,
             emit,
         );
         window.dispatchEvent(new CustomEvent("map-sync-completed"));
     } catch (err) {
         console.error("地图同步失败:", err);
+        syncedEntities.value = [];
     } finally {
         isSyncing.value = false;
+    }
+}
+
+// 将值转换为CSV单元格格式
+function toCsvCell(value) {
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    // 如果是对象则转换为JSON字符串
+    const normalized =
+        typeof value === "object" ? JSON.stringify(value) : String(value);
+    return `"${normalized.replace(/"/g, '""')}"`;
+}
+
+// 构建CSV内容
+function buildCsvContent(rows) {
+    if (!Array.isArray(rows) || rows.length === 0) {
+        return "";
+    }
+
+    const isValidValue = (value) => {
+        if (value === null || value === undefined) {
+            return false;
+        }
+        if (typeof value === "string") {
+            return value.trim() !== "" && value !== "-99";
+        }
+        if (Array.isArray(value)) {
+            return value.length > 0;
+        }
+        if (typeof value === "object") {
+            return Object.keys(value).length > 0;
+        }
+        return true;
+    };
+
+    const fieldLabelMap = EXPORT_CSV_FIELDS[dataType.value] || {};
+    const headers = [];
+    rows.forEach((row) => {
+        if (!row || typeof row !== "object") return;
+        Object.keys(row).forEach((key) => {
+            if (
+                !headers.includes(key) &&
+                rows.some((item) => isValidValue(item?.[key]))
+            ) {
+                headers.push(key);
+            }
+        });
+    });
+
+    if (headers.length === 0) {
+        return "";
+    }
+
+    const lines = [
+        headers
+            .map((header) => toCsvCell(fieldLabelMap[header] || header))
+            .join(","),
+    ];
+    rows.forEach((row) => {
+        const line = headers
+            .map((header) => toCsvCell(row ? row[header] : ""))
+            .join(",");
+        lines.push(line);
+    });
+
+    return lines.join("\n");
+}
+
+// 触发浏览器下载
+function triggerDownload(content, fileName, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function exportSyncCsv() {
+    // 构建CSV内容
+    const csvContent = buildCsvContent(syncedEntities.value);
+    if (!csvContent) {
+        return;
+    }
+
+    // 生成文件名
+    // 替换冒号和点以避免文件系统问题
+    const timestamp = new Date().toISOString().replace(/[.:]/g, "-");
+    const fileName = `${dataType.value}-sync-entities-${timestamp}.csv`;
+
+    // 添加BOM头以支持Excel正确识别UTF-8编码
+    triggerDownload(`\uFEFF${csvContent}`, fileName, "text/csv;charset=utf-8;");
+}
+
+// 将图例文本进行换行以适应导出时的纵向布局
+function wrapLegendText(text, maxLength = 12) {
+    const source = String(text ?? "");
+    if (source.length <= maxLength) {
+        return source;
+    }
+
+    const wrapped = [];
+    for (let i = 0; i < source.length; i += maxLength) {
+        wrapped.push(source.slice(i, i + maxLength));
+    }
+    return wrapped.join("\n");
+}
+
+// 裁剪图表导出的DataURL图片
+// 去除左右两侧的空白区域
+function cropImageDataUrl(dataUrl, leftCropRatio = 0.1, rightCropRatio = 0.3) {
+    return new Promise((resolve) => {
+        const image = new Image();
+        image.onload = () => {
+            const width = image.width;
+            const height = image.height;
+
+            const sx = Math.max(0, Math.floor(width * leftCropRatio));
+            const ex = Math.min(
+                width,
+                Math.floor(width * (1 - rightCropRatio)),
+            );
+            const cropWidth = Math.max(1, ex - sx);
+
+            const canvas = document.createElement("canvas");
+            canvas.width = cropWidth;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+
+            if (!ctx) {
+                resolve(dataUrl);
+                return;
+            }
+
+            ctx.drawImage(
+                image,
+                sx,
+                0,
+                cropWidth,
+                height,
+                0,
+                0,
+                cropWidth,
+                height,
+            );
+            resolve(canvas.toDataURL("image/png"));
+        };
+
+        image.onerror = () => resolve(dataUrl);
+        image.src = dataUrl;
+    });
+}
+
+// 导出单个图表为PNG图片
+async function exportSingleChartPng(chart, index, timestamp) {
+    const baseOption = chart.getOption();
+    const legendBase = Array.isArray(baseOption.legend)
+        ? baseOption.legend[0] || {}
+        : baseOption.legend || {};
+    const dataCount = Array.isArray(baseOption.series?.[0]?.data)
+        ? baseOption.series[0].data.length
+        : 0;
+    const chartTitle = chartConfig.value[index]?.title || `chart-${index + 1}`;
+
+    const legendData = Array.isArray(baseOption.series?.[0]?.data)
+        ? baseOption.series[0].data
+        : [];
+    const legendLineCount = Math.max(
+        1,
+        legendData.reduce((sum, item) => {
+            const name = String(item?.name ?? "");
+            return sum + Math.max(1, Math.ceil(name.length / 12));
+        }, 0),
+    );
+
+    // 导出时按图例内容自适应尺寸
+    // 避免留白过多
+    const exportWidth = 1500;
+    const exportHeight = Math.max(
+        620,
+        190 + legendLineCount * 32 + dataCount * 6,
+    );
+    const exportDom = document.createElement("div");
+    exportDom.style.position = "fixed";
+    exportDom.style.left = "-10000px";
+    exportDom.style.top = "-10000px";
+    exportDom.style.width = `${exportWidth}px`;
+    exportDom.style.height = `${exportHeight}px`;
+    document.body.appendChild(exportDom);
+
+    const exportChart = echarts.init(exportDom, null, { renderer: "canvas" });
+
+    const exportOption = {
+        ...baseOption,
+        animation: false,
+        tooltip: { show: false },
+        title: {
+            text: chartTitle,
+            left: "center",
+            top: 18,
+            textStyle: {
+                color: "#e8edf7",
+                fontSize: 32,
+                fontWeight: 600,
+            },
+        },
+        legend: {
+            ...legendBase,
+            type: "plain",
+            orient: "vertical",
+            top: 88,
+            right: 24,
+            bottom: 24,
+            width: 500,
+            itemWidth: 22,
+            itemHeight: 14,
+            itemGap: 12,
+            textStyle: {
+                ...(legendBase.textStyle || {}),
+                color: "#dce3f1",
+                fontSize: 22,
+                lineHeight: 28,
+            },
+            formatter: (name) => wrapLegendText(name, 12),
+        },
+        series: (baseOption.series || []).map((series, seriesIndex) => {
+            if (seriesIndex !== 0) {
+                return series;
+            }
+            return {
+                ...series,
+                center: ["32%", "56%"],
+                radius: ["30%", "60%"],
+            };
+        }),
+    };
+
+    exportChart.setOption(exportOption, true);
+
+    const dataUrl = exportChart.getDataURL({
+        type: "png",
+        pixelRatio: 2,
+        backgroundColor: "#1f2229",
+    });
+    const croppedDataUrl = await cropImageDataUrl(dataUrl, 0.1, 0.3);
+
+    const link = document.createElement("a");
+    const safeTitle = String(chartTitle).replace(/[\\/:*?"<>|]/g, "-");
+    link.href = croppedDataUrl;
+    link.download = `${dataType.value}-${safeTitle}-${timestamp}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    exportChart.dispose();
+    document.body.removeChild(exportDom);
+}
+
+// 导出图表为PNG图片
+async function exportChartsPng() {
+    const timestamp = new Date().toISOString().replace(/[.:]/g, "-");
+
+    // 依次导出每个图表
+    for (let index = 0; index < chartInstances.length; index += 1) {
+        const chart = chartInstances[index];
+        if (!chart || chart.isDisposed()) {
+            continue;
+        }
+
+        await exportSingleChartPng(chart, index, timestamp);
     }
 }
 
@@ -504,11 +803,9 @@ function initCharts() {
     });
 }
 
-/*
- * 监听面板显示状态
- * 首次显示时初始化图表
- * 后续显示时调整图表大小
- * */
+// 监听面板显示状态
+// 首次显示时初始化图表
+// 后续显示时调整图表大小
 let hasInit = false;
 watch(
     () => globalVar.show,

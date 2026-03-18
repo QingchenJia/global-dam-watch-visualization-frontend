@@ -52,11 +52,9 @@ export const llmConfig = {
 };
 let chatHistory = [];
 
-/*
- * 处理用户与智能体的对话交互
- * 判断用户输入意图并提供友好反馈
- * 针对性调用不同的智能体完成对应任务并反馈对话结果
- * */
+// 处理用户与智能体的对话交互
+// 判断用户输入意图并提供友好反馈
+// 针对性调用不同的智能体完成对应任务并反馈对话结果
 export async function chatToAgent(text, callbacks) {
     const { question, answer, handle } = callbacks;
 

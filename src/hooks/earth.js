@@ -6,6 +6,17 @@ import { enableEntityClustering } from "../utils/cluster.js";
 
 let barrierDataSource = null;
 
+function getReservoirEntities(viewer) {
+    if (!viewer) return [];
+    return viewer.entities.values.filter((entity) => {
+        const dataType = entity.properties?.dataType;
+        if (!dataType) return false;
+        return typeof dataType.getValue === "function"
+            ? dataType.getValue() === "reservoir"
+            : dataType === "reservoir";
+    });
+}
+
 // 获取或创建大坝自定义数据源
 export function getBarrierDataSource(viewer) {
     if (!barrierDataSource) {
@@ -23,6 +34,8 @@ export function clearAllEntities(viewer) {
     }
 }
 
+// 获取所有实体
+// 包括大坝和水库
 export function getAllEntities(viewer) {
     const result = [...viewer.entities.values];
     if (barrierDataSource) {
@@ -55,10 +68,45 @@ export function filterEntitiesByYear(maxYear) {
     }
 }
 
+// 按年份过滤指定类型实体
+export function filterEntitiesByYearByType(maxYear, type, viewer) {
+    if (type === "barrier") {
+        filterEntitiesByYear(maxYear);
+        return;
+    }
+
+    if (type !== "reservoir") return;
+    const entities = getReservoirEntities(viewer);
+    for (let i = 0; i < entities.length; i++) {
+        const entity = entities[i];
+        const yearProp = entity.properties && entity.properties.yearDam;
+        const year = yearProp ? yearProp.getValue() : null;
+        if (year !== null && year !== -99 && year !== "" && year !== " ") {
+            entity.show = Number(year) <= maxYear;
+        } else {
+            entity.show = true;
+        }
+    }
+}
+
 // 关闭时间轴时恢复所有大坝显示
 export function restoreAllEntities() {
     if (!barrierDataSource) return;
     const entities = barrierDataSource.entities.values;
+    for (let i = 0; i < entities.length; i++) {
+        entities[i].show = true;
+    }
+}
+
+// 关闭时间轴时按类型恢复显示
+export function restoreAllEntitiesByType(type, viewer) {
+    if (type === "barrier") {
+        restoreAllEntities();
+        return;
+    }
+
+    if (type !== "reservoir") return;
+    const entities = getReservoirEntities(viewer);
     for (let i = 0; i < entities.length; i++) {
         entities[i].show = true;
     }
@@ -137,6 +185,7 @@ export function loadReservoirEntity(viewer, item) {
             properties: {
                 dataType: "reservoir",
                 gdwId: gdwId,
+                yearDam: item.yearDam || null,
             },
             polygon: {
                 hierarchy: hierarchy,
