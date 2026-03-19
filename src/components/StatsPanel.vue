@@ -54,7 +54,7 @@
                     <button
                         class="export-btn"
                         @click="exportChartsPng"
-                        :disabled="isLoading || isSyncing"
+                        :disabled="isLoading || isSyncing || totalCount === 0"
                     >
                         导出PNG
                     </button>
@@ -693,6 +693,10 @@ async function exportSingleChartPng(chart, index, timestamp) {
 
 // 导出图表为PNG图片
 async function exportChartsPng() {
+    if (totalCount.value === 0) {
+        return;
+    }
+
     const timestamp = new Date().toISOString().replace(/[.:]/g, "-");
 
     // 依次导出每个图表

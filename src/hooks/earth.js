@@ -285,7 +285,8 @@ function queryDescription(entity, id, type) {
 }
 
 function generateDescriptionForm(data, mapping) {
-    let html = '<table class="cesium-infoBox-defaultTable"><tbody>';
+    let html =
+        '<table class="cesium-infoBox-defaultTable" style="table-layout:fixed; width:100%;"><tbody>';
     for (const key in mapping) {
         const label = mapping && mapping[key] ? mapping[key] : key;
         // 针对无效数据进行统一处理
@@ -297,18 +298,16 @@ function generateDescriptionForm(data, mapping) {
         ) {
             data[key] = "暂无数据";
         }
-        html += `<tr><th>${label}</th><td>${data[key]}</td></tr>`;
+        html += `<tr><th style="text-align:left; vertical-align:middle; width:160px; min-width:160px; max-width:160px;">${label}</th><td style="width:240px; min-width:240px; max-width:240px; white-space:normal; overflow-wrap:anywhere; word-break:break-word; vertical-align:middle;">${data[key]}</td></tr>`;
     }
 
     html += "</tbody></table>";
     return html;
 }
 
-/* *
- * 解析数据的地理信息字段
- * 分别处理大坝的点信息和水库的多边形信息
- * 水库多边形选取第一个多边形环作为外环进行渲染
- */
+// 解析数据的地理信息字段
+// 分别处理大坝的点信息和水库的多边形信息
+// 水库多边形选取第一个多边形环作为外环进行渲染
 function parseGeometry(rawGeometry) {
     if (!rawGeometry) return null;
 

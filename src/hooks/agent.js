@@ -16,6 +16,7 @@ import {
     loadReservoirEntity,
     clearAllEntities,
     getAllEntities,
+    getBarrierDataSource,
 } from "./earth.js";
 import { API_ENDPOINT } from "../configs/api.js";
 import {
@@ -266,7 +267,16 @@ function defineTools(viewer) {
             id: z.string().describe("实体唯一id(格式如'b-12345'或'r-67890')"),
         }),
         func: async ({ id }) => {
-            const entity = viewer.entities.getById(id);
+            let entity;
+            switch (id.toString().charAt(0)) {
+                case "b":
+                    entity = getBarrierDataSource(viewer).entities.getById(id);
+                    break;
+                case "r":
+                    entity = viewer.entities.getById(id);
+                    break;
+            }
+
             if (entity) {
                 viewer.selectedEntity = entity;
                 viewer.flyTo(toRaw(viewer.selectedEntity), { duration: 1.5 });
@@ -292,7 +302,16 @@ function defineTools(viewer) {
 }
 
 async function searchAndFly(viewer, keyword, type) {
-    const entities = viewer.entities.values;
+    let entities;
+
+    switch (type) {
+        case "barrier":
+            entities = getBarrierDataSource(viewer).entities.values;
+            break;
+        case "reservoir":
+            entities = viewer.entities.values;
+            break;
+    }
 
     // 遍历本地实体列表查找名称模糊匹配
     const localTarget = entities.find((e) => {
@@ -315,18 +334,22 @@ async function searchAndFly(viewer, keyword, type) {
         if (res.data.code === 1 && res.data.data) {
             const item = res.data.data;
 
-            let entityId = null;
-            let entityName = null;
+            let entityId, entityName, entity;
 
-            if (type === "barrier") {
-                entityId = "b-" + item.gdwId;
-                entityName = item.dam_name || "Barrier #" + item.gdwId;
-            } else if (type === "reservoir") {
-                entityId = "r-" + item.gdwId;
-                entityName = item.res_name || "Reservoir #" + item.gdwId;
+            switch (type) {
+                case "barrier":
+                    entityId = "b-" + item.gdwId;
+                    entityName = item.dam_name || "Barrier #" + item.gdwId;
+                    entity =
+                        getBarrierDataSource(viewer).entities.getById(entityId);
+                    break;
+                case "reservoir":
+                    entityId = "r-" + item.gdwId;
+                    entityName = item.res_name || "Reservoir #" + item.gdwId;
+                    entity = viewer.entities.getById(entityId);
+                    break;
             }
 
-            const entity = viewer.entities.getById(entityId);
             if (entity) {
                 viewer.selectedEntity = entity;
                 viewer.flyTo(toRaw(viewer.selectedEntity), { duration: 1.5 });
