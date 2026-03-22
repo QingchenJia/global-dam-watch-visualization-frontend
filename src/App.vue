@@ -38,6 +38,8 @@
             :viewer="viewer"
             @close="showTimeline = false"
         />
+
+        <EntityDesrciption v-if="viewer" :viewer="viewer" />
     </div>
 </template>
 
@@ -49,6 +51,7 @@ import AgentChat from "./components/AgentChat.vue";
 import StatsPanel from "./components/StatsPanel.vue";
 import TimelineSlider from "./components/TimelineSlider.vue";
 import BookmarkPanel from "./components/BookmarkPanel.vue";
+import EntityDesrciption from "./components/EntityDesrciption.vue";
 
 const viewer = ref(null);
 const showStats = ref(false);

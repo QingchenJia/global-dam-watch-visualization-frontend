@@ -181,7 +181,10 @@ const inputInput = ref(null);
 // 计算当前模式和模型名称用于标题显示
 const agentMode = computed(() => llmConfig.agentMode);
 const modelName = computed(() => {
-    return llmConfig[llmConfig.agentMode]?.modelName || "未知模型";
+    const name = llmConfig[llmConfig.agentMode]?.modelName || "未知模型";
+    const index = name.lastIndexOf("/");
+
+    return index === -1 ? name : name.slice(index + 1);
 });
 
 function toggleMinimize() {
@@ -246,7 +249,7 @@ async function sendMessage() {
     await chatToAgent(text, {
         question: (intent) => {
             // 发起对话反馈正在执行任务
-            addMessage("agent", `执行任务(${intent})...`, true);
+            addMessage("agent", `执行任务(${intent})···`, true);
         },
         answer: (finalOutput) => {
             // 任务完成更新对话结果
@@ -265,7 +268,7 @@ onMounted(() => {
     // 添加智能体的欢迎消息
     addMessage(
         "agent",
-        `就绪!我是您的个人GIS助手(Hybrid Router架构),有什么可以帮到您?`,
+        `我是您的个人GIS助手(Hybrid Router架构)，有什么可以帮到您？`,
     );
 });
 </script>

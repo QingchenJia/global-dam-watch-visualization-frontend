@@ -1,7 +1,6 @@
 import axios from "axios";
 import * as Cesium from "cesium";
 import { API_ENDPOINT } from "../configs/api.js";
-import { FIELD_MAP } from "../configs/field.js";
 import { enableEntityClustering } from "../utils/cluster.js";
 
 let barrierDataSource = null;
@@ -231,78 +230,6 @@ export function showLightReservoir(viewer) {
             }
         })
         .catch((err) => console.error(err));
-}
-
-export function entitySelectedEvent(viewer) {
-    // 监听实体选中变化事件
-    viewer.selectedEntityChanged.addEventListener(function (entity) {
-        if (entity) {
-            // 显示加载中提示
-            entity.description =
-                '<div style="padding:10px;">正在从服务器获取详细数据...</div>';
-
-            if (
-                entity.properties &&
-                entity.properties.gdwId &&
-                entity.properties.dataType
-            ) {
-                const id = entity.properties.gdwId.getValue();
-                const type = entity.properties.dataType.getValue();
-                queryDescription(entity, id, type);
-            } else {
-                // 无法获取实体详细数据时的提示
-                entity.description =
-                    '<div style="padding:10px;">暂无详细数据</div>';
-            }
-        }
-    });
-}
-
-function queryDescription(entity, id, type) {
-    let url = API_ENDPOINT.detail[type] + id;
-    let mapping = FIELD_MAP[type];
-
-    axios
-        .get(url)
-        .then((res) => {
-            if (res.data.code === 1) {
-                const entireInfo = res.data.data;
-
-                // 侧边详情栏内容生成并赋值
-                entity.description = generateDescriptionForm(
-                    entireInfo,
-                    mapping,
-                );
-            } else {
-                entity.description = `<div style="color:red; padding:10px;">获取数据失败:${res.data.message}</div>`;
-            }
-        })
-        .catch((err) => {
-            console.error("详情请求失败", err);
-            entity.description =
-                '<div style="color:red; padding:10px;">网络请求错误</div>';
-        });
-}
-
-function generateDescriptionForm(data, mapping) {
-    let html =
-        '<table class="cesium-infoBox-defaultTable" style="table-layout:fixed; width:100%;"><tbody>';
-    for (const key in mapping) {
-        const label = mapping && mapping[key] ? mapping[key] : key;
-        // 针对无效数据进行统一处理
-        if (
-            data[key] === null ||
-            data[key] === -99 ||
-            data[key] === "" ||
-            data[key] === " "
-        ) {
-            data[key] = "暂无数据";
-        }
-        html += `<tr><th style="text-align:left; vertical-align:middle; width:160px; min-width:160px; max-width:160px;">${label}</th><td style="width:240px; min-width:240px; max-width:240px; white-space:normal; overflow-wrap:anywhere; word-break:break-word; vertical-align:middle;">${data[key]}</td></tr>`;
-    }
-
-    html += "</tbody></table>";
-    return html;
 }
 
 // 解析数据的地理信息字段

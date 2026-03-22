@@ -15,7 +15,7 @@
                             d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.5 2.67-1.26 2.08z"
                         />
                     </svg>
-                    建设历程回放 · {{ dataTypeLabel }}
+                    建设历程回放
                 </span>
                 <div class="timeline-type-switch" title="切换时间轴对象">
                     <span

@@ -5,11 +5,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import * as Cesium from "cesium";
-import {
-    showLightBarrier,
-    showLightReservoir,
-    entitySelectedEvent,
-} from "../hooks/earth.js";
+import { showLightBarrier, showLightReservoir } from "../hooks/earth.js";
 
 const cesiumContainer = ref(null);
 const emit = defineEmits(["viewer-ready"]);
@@ -26,6 +22,7 @@ onMounted(() => {
         navigationHelpButton: false,
         geocoder: false,
         timeline: false,
+        infoBox: false,
     });
 
     // 隐藏开源三维地球版权信息
@@ -44,8 +41,6 @@ onMounted(() => {
     // 加载并显示大坝和水库实体
     showLightBarrier(viewer);
     showLightReservoir(viewer);
-    // 绑定详情事件
-    entitySelectedEvent(viewer);
 
     // 完成viewer初始化后触发事件
     emit("viewer-ready", viewer);
