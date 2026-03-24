@@ -1,9 +1,9 @@
 .bookmark-panel {
     position: fixed;
     left: 18px;
-    top: 70px;
+    top: 50px;
     width: 340px;
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - 600px);
     overflow: hidden;
     display: flex;
     flex-direction: column;

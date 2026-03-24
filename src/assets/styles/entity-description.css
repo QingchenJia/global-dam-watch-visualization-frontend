@@ -3,7 +3,7 @@
     top: 50px;
     right: 8px;
     width: min(480px, calc(100vw - 28px));
-    max-height: calc(100vh - 110px);
+    max-height: calc(100vh - 185px);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -148,6 +148,7 @@
     width: 10%;
     font-size: 13px;
     padding: 3px 3px;
+    margin-right: 5px;
     border-radius: 999px;
     line-height: 1.4;
     text-align: center;

@@ -40,6 +40,7 @@
         />
 
         <EntityDesrciption v-if="viewer" :viewer="viewer" />
+        <PositionInformation v-if="viewer" :viewer="viewer" />
     </div>
 </template>
 
@@ -52,6 +53,7 @@ import StatsPanel from "./components/StatsPanel.vue";
 import TimelineSlider from "./components/TimelineSlider.vue";
 import BookmarkPanel from "./components/BookmarkPanel.vue";
 import EntityDesrciption from "./components/EntityDesrciption.vue";
+import PositionInformation from "./components/PositionInformation.vue";
 
 const viewer = ref(null);
 const showStats = ref(false);

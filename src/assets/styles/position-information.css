@@ -1,0 +1,48 @@
+.position-information {
+    position: fixed;
+    right: 8px;
+    bottom: 6px;
+    min-width: 240px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    z-index: 9996;
+    box-sizing: border-box;
+    background: rgba(12, 19, 28, 0.82);
+    border: 1px solid rgba(112, 173, 214, 0.36);
+    color: #deedf7;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-size: 15px;
+}
+
+.position-information-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    line-height: 1.5;
+}
+
+.position-information-row + .position-information-row {
+    margin-top: 2px;
+}
+
+.position-information-label {
+    color: #9fc2da;
+    letter-spacing: 0.4px;
+}
+
+.position-information-value {
+    color: #f0f8ff;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+    .position-information {
+        right: 10px;
+        bottom: 10px;
+        min-width: 210px;
+        padding: 8px 10px;
+    }
+}

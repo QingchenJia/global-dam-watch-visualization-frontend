@@ -9,5 +9,6 @@ import "./assets/styles/stats-panel.css";
 import "./assets/styles/timeline-slider.css";
 import "./assets/styles/bookmark-panel.css";
 import "./assets/styles/entity-description.css";
+import "./assets/styles/position-information.css";
 
 createApp(App).mount("#app");
