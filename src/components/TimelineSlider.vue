@@ -1,12 +1,6 @@
 <template>
     <transition name="timeline-slide">
         <div v-if="show" class="timeline-slider">
-            <!-- 底部进度条装饰 -->
-            <div
-                class="timeline-progress-bar"
-                :style="{ width: progressPct + '%' }"
-            ></div>
-
             <!-- 标题行 -->
             <div class="timeline-header">
                 <span class="timeline-title">
@@ -131,8 +125,10 @@
 <script setup>
 import { ref, computed, watch, onUnmounted } from "vue";
 import {
-    filterEntitiesByYearByType,
+    timeSliderShowEntities,
     restoreAllEntitiesByType,
+    getBarrierDataSource,
+    getReservoirDataSource,
 } from "../hooks/earth.js";
 
 const globalVar = defineProps({
@@ -183,14 +179,28 @@ const axisTicks = computed(() => {
 const visibleCount = ref(0);
 const dataType = ref("barrier");
 
-const dataTypeLabel = computed(() =>
-    dataType.value === "reservoir" ? "水库" : "大坝",
-);
+const dataTypeLabel = computed(() => {
+    switch (dataType.value) {
+        case "barrier":
+            return "大坝";
+        case "reservoir":
+            return "水库";
+        default:
+            return "";
+    }
+});
 
 function toggleDataType(event) {
     stopPlay();
-    restoreAllEntitiesByType(dataType.value, globalVar.viewer);
-    dataType.value = event.target.checked ? "reservoir" : "barrier";
+    restoreAllEntitiesByType(dataType.value);
+
+    // 切换数据类型
+    if (event.target.checked) {
+        dataType.value = "reservoir";
+    } else {
+        dataType.value = "barrier";
+    }
+
     applyYear(currentYear.value);
 }
 
@@ -201,24 +211,17 @@ function updateVisibleCount() {
     }
     try {
         if (dataType.value === "barrier") {
-            const barrierDataSource =
-                globalVar.viewer.dataSources.getByName("barriers")[0];
+            const barrierDataSource = getBarrierDataSource(globalVar.viewer);
             visibleCount.value = barrierDataSource
                 ? barrierDataSource.entities.values.filter((e) => e.show).length
                 : 0;
             return;
         }
 
-        visibleCount.value = globalVar.viewer.entities.values.filter(
-            (entity) => {
-                const typeProp = entity.properties?.dataType;
-                const yearType =
-                    typeof typeProp?.getValue === "function"
-                        ? typeProp.getValue()
-                        : typeProp;
-                return yearType === "reservoir" && entity.show;
-            },
-        ).length;
+        const reservoirDataSource = getReservoirDataSource(globalVar.viewer);
+        visibleCount.value = reservoirDataSource
+            ? reservoirDataSource.entities.values.filter((e) => e.show).length
+            : 0;
     } catch {
         visibleCount.value = 0;
     }
@@ -226,7 +229,7 @@ function updateVisibleCount() {
 
 function applyYear(year) {
     currentYear.value = year;
-    filterEntitiesByYearByType(year, dataType.value, globalVar.viewer);
+    timeSliderShowEntities(globalVar.viewer, dataType.value, year);
     updateVisibleCount();
 }
 
@@ -268,8 +271,8 @@ function restart() {
 }
 
 function restoreAllTimelineEntities() {
-    restoreAllEntitiesByType("barrier", globalVar.viewer);
-    restoreAllEntitiesByType("reservoir", globalVar.viewer);
+    restoreAllEntitiesByType("barrier");
+    restoreAllEntitiesByType("reservoir");
 }
 
 function handleClose() {

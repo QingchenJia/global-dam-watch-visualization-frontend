@@ -223,14 +223,25 @@
     text-overflow: ellipsis;
 }
 
+.entity-table.compare th,
+.entity-table.compare td {
+    vertical-align: middle;
+}
+
+.entity-table.compare td > span {
+    vertical-align: middle;
+}
+
 .value-win-arrow {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     margin-left: 6px;
     padding: 1px 6px;
     border-radius: 999px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
-    line-height: 1.4;
+    line-height: 1;
     letter-spacing: 0.2px;
     vertical-align: middle;
 }

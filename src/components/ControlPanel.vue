@@ -152,8 +152,9 @@ import {
     showLightBarrier,
     showLightReservoir,
     clearAllEntities,
-    setBarrierDataSourceVisible,
+    setDataSourceVisible,
     getBarrierDataSource,
+    getAllEntities,
 } from "../hooks/earth.js";
 import { setAutoClusterEnabled } from "../utils/cluster.js";
 
@@ -199,29 +200,24 @@ function updateGlobalVisibleState() {
 }
 
 function applyBarrierVisible(visibility) {
-    setBarrierDataSourceVisible(visibility);
+    const type = "barrier";
+    setDataSourceVisible(type, visibility);
 
     if (!visibility) {
         // 当前选中实体的类型被隐藏后取消选中状态
-        if (getEntityDataType(globalVar.viewer.selectedEntity) === "barrier") {
+        if (getEntityDataType(globalVar.viewer.selectedEntity) === type) {
             globalVar.viewer.selectedEntity = null;
         }
     }
 }
 
 function applyReservoirVisible(visibility) {
-    const entities = globalVar.viewer.entities.values;
-    entities.forEach((entity) => {
-        if (getEntityDataType(entity) === "reservoir") {
-            entity.show = visibility;
-        }
-    });
+    const type = "reservoir";
+    setDataSourceVisible(type, visibility);
 
     if (!visibility) {
         // 当前选中实体的类型被隐藏后取消选中状态
-        if (
-            getEntityDataType(globalVar.viewer.selectedEntity) === "reservoir"
-        ) {
+        if (getEntityDataType(globalVar.viewer.selectedEntity) === type) {
             globalVar.viewer.selectedEntity = null;
         }
     }
@@ -252,7 +248,7 @@ function resetView() {
 }
 
 function jumpNext() {
-    const entities = globalVar.viewer.entities.values;
+    const entities = getAllEntities(globalVar.viewer);
     const visibleEntities = entities.filter((entity) => entity.show !== false);
 
     if (visibleEntities.length === 0) {

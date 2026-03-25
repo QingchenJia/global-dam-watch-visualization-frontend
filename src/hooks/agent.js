@@ -16,7 +16,7 @@ import {
     loadReservoirEntity,
     clearAllEntities,
     getAllEntities,
-    getBarrierDataSource,
+    getEntitiesFromDataSource,
 } from "./earth.js";
 import { API_ENDPOINT } from "../configs/api.js";
 import {
@@ -27,12 +27,13 @@ import {
 import { rotateEarth, computeCenter } from "../utils/camera.js";
 
 // 定义不同任务职责的智能体执行器
-let totalAgent = {
+let GIS_AGENT = {
     router: null,
     position: null,
     filter: null,
     chat: null,
 };
+
 export const llmConfig = {
     // 加载环境变量配置智能体模式
     agentMode: import.meta.env.VITE_AGENT_MODE,
@@ -51,6 +52,7 @@ export const llmConfig = {
         modelName: import.meta.env.VITE_CHAT_MODEL_NAME,
     },
 };
+
 let chatHistory = [];
 
 // 处理用户与智能体的对话交互
@@ -60,7 +62,7 @@ export async function chatToAgent(text, callbacks) {
     const { question, answer, handle } = callbacks;
 
     try {
-        const intent = await totalAgent.router.invoke({
+        const intent = await GIS_AGENT.router.invoke({
             input: text,
             chat_history: chatHistory,
         });
@@ -72,9 +74,9 @@ export async function chatToAgent(text, callbacks) {
         question(intent);
 
         if (intent === "CHAT") {
-            executor = totalAgent.chat;
+            executor = GIS_AGENT.chat;
         } else {
-            executor = totalAgent[intent.toLowerCase()].executor;
+            executor = GIS_AGENT[intent.toLowerCase()].executor;
         }
 
         const result = await executor.invoke({
@@ -156,7 +158,7 @@ export function defineTotalAgent(viewer) {
     // 初始化定义智能体所需的工具
     const [searchAndFlyTool, flyToTool, sqlFilterTool] = defineTools(viewer);
 
-    totalAgent.router = {
+    GIS_AGENT.router = {
         invoke: async ({ input }) => {
             const text = input.trim();
 
@@ -189,7 +191,7 @@ export function defineTotalAgent(viewer) {
     });
 
     // 定义实体定位智能体执行器
-    totalAgent.position = {
+    GIS_AGENT.position = {
         agent: positionAgent,
         executor: new AgentExecutor({
             agent: positionAgent,
@@ -214,7 +216,7 @@ export function defineTotalAgent(viewer) {
     });
 
     // 定义条件筛选智能体执行器
-    totalAgent.filter = {
+    GIS_AGENT.filter = {
         agent: filterAgent,
         executor: new AgentExecutor({
             agent: filterAgent,
@@ -233,7 +235,7 @@ export function defineTotalAgent(viewer) {
         ["human", "{input}"],
     ]);
 
-    totalAgent.chat = chatPrompt
+    GIS_AGENT.chat = chatPrompt
         .pipe(chatLlm)
         .pipe(new StringOutputParser())
         .pipe((text) => {
@@ -267,15 +269,7 @@ function defineTools(viewer) {
             id: z.string().describe("实体唯一id(格式如'b-12345'或'r-67890')"),
         }),
         func: async ({ id }) => {
-            let entity;
-            switch (id.toString().charAt(0)) {
-                case "b":
-                    entity = getBarrierDataSource(viewer).entities.getById(id);
-                    break;
-                case "r":
-                    entity = viewer.entities.getById(id);
-                    break;
-            }
+            const entity = getAllEntities(viewer).getById(id);
 
             if (entity) {
                 viewer.selectedEntity = entity;
@@ -306,16 +300,15 @@ async function searchAndFly(viewer, keyword, type) {
 
     switch (type) {
         case "barrier":
-            entities = getBarrierDataSource(viewer).entities.values;
+            entities = getEntitiesFromDataSource(type);
             break;
         case "reservoir":
-            entities = viewer.entities.values;
+            entities = getEntitiesFromDataSource(type);
             break;
     }
 
     // 遍历本地实体列表查找名称模糊匹配
     const localTarget = entities.find((e) => {
-        if (e.properties?.dataType?.getValue() !== type) return false;
         return e.name.includes(keyword);
     });
 
@@ -340,15 +333,14 @@ async function searchAndFly(viewer, keyword, type) {
                 case "barrier":
                     entityId = "b-" + item.gdwId;
                     entityName = item.dam_name || "Barrier #" + item.gdwId;
-                    entity =
-                        getBarrierDataSource(viewer).entities.getById(entityId);
                     break;
                 case "reservoir":
                     entityId = "r-" + item.gdwId;
                     entityName = item.res_name || "Reservoir #" + item.gdwId;
-                    entity = viewer.entities.getById(entityId);
                     break;
             }
+
+            entity = entities.getById(entityId);
 
             if (entity) {
                 viewer.selectedEntity = entity;
@@ -386,6 +378,8 @@ async function sqlFilter(viewer, type, condition) {
                     loadBarrierEntity(viewer, item);
                 } else if (type === "reservoir") {
                     loadReservoirEntity(viewer, item);
+                } else {
+                    console.warn(`未知实体类型:${type}`);
                 }
             });
             // 调整地图相机视角适应所有实体

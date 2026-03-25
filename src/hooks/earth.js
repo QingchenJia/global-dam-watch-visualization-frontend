@@ -3,27 +3,38 @@ import * as Cesium from "cesium";
 import { API_ENDPOINT } from "../configs/api.js";
 import { enableEntityClustering } from "../utils/cluster.js";
 
-let barrierDataSource = null;
-
-function getReservoirEntities(viewer) {
-    if (!viewer) return [];
-    return viewer.entities.values.filter((entity) => {
-        const dataType = entity.properties?.dataType;
-        if (!dataType) return false;
-        return typeof dataType.getValue === "function"
-            ? dataType.getValue() === "reservoir"
-            : dataType === "reservoir";
-    });
-}
+let barrierDataSource, reservoirDataSource;
 
 // 获取或创建大坝自定义数据源
 export function getBarrierDataSource(viewer) {
     if (!barrierDataSource) {
-        barrierDataSource = new Cesium.CustomDataSource("barriers");
+        barrierDataSource = new Cesium.CustomDataSource("barrier");
         viewer.dataSources.add(barrierDataSource);
         enableEntityClustering(barrierDataSource, viewer);
     }
     return barrierDataSource;
+}
+
+// 获取或创建水库自定义数据源
+export function getReservoirDataSource(viewer) {
+    if (!reservoirDataSource) {
+        reservoirDataSource = new Cesium.CustomDataSource("reservoir");
+        viewer.dataSources.add(reservoirDataSource);
+    }
+    return reservoirDataSource;
+}
+
+function getEntitiesFromDataSource(type) {
+    switch (type) {
+        case "barrier":
+            return barrierDataSource ? barrierDataSource.entities.values : [];
+        case "reservoir":
+            return reservoirDataSource
+                ? reservoirDataSource.entities.values
+                : [];
+        default:
+            return [];
+    }
 }
 
 export function clearAllEntities(viewer) {
@@ -31,90 +42,106 @@ export function clearAllEntities(viewer) {
     if (barrierDataSource) {
         barrierDataSource.entities.removeAll();
     }
+    if (reservoirDataSource) {
+        reservoirDataSource.entities.removeAll();
+    }
 }
 
 // 获取所有实体
 // 包括大坝和水库
-export function getAllEntities(viewer) {
-    const result = [...viewer.entities.values];
+export function getAllEntities() {
+    const result = [];
     if (barrierDataSource) {
         result.push(...barrierDataSource.entities.values);
+    }
+    if (reservoirDataSource) {
+        result.push(...reservoirDataSource.entities.values);
     }
     return result;
 }
 
-// 切换大坝数据源的可见性
-export function setBarrierDataSourceVisible(show) {
-    if (barrierDataSource) {
-        barrierDataSource.show = show;
+// 切换指定类型数据源的可见性
+export function setDataSourceVisible(type, show) {
+    switch (type) {
+        case "barrier":
+            if (barrierDataSource) {
+                barrierDataSource.show = show;
+            }
+            break;
+        case "reservoir":
+            if (reservoirDataSource) {
+                reservoirDataSource.show = show;
+            }
+            break;
+        default:
+            break;
     }
 }
 
-// 按年份过滤大坝实体
-export function filterEntitiesByYear(maxYear) {
-    if (!barrierDataSource) return;
-    const entities = barrierDataSource.entities.values;
+function applyYearFilter(entities, maxYear) {
+    if (!entities) return;
+
     for (let i = 0; i < entities.length; i++) {
         const entity = entities[i];
         const yearProp = entity.properties && entity.properties.yearDam;
-        const year = yearProp ? yearProp.getValue() : null;
+        const year = yearProp
+            ? typeof yearProp.getValue === "function"
+                ? yearProp.getValue()
+                : yearProp
+            : null;
+
         if (year !== null && year !== -99 && year !== "" && year !== " ") {
             entity.show = Number(year) <= maxYear;
         } else {
-            // 无建成年份的大坝始终显示
+            // 无建成年份的实体始终显示
             entity.show = true;
         }
     }
 }
 
 // 按年份过滤指定类型实体
-export function filterEntitiesByYearByType(maxYear, type, viewer) {
-    if (type === "barrier") {
-        filterEntitiesByYear(maxYear);
-        return;
+export function timeSliderShowEntities(viewer, type, maxYear) {
+    switch (type) {
+        case "barrier":
+            applyYearFilter(getEntitiesFromDataSource(type), maxYear);
+            break;
+        case "reservoir":
+            applyYearFilter(getEntitiesFromDataSource(type), maxYear);
+            break;
+        default:
+            break;
     }
 
-    if (type !== "reservoir") return;
-    const entities = getReservoirEntities(viewer);
-    for (let i = 0; i < entities.length; i++) {
-        const entity = entities[i];
-        const yearProp = entity.properties && entity.properties.yearDam;
-        const year = yearProp ? yearProp.getValue() : null;
-        if (year !== null && year !== -99 && year !== "" && year !== " ") {
-            entity.show = Number(year) <= maxYear;
-        } else {
-            entity.show = true;
-        }
+    if (viewer && viewer.scene) {
+        viewer.scene.requestRender();
     }
 }
 
-// 关闭时间轴时恢复所有大坝显示
-export function restoreAllEntities() {
-    if (!barrierDataSource) return;
-    const entities = barrierDataSource.entities.values;
+// 关闭时间轴时恢复所有实体显示
+export function resetEntitiesShow(entities) {
     for (let i = 0; i < entities.length; i++) {
         entities[i].show = true;
     }
 }
 
 // 关闭时间轴时按类型恢复显示
-export function restoreAllEntitiesByType(type, viewer) {
-    if (type === "barrier") {
-        restoreAllEntities();
-        return;
-    }
-
-    if (type !== "reservoir") return;
-    const entities = getReservoirEntities(viewer);
-    for (let i = 0; i < entities.length; i++) {
-        entities[i].show = true;
+export function restoreAllEntitiesByType(type) {
+    switch (type) {
+        case "barrier":
+            resetEntitiesShow(getEntitiesFromDataSource(type));
+            break;
+        case "reservoir":
+            resetEntitiesShow(getEntitiesFromDataSource(type));
+            break;
+        default:
+            break;
     }
 }
 
 export function loadBarrierEntity(viewer, item) {
     const gdwId = item.gdwId;
-    const type = item.damType || "Unknown";
     const name = item.damName || "Barrier #" + gdwId;
+    const type = item.damType || "Unknown";
 
     let position = null;
     const geoResult = parseGeometry(item.wkbGeometry);
@@ -176,7 +203,8 @@ export function loadReservoirEntity(viewer, item) {
         const hierarchies = geoResult.data;
         const hierarchy = hierarchies[0];
 
-        viewer.entities.add({
+        const rds = getReservoirDataSource(viewer);
+        rds.entities.add({
             // 显式定义水库id
             id: "r-" + gdwId,
             name: name,
