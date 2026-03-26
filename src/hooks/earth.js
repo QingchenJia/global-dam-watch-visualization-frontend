@@ -24,7 +24,7 @@ export function getReservoirDataSource(viewer) {
     return reservoirDataSource;
 }
 
-function getEntitiesFromDataSource(type) {
+export function getEntitiesFromDataSource(type) {
     switch (type) {
         case "barrier":
             return barrierDataSource ? barrierDataSource.entities.values : [];
@@ -148,13 +148,12 @@ export function loadBarrierEntity(viewer, item) {
 
     if (geoResult && geoResult.type === "Point") {
         position = geoResult.data;
+        if (!position) {
+            return;
+        }
     }
 
-    if (!position) return;
-
     let pointColor = Cesium.Color.RED;
-    let pointSize = 5;
-
     // 根据大坝类型调整显示颜色
     if (type.includes("Lake Control Dam")) {
         pointColor = Cesium.Color.GOLD;
@@ -164,21 +163,19 @@ export function loadBarrierEntity(viewer, item) {
         pointColor = Cesium.Color.BLUE;
     }
 
-    const yearDam = item.yearDam || null;
-
     const bds = getBarrierDataSource(viewer);
     bds.entities.add({
         id: "b-" + gdwId,
-        name: name,
-        position: position,
+        name,
         properties: {
             dataType: "barrier",
-            gdwId: gdwId,
+            gdwId,
             damType: type,
-            yearDam: yearDam,
+            yearDam: item.yearDam || null,
         },
+        position,
         point: {
-            pixelSize: pointSize,
+            pixelSize: 5,
             color: pointColor,
             outlineColor: Cesium.Color.WHITE,
             outlineWidth: 1,
@@ -197,33 +194,36 @@ export function loadReservoirEntity(viewer, item) {
     const gdwId = item.gdwId;
     const name = item.resName || "Reservoir #" + gdwId;
 
+    let hierarchy = null;
     const geoResult = parseGeometry(item.wkbGeometry);
 
     if (geoResult && geoResult.type === "MultiPolygon") {
-        const hierarchies = geoResult.data;
-        const hierarchy = hierarchies[0];
-
-        const rds = getReservoirDataSource(viewer);
-        rds.entities.add({
-            // 显式定义水库id
-            id: "r-" + gdwId,
-            name: name,
-            // 存储水库关键属性
-            properties: {
-                dataType: "reservoir",
-                gdwId: gdwId,
-                yearDam: item.yearDam || null,
-            },
-            polygon: {
-                hierarchy: hierarchy,
-                material: Cesium.Color.CYAN.withAlpha(0.7),
-                outline: true,
-                outlineColor: Cesium.Color.LIGHTBLUE,
-                // 多边形色块贴地显示
-                height: 0,
-            },
-        });
+        hierarchy = geoResult.data[0];
+        if (!hierarchy) {
+            return;
+        }
     }
+
+    const rds = getReservoirDataSource(viewer);
+    rds.entities.add({
+        // 显式定义水库id
+        id: "r-" + gdwId,
+        name,
+        // 存储水库关键属性
+        properties: {
+            dataType: "reservoir",
+            gdwId,
+            yearDam: item.yearDam || null,
+        },
+        polygon: {
+            hierarchy,
+            material: Cesium.Color.CYAN.withAlpha(0.7),
+            outline: true,
+            outlineColor: Cesium.Color.LIGHTBLUE,
+            // 多边形色块贴地显示
+            height: 0,
+        },
+    });
 }
 
 export function showLightBarrier(viewer) {
@@ -264,7 +264,9 @@ export function showLightReservoir(viewer) {
 // 分别处理大坝的点信息和水库的多边形信息
 // 水库多边形选取第一个多边形环作为外环进行渲染
 function parseGeometry(rawGeometry) {
-    if (!rawGeometry) return null;
+    if (!rawGeometry) {
+        return null;
+    }
 
     let geometry = rawGeometry;
 
@@ -302,7 +304,7 @@ function parseGeometry(rawGeometry) {
                 data: hierarchies,
             };
         }
+    } else {
+        return null;
     }
-
-    return null;
 }

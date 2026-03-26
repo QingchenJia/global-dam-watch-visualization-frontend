@@ -60,10 +60,8 @@ const showStats = ref(false);
 const showTimeline = ref(false);
 const showBookmark = ref(false);
 
-/*
- * 监听viewer实例初始化就绪事件
- * 触发后获取viewer实例作为全局变量
- * */
+// 监听viewer实例初始化就绪事件
+// 触发后获取viewer实例作为全局变量
 const onViewerReady = (v) => {
     viewer.value = v;
 };
