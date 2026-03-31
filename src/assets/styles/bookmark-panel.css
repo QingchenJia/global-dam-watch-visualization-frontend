@@ -1,7 +1,7 @@
 .bookmark-panel {
     position: fixed;
-    left: 18px;
-    top: 50px;
+    left: 0;
+    top: 115px;
     width: 340px;
     max-height: calc(100vh - 600px);
     overflow: hidden;

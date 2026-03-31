@@ -79,16 +79,19 @@ export function setDataSourceVisible(type, show) {
 }
 
 function applyYearFilter(entities, maxYear) {
-    if (!entities) return;
+    if (!entities) {
+        return;
+    }
 
     for (let i = 0; i < entities.length; i++) {
         const entity = entities[i];
-        const yearProp = entity.properties && entity.properties.yearDam;
-        const year = yearProp
-            ? typeof yearProp.getValue === "function"
-                ? yearProp.getValue()
-                : yearProp
-            : null;
+        // 获取建成年份属性值
+        if (!entity.properties || !entity.properties.yearDam) {
+            // 没有建成年份属性的实体始终显示
+            entity.show = true;
+            continue;
+        }
+        const year = entity.properties.yearDam.getValue();
 
         if (year !== null && year !== -99 && year !== "" && year !== " ") {
             entity.show = Number(year) <= maxYear;

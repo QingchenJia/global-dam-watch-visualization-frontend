@@ -13,20 +13,26 @@ const emit = defineEmits(["viewer-ready"]);
 onMounted(() => {
     const viewer = new Cesium.Viewer(cesiumContainer.value, {
         animation: false,
-        selectedImageryProviderViewModel:
-            Cesium.createDefaultImageryProviderViewModels().find(
-                (viewModel) => viewModel.name === "ArcGIS World Imagery",
-            ),
+        baseLayerPicker: false,
         fullscreenButton: false,
         homeButton: false,
         navigationHelpButton: false,
         geocoder: false,
         timeline: false,
         infoBox: false,
+        sceneModePicker: false,
     });
 
     // 隐藏开源三维地球版权信息
     viewer._cesiumWidget._creditContainer.style.display = "none";
+
+    // 以 XYZ 方式添加 ArcGIS World Imagery 影像图层
+    viewer.imageryLayers.addImageryProvider(
+        new Cesium.UrlTemplateImageryProvider({
+            url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            credit: new Cesium.Credit("© Esri"),
+        }),
+    );
 
     // 设置初始视图位于中国大陆上空
     viewer.camera.setView({

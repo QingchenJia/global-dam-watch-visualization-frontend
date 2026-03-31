@@ -1,8 +1,8 @@
 .entity-description-panel {
     position: fixed;
-    top: 50px;
-    right: 8px;
-    width: min(480px, calc(100vw - 28px));
+    top: 0;
+    right: 0;
+    min-width: 240px;
     max-height: calc(100vh - 185px);
     display: flex;
     flex-direction: column;

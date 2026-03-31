@@ -67,9 +67,9 @@
                             }}</span>
                         </div>
                         <div class="bookmark-tags">
-                            <span class="bookmark-tag"
-                                >视角 {{ formatCamera(bookmark.camera) }}</span
-                            >
+                            <span class="bookmark-tag">{{
+                                formatCamera(bookmark.camera)
+                            }}</span>
                         </div>
                     </div>
                     <div class="bookmark-actions">

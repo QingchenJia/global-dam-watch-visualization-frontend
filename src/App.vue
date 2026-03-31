@@ -8,7 +8,7 @@
             :show-timeline="showTimeline"
             @toggle-stats="showStats = !showStats"
             @toggle-timeline="showTimeline = !showTimeline"
-            @open-bookmark="showBookmark = true"
+            @open-bookmark="showBookmark = !showBookmark"
         />
         <AgentChat v-if="viewer" :viewer="viewer" />
 

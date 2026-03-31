@@ -1,9 +1,12 @@
 .position-information {
     position: fixed;
-    right: 8px;
-    bottom: 6px;
+    right: 0;
+    bottom: 0;
     min-width: 240px;
-    padding: 10px 12px;
+    --position-info-height: 120px;
+    height: var(--position-info-height);
+    padding: calc(var(--position-info-height) * 0.1087)
+        calc(var(--position-info-height) * 0.1304);
     border-radius: 10px;
     z-index: 9996;
     box-sizing: border-box;
@@ -12,8 +15,11 @@
     color: #deedf7;
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
-    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-family: var(--font-ui);
     font-size: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 
 .position-information-row {
@@ -21,11 +27,13 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    line-height: 1.5;
+    line-height: 1.2;
+    flex: 1;
+    min-height: 0;
 }
 
 .position-information-row + .position-information-row {
-    margin-top: 2px;
+    margin-top: 0;
 }
 
 .position-information-label {
@@ -43,6 +51,6 @@
         right: 10px;
         bottom: 10px;
         min-width: 210px;
-        padding: 8px 10px;
+        --position-info-height: 84px;
     }
 }

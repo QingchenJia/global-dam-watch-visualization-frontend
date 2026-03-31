@@ -1,3 +1,9 @@
+:root {
+    --font-ui:
+        "Cascadia Mono", "Consolas", "Courier New", "Microsoft YaHei",
+        "微软雅黑", monospace;
+}
+
 html,
 body,
 #app-container,
@@ -7,4 +13,5 @@ body,
     margin: 0;
     padding: 0;
     overflow: hidden;
+    font-family: var(--font-ui);
 }

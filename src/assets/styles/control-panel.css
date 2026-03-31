@@ -1,8 +1,22 @@
-.custom-reload-button {
+.control-panel-actions {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    top: 0;
+    left: 0;
     z-index: 999;
+    display: grid;
+    grid-template-columns: repeat(4, 32px);
+    grid-auto-rows: 32px;
+    gap: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+    width: fit-content;
+    border-radius: 10px;
+    border: 1px solid rgba(68, 68, 68, 0.95);
+    background-color: rgba(29, 29, 29, 0.9);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+.custom-reload-button {
     width: 32px;
     height: 32px;
     display: flex;
@@ -27,10 +41,6 @@
 }
 
 .custom-reset-button {
-    position: absolute;
-    top: 10px;
-    left: 52px;
-    z-index: 999;
     width: 32px;
     height: 32px;
     display: flex;
@@ -55,10 +65,6 @@
 }
 
 .custom-jump-button {
-    position: absolute;
-    top: 10px;
-    left: 94px;
-    z-index: 999;
     width: 32px;
     height: 32px;
     display: flex;
@@ -83,10 +89,7 @@
 }
 
 .custom-visibility-controls {
-    position: absolute;
-    top: 10px;
-    left: 136px;
-    z-index: 999;
+    position: relative;
 }
 
 .custom-visibility-button {
@@ -201,10 +204,6 @@ input:checked + .slider:before {
 }
 
 .custom-cluster-button {
-    position: absolute;
-    top: 10px;
-    left: 178px;
-    z-index: 999;
     width: 32px;
     height: 32px;
     display: flex;
@@ -233,10 +232,6 @@ input:checked + .slider:before {
 }
 
 .bookmark-button {
-    position: absolute;
-    top: 10px;
-    left: 220px;
-    z-index: 999;
     width: 32px;
     height: 32px;
     display: flex;
@@ -261,4 +256,33 @@ input:checked + .slider:before {
     width: 18px;
     height: 18px;
     fill: white;
+}
+
+.control-panel-actions .stats-toggle-btn,
+.control-panel-actions .timeline-toggle-btn {
+    position: static;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    z-index: auto;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+    border-radius: 4px;
+}
+
+.control-panel-actions .stats-toggle-text,
+.control-panel-actions .stats-toggle-arrow,
+.control-panel-actions .timeline-toggle-text {
+    display: none;
+}
+
+.control-panel-actions .stats-toggle-icon,
+.control-panel-actions .timeline-toggle-icon {
+    width: 20px;
+    height: 20px;
 }

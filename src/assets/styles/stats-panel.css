@@ -1,15 +1,15 @@
 .stats-panel {
     position: fixed;
-    top: 46px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 1188px;
-    max-height: calc(100vh - 24px);
+    top: 0;
+    right: 0;
+    width: 1300px;
+    min-height: 775px;
+    max-height: 825px;
     background: rgba(25, 28, 34, 0.96);
     color: #e0e0e0;
     border-radius: 12px 12px 12px 12px;
     z-index: 9997;
-    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-family: var(--font-ui);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
     border: 1px solid #3a3f4b;
     border-top: none;
@@ -100,7 +100,6 @@
     left: 22px;
 }
 
-/* ===== 按钮 ===== */
 .query-btn {
     padding: 6px 18px;
     background: linear-gradient(135deg, #3b82f6, #2563eb);
@@ -222,8 +221,7 @@
 }
 
 .stats-filter {
-    width: 288px;
-    min-width: 288px;
+    width: 250px;
     padding: 20px;
     border-right: 1px solid #3a3f4b;
     overflow-y: auto;
@@ -323,8 +321,8 @@ select.filter-input option {
 
 .stats-charts {
     flex: 1;
-    padding: 20px; /* 16 -> 20 */
-    overflow-y: auto;
+    padding: 20px;
+    overflow-y: hidden;
     display: flex;
     flex-direction: column;
 }
@@ -366,7 +364,7 @@ select.filter-input option {
 
 .chart-title {
     padding: 8px 12px 4px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     color: #aaa;
     text-align: center;
@@ -567,7 +565,7 @@ select.filter-input option {
     border-top: none;
     border-radius: 0 0 10px 10px;
     cursor: pointer;
-    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-family: var(--font-ui);
     font-size: 13px;
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
@@ -618,12 +616,12 @@ select.filter-input option {
 
 .stats-slide-enter-from,
 .stats-slide-leave-to {
-    transform: translateX(-50%) translateY(-100%);
+    transform: translateY(-100vh);
     opacity: 0;
 }
 
 .stats-slide-enter-to,
 .stats-slide-leave-from {
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
     opacity: 1;
 }

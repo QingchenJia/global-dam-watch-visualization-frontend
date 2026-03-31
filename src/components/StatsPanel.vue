@@ -664,8 +664,8 @@ async function exportSingleChartPng(chart, index, timestamp) {
             }
             return {
                 ...series,
-                center: ["32%", "56%"],
-                radius: ["30%", "60%"],
+                center: ["50%", "50%"],
+                radius: ["50%", "100%"],
             };
         }),
     };
