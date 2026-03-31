@@ -26,11 +26,17 @@ onMounted(() => {
     // 隐藏开源三维地球版权信息
     viewer._cesiumWidget._creditContainer.style.display = "none";
 
-    // 以 XYZ 方式添加 ArcGIS World Imagery 影像图层
+    // 添加全球影像图层WMTS服务
     viewer.imageryLayers.addImageryProvider(
-        new Cesium.UrlTemplateImageryProvider({
-            url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-            credit: new Cesium.Credit("© Esri"),
+        new Cesium.WebMapTileServiceImageryProvider({
+            url: "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/WMTS/tile/1.0.0/World_Imagery/{Style}/{TileMatrixSet}/{TileMatrix}/{TileRow}/{TileCol}.jpg",
+            layer: "World_Imagery",
+            style: "default",
+            tileMatrixSetID: "GoogleMapsCompatible",
+            format: "image/jpeg",
+            tileWidth: 256,
+            tileHeight: 256,
+            tilingScheme: new Cesium.WebMercatorTilingScheme(),
         }),
     );
 
