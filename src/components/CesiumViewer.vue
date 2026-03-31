@@ -21,24 +21,19 @@ onMounted(() => {
         timeline: false,
         infoBox: false,
         sceneModePicker: false,
+        // 使用ArcGIS卫星影像作为底图
+        baseLayer: Cesium.ImageryLayer.fromProviderAsync(
+            Cesium.ArcGisMapServerImageryProvider.fromBasemapType(
+                Cesium.ArcGisBaseMapType.SATELLITE,
+                {
+                    enablePickFeatures: false,
+                },
+            ),
+        ),
     });
 
     // 隐藏开源三维地球版权信息
     viewer._cesiumWidget._creditContainer.style.display = "none";
-
-    // 添加全球影像图层WMTS服务
-    viewer.imageryLayers.addImageryProvider(
-        new Cesium.WebMapTileServiceImageryProvider({
-            url: "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/WMTS/tile/1.0.0/World_Imagery/{Style}/{TileMatrixSet}/{TileMatrix}/{TileRow}/{TileCol}.jpg",
-            layer: "World_Imagery",
-            style: "default",
-            tileMatrixSetID: "GoogleMapsCompatible",
-            format: "image/jpeg",
-            tileWidth: 256,
-            tileHeight: 256,
-            tilingScheme: new Cesium.WebMercatorTilingScheme(),
-        }),
-    );
 
     // 设置初始视图位于中国大陆上空
     viewer.camera.setView({
