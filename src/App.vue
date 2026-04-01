@@ -1,11 +1,15 @@
 <template>
     <div id="app-container">
+        <!-- 三维地球 -->
         <CesiumViewer @viewer-ready="onViewerReady" />
+
+        <!-- 控制面板 -->
         <ControlPanel
             v-if="viewer"
             :viewer="viewer"
             :show-stats="showStats"
             :show-timeline="showTimeline"
+            :show-bookmark="showBookmark"
             @toggle-stats="showStats = !showStats"
             @toggle-timeline="showTimeline = !showTimeline"
             @open-bookmark="showBookmark = !showBookmark"
@@ -34,12 +38,15 @@
         <!-- 时间轴面板 -->
         <TimelineSlider
             v-if="viewer"
-            :show="showTimeline"
             :viewer="viewer"
+            :show="showTimeline"
             @close="showTimeline = false"
         />
 
-        <EntityDesrciption v-if="viewer" :viewer="viewer" />
+        <!-- 实体描述和对比信息面板 -->
+        <EntityDescription v-if="viewer" :viewer="viewer" />
+
+        <!-- 鼠标焦点位置信息 -->
         <PositionInformation v-if="viewer" :viewer="viewer" />
     </div>
 </template>
@@ -52,7 +59,7 @@ import AgentChat from "./components/AgentChat.vue";
 import StatsPanel from "./components/StatsPanel.vue";
 import TimelineSlider from "./components/TimelineSlider.vue";
 import BookmarkPanel from "./components/BookmarkPanel.vue";
-import EntityDesrciption from "./components/EntityDesrciption.vue";
+import EntityDescription from "./components/EntityDescription.vue";
 import PositionInformation from "./components/PositionInformation.vue";
 
 const viewer = ref(null);

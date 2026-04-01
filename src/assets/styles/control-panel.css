@@ -258,6 +258,15 @@ input:checked + .slider:before {
     fill: white;
 }
 
+.bookmark-button.active {
+    background-color: rgba(42, 42, 42, 0.9);
+    border-color: #5cc5f0;
+}
+
+.bookmark-button.active svg {
+    fill: #5cc5f0;
+}
+
 .control-panel-actions .stats-toggle-btn,
 .control-panel-actions .timeline-toggle-btn {
     position: static;
@@ -273,6 +282,27 @@ input:checked + .slider:before {
     justify-content: center;
     gap: 0;
     border-radius: 4px;
+    cursor: pointer;
+    background-color: rgba(42, 42, 42, 0.9);
+    border: 1px solid #444;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    color: #edffff;
+    backdrop-filter: none;
+    transition:
+        background-color 0.2s,
+        transform 0.15s ease;
+}
+
+.control-panel-actions .stats-toggle-btn:hover,
+.control-panel-actions .timeline-toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.control-panel-actions .stats-toggle-btn.active,
+.control-panel-actions .timeline-toggle-btn.active {
+    background-color: rgba(42, 42, 42, 0.9);
+    border-color: #5cc5f0;
+    color: #5cc5f0;
 }
 
 .control-panel-actions .stats-toggle-text,

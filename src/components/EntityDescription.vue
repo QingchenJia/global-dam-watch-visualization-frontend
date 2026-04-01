@@ -328,6 +328,7 @@ async function onEntitySelected(entity) {
 
 function closePanel() {
     globalVar.viewer.selectedEntity = null;
+    compareMode.value = false;
     currentEntity.value = null;
     nextEntity.value = null;
     currentRecord.value = null;

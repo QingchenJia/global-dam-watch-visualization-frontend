@@ -139,6 +139,7 @@
         <!-- 收藏视角与筛选按钮 -->
         <div
             class="bookmark-button"
+            :class="{ active: showBookmark }"
             title="收藏当前视角与筛选"
             @click="$emit('open-bookmark')"
         >
@@ -174,6 +175,10 @@ const globalVar = defineProps({
         default: false,
     },
     showTimeline: {
+        type: Boolean,
+        default: false,
+    },
+    showBookmark: {
         type: Boolean,
         default: false,
     },
