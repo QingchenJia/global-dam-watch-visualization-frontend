@@ -174,7 +174,7 @@ export async function mapUpdate(form, type, viewer, emit) {
     // 等待实体同步完成后再收起面板切回三维地球视图
     emit("request-close");
 
-    await rotateEarth(viewer, computeCenter(getAllEntities(viewer)));
+    await rotateEarth(viewer, computeCenter(getAllEntities()));
 
     return entities;
 }

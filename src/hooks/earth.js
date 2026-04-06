@@ -50,12 +50,16 @@ export function clearAllEntities(viewer) {
 // 获取所有实体
 // 包括大坝和水库
 export function getAllEntities() {
-    const result = [];
+    const result = new Cesium.EntityCollection();
     if (barrierDataSource) {
-        result.push(...barrierDataSource.entities.values);
+        barrierDataSource.entities.values.forEach((entity) => {
+            result.add(entity);
+        });
     }
     if (reservoirDataSource) {
-        result.push(...reservoirDataSource.entities.values);
+        reservoirDataSource.entities.values.forEach((entity) => {
+            result.add(entity);
+        });
     }
     return result;
 }

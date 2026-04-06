@@ -35,7 +35,7 @@
                     class="bookmark-input"
                     v-model="bookmarkName"
                     type="text"
-                    placeholder="书签名称(如:长江流域大坝全貌)"
+                    placeholder="书签名称(如：长江流域大坝全貌)"
                     @keyup.enter="saveBookmark(globalVar.viewer)"
                 />
                 <button
@@ -43,7 +43,7 @@
                     :disabled="isSaving || !globalVar.viewer"
                     @click="saveBookmark(globalVar.viewer)"
                 >
-                    {{ isSaving ? "保存中..." : "保存当前" }}
+                    {{ isSaving ? "保存中···" : "保存当前" }}
                 </button>
             </div>
 

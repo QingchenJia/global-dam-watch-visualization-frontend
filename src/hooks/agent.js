@@ -71,12 +71,12 @@ export async function chatToAgent(text, callbacks) {
         let executor = null;
 
         // 通知对话窗口ui开始执行任务
-        question(intent);
+        question(missionLabel(intent));
 
-        if (intent === "CHAT") {
+        if (intent === "chat") {
             executor = GIS_AGENT.chat;
         } else {
-            executor = GIS_AGENT[intent.toLowerCase()].executor;
+            executor = GIS_AGENT[intent].executor;
         }
 
         const result = await executor.invoke({
@@ -84,7 +84,7 @@ export async function chatToAgent(text, callbacks) {
             chat_history: chatHistory,
         });
 
-        if (intent === "CHAT" || !result.output) {
+        if (intent === "chat" || !result.output) {
             resultOutput =
                 typeof result === "string"
                     ? result
@@ -162,17 +162,36 @@ export function defineTotalAgent(viewer) {
         invoke: async ({ input }) => {
             const text = input.trim();
 
-            const positionRegex = /(定位|搜索|寻找|查一下|去|哪里|位置|坐标)/i;
-            if (positionRegex.test(text)) {
-                return "POSITION";
-            }
-            const filterRegex =
-                /(筛选|过滤|大于|小于|等于|最[大高低深浅长多少]|(列|查|找|显示)(出|一下)?(所有|全部)|统计|数量|多少|列表)/i;
-            if (filterRegex.test(text)) {
-                return "FILTER";
+            // 结构化提示词
+            if (
+                text.includes("- **任务**：定位") &&
+                text.includes("- **类型**：") &&
+                text.includes("- **名称**：")
+            ) {
+                return "position";
             }
 
-            return "CHAT";
+            if (
+                text.includes("- **任务**：筛选") &&
+                text.includes("- **类型**：") &&
+                text.includes("- **筛选类型**：")
+            ) {
+                return "filter";
+            }
+
+            // 自然语言提示词
+            const positionRegex = /(定位|搜索|寻找|查一下|去)/i;
+            if (positionRegex.test(text)) {
+                return "position";
+            }
+
+            const filterRegex =
+                /(筛选|过滤|(列|查|找|显示)(出|一下)?(所有|全部)|统计|数量|多少|列表)/i;
+            if (filterRegex.test(text)) {
+                return "filter";
+            }
+
+            return "chat";
         },
     };
 
@@ -229,7 +248,7 @@ export function defineTotalAgent(viewer) {
     const chatPrompt = ChatPromptTemplate.fromMessages([
         [
             "system",
-            "你是一个友好的GIS助手.请用简练专业的语言回答用户的普通闲聊问题.",
+            "你是一个友好的GIS助手。请用简练专业的语言回答用户的普通闲聊问题。",
         ],
         new MessagesPlaceholder("chat_history"),
         ["human", "{input}"],
@@ -248,12 +267,12 @@ function defineTools(viewer) {
     const searchAndFlyTool = new DynamicStructuredTool({
         name: "search_and_fly",
         description:
-            "综合搜索定位工具.按名称搜索实体,优先查找本地,若无则查询远程数据库.找到后自动控制地图飞行定位.",
+            "综合搜索定位工具。按名称搜索实体，优先查找本地，若无则查询远程数据库。找到后自动控制地图飞行定位。",
         schema: z.object({
             keyword: z
                 .string()
                 .describe(
-                    "实体名称关键词(英文,尽可能简短如'Three Gorges','Miyun','Winnipeg')",
+                    "实体名称关键词(英文，尽可能简短如'Three Gorges'，'Miyun','Winnipeg')",
                 ),
             // 限定实体数据类型
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
@@ -264,19 +283,19 @@ function defineTools(viewer) {
     const flyToTool = new DynamicStructuredTool({
         name: "fly_to",
         description:
-            "精确id定位工具.当上下文中已经知道实体的id时,必须优先使用此工具进行跳转,而不是重新搜索名称.",
+            "精确id定位工具。当上下文中已经知道实体的id时，必须优先使用此工具进行跳转，而不是重新搜索名称。",
         schema: z.object({
             id: z.string().describe("实体唯一id(格式如'b-12345'或'r-67890')"),
         }),
         func: async ({ id }) => {
-            const entity = getAllEntities(viewer).getById(id);
+            const entity = getAllEntities().getById(id);
 
             if (entity) {
                 viewer.selectedEntity = entity;
                 viewer.flyTo(toRaw(viewer.selectedEntity), { duration: 1.5 });
-                return `SUCCESS:已定位到实体"${entity.name}"(id:${id}),视角已自动调整.`;
+                return `SUCCESS:已定位到实体"${entity.name}"(id：${id})，视角已自动调整。`;
             } else {
-                return `ERROR:不存在当前实体(id:${id}).`;
+                return `ERROR:不存在当前实体(id：${id})。`;
             }
         },
     });
@@ -284,7 +303,7 @@ function defineTools(viewer) {
     const sqlFilterTool = new DynamicStructuredTool({
         name: "sql_filter",
         description:
-            "高级过滤工具.根据SQL条件子句进行数据库查询实现过滤,请严格按照提示语中SQL语法要求构造查询条件.",
+            "高级过滤工具。根据SQL条件子句进行数据库查询实现过滤，请严格按照提示语中SQL语法要求构造查询条件。",
         schema: z.object({
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
             condition: z.string().describe(`${SQL_PROMPT}`),
@@ -315,7 +334,7 @@ async function searchAndFly(viewer, keyword, type) {
     if (localTarget) {
         viewer.selectedEntity = localTarget;
         viewer.flyTo(toRaw(viewer.selectedEntity), { duration: 1.5 });
-        return `SUCCESS:本地已找到实体"${localTarget.name}"(id:${localTarget.id}),视角已自动定位.`;
+        return `SUCCESS:本地已找到实体"${localTarget.name}"(id：${localTarget.id})，视角已自动定位。`;
     }
 
     try {
@@ -345,15 +364,15 @@ async function searchAndFly(viewer, keyword, type) {
             if (entity) {
                 viewer.selectedEntity = entity;
                 viewer.flyTo(toRaw(viewer.selectedEntity), { duration: 1.5 });
-                return `SUCCESS:远程数据库查找到"${entityName}"(id:${entityId}),已加载并自动定位.`;
+                return `SUCCESS:远程数据库查找到"${entityName}"(id：${entityId})，已加载并自动定位。`;
             } else {
-                return `ERROR:数据库查找到数据,但实体加载失败(id:${entityId}).`;
+                return `ERROR:数据库查找到数据，但实体加载失败(id：${entityId})。`;
             }
         }
 
-        return `ERROR:未找到名为"${keyword}"的${type}实体(本地与远程均无结果).`;
+        return `ERROR:未找到名为"${keyword}"的${type}实体(本地与远程均无结果)。`;
     } catch (error) {
-        return `ERROR:搜索过程出错:${error.message}`;
+        return `ERROR:搜索过程出错：${error.message}`;
     }
 }
 
@@ -370,7 +389,7 @@ async function sqlFilter(viewer, type, condition) {
             const data = res.data.data;
             // 符合查询条件的实体确实不存在
             if (data.length === 0) {
-                return "SUCCESS:查询成功,但未找到符合条件的实体.";
+                return "SUCCESS:查询成功，但未找到符合条件的实体。";
             }
 
             data.forEach((item) => {
@@ -383,13 +402,24 @@ async function sqlFilter(viewer, type, condition) {
                 }
             });
             // 调整地图相机视角适应所有实体
-            await rotateEarth(viewer, computeCenter(getAllEntities(viewer)));
+            await rotateEarth(viewer, computeCenter(getAllEntities()));
 
-            return `SUCCESS:查询成功!已筛选${data.length}个符合条件的${type}实体.`;
+            return `SUCCESS:查询成功！已筛选${data.length}个符合条件的${type}实体。`;
         } else {
-            return `ERROR:查询失败:${res.data.message || "未知错误"}.`;
+            return `ERROR:查询失败：${res.data.message || "未知错误"}。`;
         }
     } catch (error) {
-        return `ERROR:查询出错:${error.message}`;
+        return `ERROR:查询出错：${error.message}`;
+    }
+}
+
+function missionLabel(intent) {
+    switch (intent) {
+        case "position":
+            return "定位";
+        case "filter":
+            return "筛选";
+        case "chat":
+            return "聊天";
     }
 }

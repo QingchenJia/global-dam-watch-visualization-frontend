@@ -4,7 +4,7 @@
     left: 50%;
     transform: translateX(-50%);
     z-index: 9990;
-    width: min(900px, 96vw);
+    width: 800px;
     --timeline-height: 120px;
     --timeline-base-height: 100px;
     --timeline-scale: calc(

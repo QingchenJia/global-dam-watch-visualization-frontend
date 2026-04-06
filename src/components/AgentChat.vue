@@ -3,7 +3,6 @@
         id="agent-chat-container"
         class="agent-chat-container"
         :class="{ minimized: isMinimized }"
-        ref="chatContainer"
     >
         <!-- 头部 -->
         <div class="agent-header" @click="toggleMinimize">
@@ -103,6 +102,69 @@
                         </div>
                         <span class="typing-label">{{ msg.content }}</span>
                     </template>
+                    <template v-else-if="msg.kind === 'tag-shortcuts'">
+                        <div class="message-content">{{ msg.content }}</div>
+                        <div class="msg-tag-groups">
+                            <div class="msg-top-groups">
+                                <div class="msg-tag-group">
+                                    <p>任务</p>
+                                    <div class="msg-tag-list">
+                                        <button
+                                            v-for="tag in quickActions"
+                                            :key="`action-${tag}`"
+                                            class="msg-tag"
+                                            :class="{
+                                                active: selectedTask === tag,
+                                            }"
+                                            type="button"
+                                            @click="selectTaskTag(tag)"
+                                        >
+                                            {{ tag }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="msg-tag-group">
+                                    <p>类型</p>
+                                    <div class="msg-tag-list">
+                                        <button
+                                            v-for="tag in quickTypes"
+                                            :key="`type-${tag}`"
+                                            class="msg-tag"
+                                            :class="{
+                                                active: selectedType === tag,
+                                            }"
+                                            type="button"
+                                            @click="selectTypeTag(tag)"
+                                        >
+                                            {{ tag }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="msg-tag-group">
+                                <p>属性</p>
+                                <div class="msg-tag-list">
+                                    <button
+                                        v-for="tag in allPropertyTags"
+                                        :key="`property-${tag}`"
+                                        class="msg-tag"
+                                        :class="{
+                                            active: selectedPropertyTags.includes(
+                                                tag,
+                                            ),
+                                        }"
+                                        :disabled="isPropertyTagDisabled(tag)"
+                                        type="button"
+                                        @click="selectPropertyTag(tag)"
+                                    >
+                                        {{ tag }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                     <div
                         v-else
                         class="message-content"
@@ -122,46 +184,68 @@
 
         <!-- 输入区 -->
         <div class="agent-input-area">
-            <input
+            <textarea
                 v-model="inputText"
-                @keyup.enter="sendMessage"
-                placeholder="向GIS Agent发送指令..."
+                @keydown.enter.exact.prevent="sendMessage"
+                placeholder="向GIS Agent发送指令···"
                 :disabled="loading"
                 ref="inputInput"
-            />
-            <button
-                class="send-btn"
-                @click="sendMessage"
-                :disabled="loading"
-                title="发送"
-            >
-                <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+            ></textarea>
+            <div class="input-actions">
+                <button
+                    class="call-btn"
+                    @click="sendWelcomeMessage"
+                    :disabled="loading"
+                    title="呼叫"
                 >
-                    <path
-                        d="M22 2L11 13"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    />
-                    <path
-                        d="M22 2L15 22L11 13L2 9L22 2Z"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    />
-                </svg>
-            </button>
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            d="M22 16.5V20a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.52 19.52 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3.5a2 2 0 0 1 2 1.72c.12.91.35 1.81.68 2.67a2 2 0 0 1-.45 2.11L8.36 9.97a16 16 0 0 0 5.67 5.67l1.47-1.48a2 2 0 0 1 2.11-.45c.86.33 1.76.56 2.67.68A2 2 0 0 1 22 16.5Z"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                    </svg>
+                </button>
+                <button
+                    class="send-btn"
+                    @click="sendMessage"
+                    :disabled="loading"
+                    title="发送"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            d="M22 2L11 13"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M22 2L15 22L11 13L2 9L22 2Z"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, computed } from "vue";
+import { ref, onMounted, nextTick, computed, watch } from "vue";
 import { chatToAgent, llmConfig, defineTotalAgent } from "../hooks/agent.js";
 
 const globalVar = defineProps({
@@ -177,6 +261,24 @@ const inputText = ref("");
 const loading = ref(false);
 const messagesContainer = ref(null);
 const inputInput = ref(null);
+const selectedTask = ref("");
+const selectedType = ref("");
+const selectedPropertyTags = ref([]);
+
+const quickActions = ["定位", "筛选"];
+const quickTypes = ["大坝", "水库"];
+const commonTags = [
+    "主要流域",
+    "主要用途",
+    "数据质量",
+    "建成年份",
+    "国家或地区",
+];
+const damOnlyTags = ["大坝类型", "大坝长度", "大坝高度"];
+const reservoirOnlyTags = ["库容", "表面积", "水库深度"];
+const allPropertyTags = [...commonTags, ...damOnlyTags, ...reservoirOnlyTags];
+const WELCOME_TEXT =
+    "我是您的个人GIS助手(Hybrid Router架构)，可直接点击下方标签快速组合输入：";
 
 // 计算当前模式和模型名称用于标题显示
 const agentMode = computed(() => llmConfig.agentMode);
@@ -191,7 +293,136 @@ function toggleMinimize() {
     isMinimized.value = !isMinimized.value;
 }
 
-function addMessage(sender, content, isLoading = false) {
+function syncInputFromSelections() {
+    inputText.value = buildFormattedPrompt();
+    nextTick(() => inputInput.value?.focus());
+}
+
+function buildFormattedPrompt() {
+    if (
+        !selectedTask.value &&
+        !selectedType.value &&
+        !selectedPropertyTags.value.length
+    ) {
+        return "";
+    }
+
+    if (selectedTask.value === "定位") {
+        return [
+            `- **任务**：定位`,
+            `- **类型**：${selectedType.value || ""}`,
+            `- **名称**：`,
+        ].join("\n");
+    }
+
+    if (selectedTask.value === "筛选") {
+        const lines = [
+            `- **任务**：筛选`,
+            `- **类型**：${selectedType.value || ""}`,
+            `- **筛选类型**：`,
+        ];
+
+        selectedPropertyTags.value.forEach((tag, index) => {
+            lines.push(`  ${index + 1}. **${tag}**：`);
+        });
+
+        return lines.join("\n");
+    }
+
+    return [`- **任务**：`, `- **类型**：${selectedType.value || ""}`].join(
+        "\n",
+    );
+}
+
+function selectTaskTag(tag) {
+    if (selectedTask.value === tag) {
+        selectedTask.value = "";
+        selectedPropertyTags.value = [];
+        syncInputFromSelections();
+        return;
+    }
+
+    selectedTask.value = tag;
+
+    if (tag === "定位" && selectedPropertyTags.value.length) {
+        selectedPropertyTags.value = [];
+    }
+
+    syncInputFromSelections();
+}
+
+function selectTypeTag(tag) {
+    if (selectedType.value === tag) {
+        selectedType.value = "";
+        selectedPropertyTags.value = [];
+        syncInputFromSelections();
+        return;
+    }
+
+    selectedType.value = tag;
+
+    if (selectedTask.value === "筛选") {
+        const tagsToRemove = tag === "大坝" ? reservoirOnlyTags : damOnlyTags;
+        selectedPropertyTags.value = selectedPropertyTags.value.filter(
+            (item) => !tagsToRemove.includes(item),
+        );
+    }
+
+    syncInputFromSelections();
+}
+
+function selectPropertyTag(tag) {
+    if (selectedPropertyTags.value.includes(tag)) {
+        selectedPropertyTags.value = selectedPropertyTags.value.filter(
+            (item) => item !== tag,
+        );
+        syncInputFromSelections();
+        return;
+    }
+
+    if (isPropertyTagDisabled(tag)) return;
+
+    selectedPropertyTags.value = [...selectedPropertyTags.value, tag];
+    syncInputFromSelections();
+}
+
+function isPropertyTagDisabled(tag) {
+    if (selectedPropertyTags.value.includes(tag)) {
+        return false;
+    }
+
+    if (selectedTask.value !== "筛选") {
+        return true;
+    }
+
+    if (!selectedType.value) {
+        return true;
+    }
+
+    if (selectedTask.value === "定位") {
+        return true;
+    }
+
+    if (selectedTask.value === "筛选" && selectedType.value === "大坝") {
+        return reservoirOnlyTags.includes(tag);
+    }
+
+    if (selectedTask.value === "筛选" && selectedType.value === "水库") {
+        return damOnlyTags.includes(tag);
+    }
+
+    return false;
+}
+
+watch(inputText, (value) => {
+    if (!value.trim()) {
+        selectedTask.value = "";
+        selectedType.value = "";
+        selectedPropertyTags.value = [];
+    }
+});
+
+function addMessage(sender, content, isLoading = false, kind = "text") {
     // 格式化换行符
     const formattedContent = isLoading
         ? content
@@ -201,6 +432,7 @@ function addMessage(sender, content, isLoading = false) {
         sender,
         content: formattedContent,
         loading: isLoading,
+        kind,
         // 如果是loading消息则添加id
         id: isLoading ? "agent-loading-msg" : undefined,
     };
@@ -263,12 +495,13 @@ async function sendMessage() {
     });
 }
 
+function sendWelcomeMessage() {
+    addMessage("agent", WELCOME_TEXT, false, "tag-shortcuts");
+}
+
 onMounted(() => {
     defineTotalAgent(globalVar.viewer);
     // 添加智能体的欢迎消息
-    addMessage(
-        "agent",
-        `我是您的个人GIS助手(Hybrid Router架构)，有什么可以帮到您？`,
-    );
+    sendWelcomeMessage();
 });
 </script>
