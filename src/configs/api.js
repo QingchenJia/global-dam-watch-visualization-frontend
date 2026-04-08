@@ -1,26 +1,29 @@
+const API_BASE_URL = "http://localhost:8100";
+
 export const API_ENDPOINT = {
+    llmProxy: (provider) => `${API_BASE_URL}/api/llm/${provider}`,
     position: {
-        barrier: "http://localhost:8100/barrier/position",
-        reservoir: "http://localhost:8100/reservoir/position",
+        barrier: `${API_BASE_URL}/barrier/position`,
+        reservoir: `${API_BASE_URL}/reservoir/position`,
     },
     filter: {
-        barrier: "http://localhost:8100/barrier/filter",
-        reservoir: "http://localhost:8100/reservoir/filter",
+        barrier: `${API_BASE_URL}/barrier/filter`,
+        reservoir: `${API_BASE_URL}/reservoir/filter`,
     },
     detail: {
-        barrier: "http://localhost:8100/barrier/",
-        reservoir: "http://localhost:8100/reservoir/",
+        barrier: (id) => `${API_BASE_URL}/barrier/${id}`,
+        reservoir: (id) => `${API_BASE_URL}/reservoir/${id}`,
     },
     location: {
-        barrier: "http://localhost:8100/barrier/location",
-        reservoir: "http://localhost:8100/reservoir/location",
+        barrier: `${API_BASE_URL}/barrier/location`,
+        reservoir: `${API_BASE_URL}/reservoir/location`,
     },
     stats: {
-        barrier: "http://localhost:8100/barrier/stats",
-        reservoir: "http://localhost:8100/reservoir/stats",
+        barrier: `${API_BASE_URL}/barrier/stats`,
+        reservoir: `${API_BASE_URL}/reservoir/stats`,
     },
     sync: {
-        barrier: "http://localhost:8100/barrier/sync",
-        reservoir: "http://localhost:8100/reservoir/sync",
+        barrier: `${API_BASE_URL}/barrier/sync`,
+        reservoir: `${API_BASE_URL}/reservoir/sync`,
     },
 };

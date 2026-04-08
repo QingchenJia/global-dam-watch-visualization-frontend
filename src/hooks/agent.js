@@ -2,7 +2,6 @@ import axios from "axios";
 import { toRaw } from "vue";
 import z from "zod";
 import { ChatOpenAI } from "@langchain/openai";
-import { ChatOllama } from "@langchain/ollama";
 import { DynamicStructuredTool } from "@langchain/core/tools";
 import {
     ChatPromptTemplate,
@@ -37,19 +36,10 @@ let GIS_AGENT = {
 export const llmConfig = {
     // 加载环境变量配置智能体模式
     agentMode: import.meta.env.VITE_AGENT_MODE,
-    cloud: {
-        baseUrl: import.meta.env.VITE_OPENAI_BASE_URL,
-        apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-        modelName: import.meta.env.VITE_OPENAI_MODEL_NAME,
-    },
-    local: {
-        baseUrl: import.meta.env.VITE_OLLAMA_BASE_URL,
-        modelName: import.meta.env.VITE_OLLAMA_MODEL_NAME,
-    },
-    chat: {
-        baseUrl: import.meta.env.VITE_CHAT_BASE_URL,
-        apiKey: import.meta.env.VITE_CHAT_API_KEY,
-        modelName: import.meta.env.VITE_CHAT_MODEL_NAME,
+    modelName: {
+        cloud: import.meta.env.VITE_OPENAI_MODEL_NAME,
+        local: import.meta.env.VITE_OLLAMA_MODEL_NAME,
+        chat: import.meta.env.VITE_CHAT_MODEL_NAME,
     },
 };
 
@@ -108,7 +98,7 @@ export async function chatToAgent(text, callbacks) {
         // 通知对话窗口ui更新结果
         answer(finalOutput);
     } catch (e) {
-        console.error("消息处理出错:", e);
+        console.error("消息处理出错：", e);
         const errorMsg = e.message.includes("404") ? "服务未响应" : e.message;
 
         // 通知对话窗口ui发生错误
@@ -116,44 +106,33 @@ export async function chatToAgent(text, callbacks) {
     }
 }
 
-function defineLlm() {
-    let llm;
-
-    // 根据智能体模式选择对应语言模型
-    if (llmConfig.agentMode === "local") {
-        // 本地部署模型
-        llm = new ChatOllama({
-            baseUrl: llmConfig.local.baseUrl,
-            model: llmConfig.local.modelName,
-            temperature: 0,
-            keepAlive: "15m",
-        });
-    } else if (llmConfig.agentMode === "cloud") {
-        // 云服务远程调用模型
-        llm = new ChatOpenAI({
-            apiKey: llmConfig.cloud.apiKey,
-            configuration: { baseURL: llmConfig.cloud.baseUrl },
-            model: llmConfig.cloud.modelName,
-            temperature: 0,
-            // 关闭用量统计提高云服务接口兼容
-            streamUsage: false,
-            streaming: false,
-        });
-    }
-
-    const chatLlm = new ChatOpenAI({
-        apiKey: llmConfig.chat.apiKey,
-        configuration: { baseURL: llmConfig.chat.baseUrl },
-        model: llmConfig.chat.modelName,
+function createProxyLlm(provider, model, temperature = 0) {
+    return new ChatOpenAI({
+        // 使用后端代理后前端不再持有真实密钥
+        apiKey: "proxy",
+        configuration: {
+            baseURL: API_ENDPOINT.llmProxy(provider),
+        },
+        model,
+        temperature,
+        // 关闭用量统计提高云服务接口兼容
         streamUsage: false,
         streaming: false,
     });
+}
+
+function defineLlm() {
+    const provider = llmConfig.agentMode;
+    const llmModel = llmConfig.modelName[provider];
+    const llm = createProxyLlm(provider, llmModel);
+
+    const chatLlm = createProxyLlm("chat", llmConfig.modelName.chat);
 
     return { llm, chatLlm };
 }
 
-export function defineTotalAgent(viewer) {
-    // 定义大语言模型与聊天模型
+export function defineGisAgent(viewer) {
+    // 定义agent模型与聊天模型
     const { llm, chatLlm } = defineLlm();
     // 初始化定义智能体所需的工具
     const [searchAndFlyTool, flyToTool, sqlFilterTool] = defineTools(viewer);

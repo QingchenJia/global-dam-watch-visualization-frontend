@@ -255,11 +255,11 @@ async function fetchDetail(entity) {
     const id = entity.properties.gdwId.getValue();
     const type = entity.properties.dataType.getValue();
 
-    if (!id || !type || !API_ENDPOINT.detail[type]) {
+    if (!id || !type) {
         throw new Error("当前实体没有可查询的详细信息");
     }
 
-    const url = `${API_ENDPOINT.detail[type]}${id}`;
+    const url = API_ENDPOINT.detail[type](id);
     const res = await axios.get(url);
 
     if (res?.data?.code !== 1) {

@@ -38,7 +38,7 @@
                 <div class="agent-header-info">
                     <span class="agent-title">GIS Agent</span>
                     <span class="agent-subtitle"
-                        >{{ agentMode }} · {{ modelName }}</span
+                        >{{ mode }} · {{ modelName }}</span
                     >
                 </div>
             </div>
@@ -194,7 +194,14 @@
             <div class="input-actions">
                 <button
                     class="call-btn"
-                    @click="sendWelcomeMessage"
+                    @click="
+                        addMessage(
+                            'agent',
+                            WELCOME_TEXT,
+                            false,
+                            'tag-shortcuts',
+                        )
+                    "
                     :disabled="loading"
                     title="呼叫"
                 >
@@ -246,7 +253,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick, computed, watch } from "vue";
-import { chatToAgent, llmConfig, defineTotalAgent } from "../hooks/agent.js";
+import { chatToAgent, llmConfig, defineGisAgent } from "../hooks/agent.js";
 
 const globalVar = defineProps({
     viewer: {
@@ -281,9 +288,9 @@ const WELCOME_TEXT =
     "我是您的个人GIS助手(Hybrid Router架构)，可直接点击下方标签快速组合输入：";
 
 // 计算当前模式和模型名称用于标题显示
-const agentMode = computed(() => llmConfig.agentMode);
+const mode = computed(() => llmConfig.agentMode);
 const modelName = computed(() => {
-    const name = llmConfig[llmConfig.agentMode]?.modelName || "未知模型";
+    const name = llmConfig.modelName[mode.value] || "未知模型";
     const index = name.lastIndexOf("/");
 
     return index === -1 ? name : name.slice(index + 1);
@@ -495,13 +502,10 @@ async function sendMessage() {
     });
 }
 
-function sendWelcomeMessage() {
-    addMessage("agent", WELCOME_TEXT, false, "tag-shortcuts");
-}
-
 onMounted(() => {
-    defineTotalAgent(globalVar.viewer);
-    // 添加智能体的欢迎消息
-    sendWelcomeMessage();
+    // 先展示欢迎语
+    // 避免初始化异常导致首条消息缺失
+    addMessage("agent", WELCOME_TEXT, false, "tag-shortcuts");
+    defineGisAgent(globalVar.viewer);
 });
 </script>
