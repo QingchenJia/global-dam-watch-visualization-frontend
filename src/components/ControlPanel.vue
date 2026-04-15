@@ -24,16 +24,34 @@
             </svg>
         </div>
 
-        <!-- 实体跳转按钮 -->
-        <div
-            id="jump-button"
-            class="custom-jump-button"
-            title="跳转到下一个实体"
-            @click="jumpNext"
-        >
-            <svg viewBox="0 0 24 24">
-                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
-            </svg>
+        <!-- 底图切换按钮 -->
+        <div ref="baseMapControl" class="custom-basemap-controls">
+            <div
+                class="custom-basemap-button"
+                :title="`切换底图(当前：${currentBaseMapLabel})`"
+                @click="toggleBaseMapPanel"
+            >
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20V6.5zm2 1.34v9.32l3-1.25V6.59L5 7.84zm5-.06v9.32l4 1.67V9.45l-4-1.67zm6 1.67v9.32l3-1.25V8.2l-3 1.25z"
+                    />
+                </svg>
+            </div>
+
+            <div v-if="baseMapBoxShow" class="basemap-options-panel">
+                <button
+                    v-for="item in baseMapOptions"
+                    :key="item.type"
+                    class="basemap-option-item"
+                    :class="[
+                        `basemap-option-${item.type}`,
+                        { 'is-selected': currentBaseMapType === item.type },
+                    ]"
+                    @click="switchBaseMap(item.type)"
+                >
+                    {{ item.label }}
+                </button>
+            </div>
         </div>
 
         <!-- 实体显示或隐藏按钮 -->
@@ -154,16 +172,21 @@
 
 <script setup>
 import * as Cesium from "cesium";
-import { ref, toRaw, onMounted, onUnmounted } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import {
     showLightBarrier,
     showLightReservoir,
     clearAllEntities,
     setDataSourceVisible,
     getBarrierDataSource,
-    getAllEntities,
 } from "../hooks/earth.js";
 import { setAutoClusterEnabled } from "../utils/cluster.js";
+import {
+    barrierVisible,
+    reservoirVisible,
+    DEFAULT_BASE_MAP_TYPE,
+    setupBaseMapSwitcher,
+} from "../utils/layer.js";
 
 const globalVar = defineProps({
     viewer: {
@@ -186,13 +209,20 @@ const globalVar = defineProps({
 
 defineEmits(["toggle-stats", "toggle-timeline", "open-bookmark"]);
 
-let entityIndex = 0;
 const visible = ref(true);
-const barrierVisible = ref(true);
-const reservoirVisible = ref(true);
 const visibilityOptionsOpen = ref(false);
 const visibilityControlRef = ref(null);
 const clusterEnabled = ref(true);
+const baseMapControl = ref(null);
+const baseMapBoxShow = ref(false);
+const baseMapOptions = ref([]);
+const currentBaseMapType = ref(DEFAULT_BASE_MAP_TYPE);
+const currentBaseMapLabel = computed(() => {
+    const option = baseMapOptions.value.find(
+        (item) => item.type === currentBaseMapType.value,
+    );
+    return option ? option.label : "未知";
+});
 
 function getEntityDataType(entity) {
     if (!entity || !entity.properties || !entity.properties.dataType) {
@@ -254,23 +284,6 @@ function resetView() {
     });
 }
 
-function jumpNext() {
-    const entities = getAllEntities(globalVar.viewer);
-    const visibleEntities = entities.filter((entity) => entity.show !== false);
-
-    if (visibleEntities.length === 0) {
-        alert("当前地图上没有可跳转的实体");
-        return;
-    }
-
-    // 循环跳转至当前实体列表中的下一个实体
-    entityIndex = entityIndex % visibleEntities.length;
-    globalVar.viewer.selectedEntity = visibleEntities[entityIndex++];
-    globalVar.viewer.flyTo(toRaw(globalVar.viewer.selectedEntity), {
-        duration: 1.5,
-    });
-}
-
 function toggleVisibilityOptions() {
     visibilityOptionsOpen.value = !visibilityOptionsOpen.value;
 }
@@ -287,6 +300,40 @@ function toggleReservoirVisible() {
     updateGlobalVisibleState();
 }
 
+function toggleBaseMapPanel() {
+    baseMapBoxShow.value = !baseMapBoxShow.value;
+}
+
+async function switchBaseMap(type) {
+    const setter = globalVar.viewer.__setBaseMapType;
+    if (typeof setter !== "function") {
+        return;
+    }
+
+    const switched = await setter(type);
+    if (switched) {
+        currentBaseMapType.value = type;
+        baseMapBoxShow.value = false;
+    }
+}
+
+async function initBaseMapState() {
+    if (typeof globalVar.viewer.__setBaseMapType !== "function") {
+        await setupBaseMapSwitcher(globalVar.viewer);
+    }
+
+    const optionsGetter = globalVar.viewer.__getBaseMapOptions;
+    const typeGetter = globalVar.viewer.__getBaseMapType;
+
+    if (typeof optionsGetter === "function") {
+        baseMapOptions.value = optionsGetter();
+    }
+
+    if (typeof typeGetter === "function") {
+        currentBaseMapType.value = typeGetter();
+    }
+}
+
 function handleOutsideClick(event) {
     if (
         visibilityOptionsOpen.value &&
@@ -294,6 +341,14 @@ function handleOutsideClick(event) {
         !visibilityControlRef.value.contains(event.target)
     ) {
         visibilityOptionsOpen.value = false;
+    }
+
+    if (
+        baseMapBoxShow.value &&
+        baseMapControl.value &&
+        !baseMapControl.value.contains(event.target)
+    ) {
+        baseMapBoxShow.value = false;
     }
 }
 
@@ -325,6 +380,7 @@ function handleSyncCompleted() {
 }
 
 onMounted(() => {
+    initBaseMapState();
     window.addEventListener("map-sync-completed", handleSyncCompleted);
     window.addEventListener("click", handleOutsideClick);
 });

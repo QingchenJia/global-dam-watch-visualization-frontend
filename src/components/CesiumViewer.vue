@@ -6,11 +6,12 @@
 import { onMounted, ref } from "vue";
 import * as Cesium from "cesium";
 import { showLightBarrier, showLightReservoir } from "../hooks/earth.js";
+import { setupBaseMapSwitcher } from "../utils/layer.js";
 
 const cesiumContainer = ref(null);
 const emit = defineEmits(["viewer-ready"]);
 
-onMounted(() => {
+onMounted(async () => {
     const viewer = new Cesium.Viewer(cesiumContainer.value, {
         animation: false,
         baseLayerPicker: false,
@@ -21,15 +22,7 @@ onMounted(() => {
         timeline: false,
         infoBox: false,
         sceneModePicker: false,
-        // 使用ArcGIS卫星影像作为底图
-        baseLayer: Cesium.ImageryLayer.fromProviderAsync(
-            Cesium.ArcGisMapServerImageryProvider.fromBasemapType(
-                Cesium.ArcGisBaseMapType.SATELLITE,
-                {
-                    enablePickFeatures: false,
-                },
-            ),
-        ),
+        baseLayer: false,
     });
 
     // 隐藏开源三维地球版权信息
@@ -44,6 +37,9 @@ onMounted(() => {
             roll: Cesium.Math.toRadians(0.0),
         },
     });
+
+    // 初始化底图切换能力与默认底图
+    await setupBaseMapSwitcher(viewer);
 
     // 加载并显示大坝和水库实体
     showLightBarrier(viewer);

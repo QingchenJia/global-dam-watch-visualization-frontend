@@ -5,7 +5,7 @@
         :class="{ minimized: isMinimized }"
     >
         <!-- 头部 -->
-        <div class="agent-header" @click="toggleMinimize">
+        <div class="agent-header" @click="handleToggleMinimize">
             <div class="agent-header-left">
                 <div class="agent-avatar-icon">
                     <svg
@@ -81,6 +81,12 @@
                 <div
                     v-if="msg.sender === 'agent'"
                     class="msg-avatar agent-msg-avatar"
+                    role="button"
+                    tabindex="0"
+                    title="呼叫"
+                    @click.stop="handleCallAgent"
+                    @keydown.enter.stop.prevent="handleCallAgent"
+                    @keydown.space.stop.prevent="handleCallAgent"
                 >
                     <img
                         src="../assets/images/agent-avatar.svg"
@@ -117,7 +123,7 @@
                                                 active: selectedTask === tag,
                                             }"
                                             type="button"
-                                            @click="selectTaskTag(tag)"
+                                            @click="handleSelectTaskTag(tag)"
                                         >
                                             {{ tag }}
                                         </button>
@@ -135,7 +141,7 @@
                                                 active: selectedType === tag,
                                             }"
                                             type="button"
-                                            @click="selectTypeTag(tag)"
+                                            @click="handleSelectTypeTag(tag)"
                                         >
                                             {{ tag }}
                                         </button>
@@ -157,13 +163,14 @@
                                         }"
                                         :disabled="isPropertyTagDisabled(tag)"
                                         type="button"
-                                        @click="selectPropertyTag(tag)"
+                                        @click="handleSelectPropertyTag(tag)"
                                     >
                                         {{ tag }}
                                     </button>
                                 </div>
                             </div>
                         </div>
+                        <div class="message-content">{{ WAKE_HINT_TEXT }}</div>
                     </template>
                     <div
                         v-else
@@ -186,24 +193,19 @@
         <div class="agent-input-area">
             <textarea
                 v-model="inputText"
-                @keydown.enter.exact.prevent="sendMessage"
-                placeholder="向GIS Agent发送指令···"
+                @keydown.enter.exact.prevent="handleSendMessage"
+                placeholder="向GIS Agent发送指令···(支持语音输入)"
                 :disabled="loading"
                 ref="inputInput"
             ></textarea>
             <div class="input-actions">
                 <button
-                    class="call-btn"
-                    @click="
-                        addMessage(
-                            'agent',
-                            WELCOME_TEXT,
-                            false,
-                            'tag-shortcuts',
-                        )
-                    "
-                    :disabled="loading"
-                    title="呼叫"
+                    class="voice-btn"
+                    :class="{ listening: isListening }"
+                    @click="handleToggleVoiceInput"
+                    :disabled="loading || !isSpeechSupported"
+                    :title="voiceButtonTitle"
+                    type="button"
                 >
                     <svg
                         viewBox="0 0 24 24"
@@ -211,9 +213,30 @@
                         xmlns="http://www.w3.org/2000/svg"
                     >
                         <path
-                            d="M22 16.5V20a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.52 19.52 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3.5a2 2 0 0 1 2 1.72c.12.91.35 1.81.68 2.67a2 2 0 0 1-.45 2.11L8.36 9.97a16 16 0 0 0 5.67 5.67l1.47-1.48a2 2 0 0 1 2.11-.45c.86.33 1.76.56 2.67.68A2 2 0 0 1 22 16.5Z"
+                            d="M12 3C10.3431 3 9 4.34315 9 6V11C9 12.6569 10.3431 14 12 14C13.6569 14 15 12.6569 15 11V6C15 4.34315 13.6569 3 12 3Z"
                             stroke="currentColor"
-                            stroke-width="1.8"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M5 11C5 14.866 8.13401 18 12 18C15.866 18 19 14.866 19 11"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M12 18V21"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M9 21H15"
+                            stroke="currentColor"
+                            stroke-width="2"
                             stroke-linecap="round"
                             stroke-linejoin="round"
                         />
@@ -221,9 +244,10 @@
                 </button>
                 <button
                     class="send-btn"
-                    @click="sendMessage"
+                    @click="handleSendMessage"
                     :disabled="loading"
                     title="发送"
+                    type="button"
                 >
                     <svg
                         viewBox="0 0 24 24"
@@ -252,8 +276,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, computed, watch } from "vue";
+import {
+    ref,
+    onMounted,
+    onBeforeUnmount,
+    nextTick,
+    computed,
+    watch,
+} from "vue";
 import { chatToAgent, llmConfig, defineGisAgent } from "../hooks/agent.js";
+import {
+    createSpeechInput,
+    SPEECH_ERROR_CODES,
+    STOP_LISTENING_ERRORS,
+} from "../utils/voice.js";
 
 const globalVar = defineProps({
     viewer: {
@@ -271,6 +307,14 @@ const inputInput = ref(null);
 const selectedTask = ref("");
 const selectedType = ref("");
 const selectedPropertyTags = ref([]);
+const isListening = ref(false);
+const isSpeechSupported = ref(false);
+const SPEECH_NOTIFY_ERROR_CODES = [
+    ...STOP_LISTENING_ERRORS,
+    SPEECH_ERROR_CODES.AUDIO_CAPTURE,
+];
+
+let speechInput = null;
 
 const quickActions = ["定位", "筛选"];
 const quickTypes = ["大坝", "水库"];
@@ -286,17 +330,37 @@ const reservoirOnlyTags = ["库容", "表面积", "水库深度"];
 const allPropertyTags = [...commonTags, ...damOnlyTags, ...reservoirOnlyTags];
 const WELCOME_TEXT =
     "我是您的个人GIS助手(Hybrid Router架构)，可直接点击下方标签快速组合输入：";
+const WAKE_HINT_TEXT = "如若需要，请随时尝试点击头像来唤醒我吧！";
 
 // 计算当前模式和模型名称用于标题显示
 const mode = computed(() => llmConfig.agentMode);
 const modelName = computed(() => {
-    const name = llmConfig.modelName[mode.value] || "未知模型";
+    let name = "未知模型";
+    if (llmConfig.modelName[mode.value]) {
+        name = llmConfig.modelName[mode.value];
+    }
+
     const index = name.lastIndexOf("/");
 
-    return index === -1 ? name : name.slice(index + 1);
+    if (index === -1) {
+        return name;
+    }
+
+    return name.slice(index + 1);
+});
+const voiceButtonTitle = computed(() => {
+    if (!isSpeechSupported.value) {
+        return "当前浏览器不支持语音输入";
+    }
+
+    if (isListening.value) {
+        return "停止语音输入";
+    }
+
+    return "语音输入";
 });
 
-function toggleMinimize() {
+function handleToggleMinimize() {
     isMinimized.value = !isMinimized.value;
 }
 
@@ -306,6 +370,8 @@ function syncInputFromSelections() {
 }
 
 function buildFormattedPrompt() {
+    // 根据当前标签组合出结构化提示词
+    // 确保对话输入格式稳定
     if (
         !selectedTask.value &&
         !selectedType.value &&
@@ -341,7 +407,7 @@ function buildFormattedPrompt() {
     );
 }
 
-function selectTaskTag(tag) {
+function handleSelectTaskTag(tag) {
     if (selectedTask.value === tag) {
         selectedTask.value = "";
         selectedPropertyTags.value = [];
@@ -358,7 +424,7 @@ function selectTaskTag(tag) {
     syncInputFromSelections();
 }
 
-function selectTypeTag(tag) {
+function handleSelectTypeTag(tag) {
     if (selectedType.value === tag) {
         selectedType.value = "";
         selectedPropertyTags.value = [];
@@ -378,7 +444,7 @@ function selectTypeTag(tag) {
     syncInputFromSelections();
 }
 
-function selectPropertyTag(tag) {
+function handleSelectPropertyTag(tag) {
     if (selectedPropertyTags.value.includes(tag)) {
         selectedPropertyTags.value = selectedPropertyTags.value.filter(
             (item) => item !== tag,
@@ -394,6 +460,8 @@ function selectPropertyTag(tag) {
 }
 
 function isPropertyTagDisabled(tag) {
+    // 属性标签的可选状态取决于任务类型与实体类型
+    // 避免无效筛选条件进入输入框。
     if (selectedPropertyTags.value.includes(tag)) {
         return false;
     }
@@ -421,19 +489,8 @@ function isPropertyTagDisabled(tag) {
     return false;
 }
 
-watch(inputText, (value) => {
-    if (!value.trim()) {
-        selectedTask.value = "";
-        selectedType.value = "";
-        selectedPropertyTags.value = [];
-    }
-});
-
 function addMessage(sender, content, isLoading = false, kind = "text") {
-    // 格式化换行符
-    const formattedContent = isLoading
-        ? content
-        : content.replace(/\n/g, "<br>");
+    const formattedContent = formatMessageContent(content, isLoading);
 
     const msg = {
         sender,
@@ -449,6 +506,14 @@ function addMessage(sender, content, isLoading = false, kind = "text") {
 
     // 返回消息引用便于后续更新
     return msg;
+}
+
+function formatMessageContent(content, isLoading) {
+    if (isLoading) {
+        return content;
+    }
+
+    return content.replace(/\n/g, "<br>");
 }
 
 function updateLoadingMessage(text) {
@@ -468,6 +533,14 @@ function handleError(errorText) {
     nextTick(() => inputInput.value?.focus());
 }
 
+function handleCallAgent() {
+    if (loading.value) {
+        return;
+    }
+
+    addMessage("agent", WELCOME_TEXT, false, "tag-shortcuts");
+}
+
 function scrollToBottom() {
     nextTick(() => {
         if (messagesContainer.value) {
@@ -477,14 +550,96 @@ function scrollToBottom() {
     });
 }
 
-async function sendMessage() {
-    if (!inputText.value.trim() || loading.value) return;
+function appendSpeechText(text) {
+    const speechText = text.trim();
 
-    const text = inputText.value.trim();
-    addMessage("user", text);
-    inputText.value = "";
-    loading.value = true;
+    if (!speechText) {
+        return;
+    }
 
+    inputText.value = mergeSpeechText(inputText.value, speechText);
+    nextTick(() => inputInput.value?.focus());
+}
+
+function mergeSpeechText(currentText, speechText) {
+    const normalizedCurrentText = currentText.trim();
+
+    if (!normalizedCurrentText) {
+        return speechText;
+    }
+
+    return `${normalizedCurrentText}\n${speechText}`;
+}
+
+function getSpeechErrorCode(error) {
+    if (!error) {
+        return "";
+    }
+
+    if (typeof error === "string") {
+        return error;
+    }
+
+    if (typeof error.error === "string") {
+        return error.error;
+    }
+
+    if (typeof error.name === "string") {
+        return error.name;
+    }
+
+    return "";
+}
+
+function shouldNotifySpeechError(errorCode) {
+    return !loading.value && SPEECH_NOTIFY_ERROR_CODES.includes(errorCode);
+}
+
+function initSpeechRecognition() {
+    speechInput = createSpeechInput({
+        // 设置语言为中文
+        lang: "zh-CN",
+        onStart: () => {
+            isListening.value = true;
+        },
+        // 每次获取到新的转录结果时更新输入框内容
+        onResult: (text) => {
+            appendSpeechText(text);
+        },
+        onError: (error) => {
+            isListening.value = false;
+
+            const errorCode = getSpeechErrorCode(error);
+            if (shouldNotifySpeechError(errorCode)) {
+                // 只有在当前没有正在加载的消息时才通知用户检查权限
+                addMessage("agent", "语音输入未成功，请检查麦克风权限后重试。");
+            }
+        },
+        onEnd: () => {
+            isListening.value = false;
+        },
+    });
+
+    isSpeechSupported.value = speechInput.isSupported;
+}
+
+function handleToggleVoiceInput() {
+    // 如果不支持语音输入或语音输入实例未创建或正在加载则不执行任何操作
+    if (!isSpeechSupported.value || !speechInput || loading.value) {
+        return;
+    }
+
+    // 如果正在监听则停止
+    // 否则开始监听
+    if (isListening.value) {
+        speechInput.stop();
+        return;
+    }
+
+    speechInput.start();
+}
+
+async function requestAgentChat(text) {
     await chatToAgent(text, {
         question: (intent) => {
             // 发起对话反馈正在执行任务
@@ -502,10 +657,44 @@ async function sendMessage() {
     });
 }
 
+async function handleSendMessage() {
+    if (!inputText.value.trim() || loading.value) {
+        return;
+    }
+
+    const text = inputText.value.trim();
+    addMessage("user", text);
+    inputText.value = "";
+    loading.value = true;
+
+    await requestAgentChat(text);
+}
+
+watch(inputText, (value) => {
+    if (value.trim()) {
+        return;
+    }
+
+    selectedTask.value = "";
+    selectedType.value = "";
+    selectedPropertyTags.value = [];
+});
+
 onMounted(() => {
+    // 初始化浏览器语音转文字功能
+    initSpeechRecognition();
     // 先展示欢迎语
     // 避免初始化异常导致首条消息缺失
-    addMessage("agent", WELCOME_TEXT, false, "tag-shortcuts");
+    handleCallAgent();
     defineGisAgent(globalVar.viewer);
+});
+
+onBeforeUnmount(() => {
+    // 销毁语音输入实例
+    if (speechInput) {
+        speechInput.destroy();
+        // 清除引用以释放资源
+        speechInput = null;
+    }
 });
 </script>
