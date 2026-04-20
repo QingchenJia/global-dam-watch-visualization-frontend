@@ -1,59 +1,153 @@
 .position-information {
-    position: fixed;
-    right: 0;
-    bottom: 0;
-    --position-info-height: 120px;
-    --position-info-base-height: 100px;
-    --position-info-scale: calc(
-        var(--position-info-height) / var(--position-info-base-height)
-    );
-    min-width: calc(200px * var(--position-info-scale));
-    height: var(--position-info-height);
-    padding: calc(13px * var(--position-info-scale))
-        calc(16px * var(--position-info-scale));
-    border-radius: calc(10px * var(--position-info-scale));
-    z-index: 9996;
-    box-sizing: border-box;
-    background: rgba(12, 19, 28, 0.82);
-    border: 1px solid rgba(112, 173, 214, 0.36);
-    color: #deedf7;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
-    font-family: var(--font-ui);
-    font-size: calc(13px * var(--position-info-scale));
+    width: 100%;
+    min-height: 124px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    justify-content: space-evenly;
+    gap: 12px;
+}
+
+.position-information__header p {
+    margin: 8px 0 0;
+    color: var(--hud-text-dim);
+    font-size: 13px;
+}
+
+.position-information__content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 96px;
+    gap: 10px;
+    align-items: center;
+}
+
+.position-information__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .position-information-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: calc(12px * var(--position-info-scale));
-    line-height: 1.2;
-    flex: 1;
-    min-height: 0;
+    gap: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(86, 177, 235, 0.12);
 }
 
-.position-information-row + .position-information-row {
-    margin-top: 0;
+.position-information-row:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
 }
 
 .position-information-label {
-    color: #9fc2da;
-    letter-spacing: calc(0.4px * var(--position-info-scale));
+    color: var(--hud-text-dim);
+    letter-spacing: 0.08em;
+    font-size: 12px;
 }
 
 .position-information-value {
-    color: #f0f8ff;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    color: #f2fbff;
+    text-align: right;
     font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 720px) {
-    .position-information {
-        right: calc(10px * var(--position-info-scale));
-        bottom: calc(10px * var(--position-info-scale));
-        --position-info-height: 84px;
+.position-information-value strong {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.position-information-value em {
+    font-style: normal;
+    color: var(--hud-accent-soft);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+}
+
+.position-information__radar {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    margin-left: auto;
+}
+
+.radar-ring,
+.radar-grid,
+.radar-peak,
+.radar-scan {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+}
+
+.radar-ring {
+    border: 1px solid rgba(76, 181, 255, 0.2);
+}
+
+.radar-ring--middle {
+    inset: 12px;
+}
+
+.radar-ring--inner {
+    inset: 24px;
+}
+
+.radar-grid {
+    background:
+        linear-gradient(
+            90deg,
+            transparent 48%,
+            rgba(76, 181, 255, 0.18) 49%,
+            rgba(76, 181, 255, 0.18) 51%,
+            transparent 52%
+        ),
+        linear-gradient(
+            180deg,
+            transparent 48%,
+            rgba(76, 181, 255, 0.18) 49%,
+            rgba(76, 181, 255, 0.18) 51%,
+            transparent 52%
+        );
+}
+
+.radar-scan {
+    background: conic-gradient(
+        from 120deg,
+        rgba(79, 190, 255, 0.18) 0deg,
+        rgba(79, 190, 255, 0) 80deg,
+        rgba(79, 190, 255, 0) 360deg
+    );
+}
+
+.radar-peak {
+    inset: 15px;
+    clip-path: polygon(
+        12% 72%,
+        31% 58%,
+        46% 40%,
+        62% 48%,
+        75% 25%,
+        88% 18%,
+        92% 72%
+    );
+    background: linear-gradient(
+        180deg,
+        rgba(79, 190, 255, 0.75),
+        rgba(79, 190, 255, 0.08)
+    );
+    box-shadow: 0 0 22px rgba(79, 190, 255, 0.24);
+}
+
+@media (max-width: 1280px) {
+    .position-information__content {
+        grid-template-columns: 1fr;
+    }
+
+    .position-information__radar {
+        margin: 0 auto;
     }
 }

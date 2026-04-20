@@ -371,6 +371,11 @@ onMounted(() => {
     };
 
     globalVar.viewer.selectedEntityChanged.addEventListener(handler);
+
+    if (globalVar.viewer.selectedEntity) {
+        onEntitySelected(globalVar.viewer.selectedEntity);
+    }
+
     detachListener = () => {
         globalVar.viewer.selectedEntityChanged.removeEventListener(handler);
     };

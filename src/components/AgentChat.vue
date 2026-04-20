@@ -1,45 +1,19 @@
 <template>
-    <div
-        id="agent-chat-container"
-        class="agent-chat-container"
-        :class="{ minimized: isMinimized }"
-    >
+    <div id="agent-chat-container" class="agent-chat-container">
         <!-- 头部 -->
-        <div class="agent-header" @click="handleToggleMinimize">
+        <div class="agent-header">
             <div class="agent-header-left">
-                <div class="agent-avatar-icon">
-                    <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <circle
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="1.5"
-                        />
+                <span class="quick-panel__title-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
                         <path
-                            d="M8 12h8M12 8v8"
-                            stroke="currentColor"
-                            stroke-width="1.5"
-                            stroke-linecap="round"
-                        />
-                        <circle
-                            cx="12"
-                            cy="12"
-                            r="3"
-                            fill="currentColor"
-                            opacity="0.4"
+                            d="M4 12.5 12 4l8 8.5-8 7.5-8-7.5zm5.2 0L12 15.1l2.8-2.6L12 9.4z"
                         />
                     </svg>
-                </div>
+                </span>
                 <div class="agent-header-info">
-                    <span class="agent-title">GIS Agent</span>
-                    <span class="agent-subtitle"
-                        >{{ mode }} · {{ modelName }}</span
-                    >
+                    <div class="quick-panel__title-text">
+                        <h2 class="hud-card-title agent-title">GIS Agent</h2>
+                    </div>
                 </div>
             </div>
             <div class="agent-header-right">
@@ -47,26 +21,6 @@
                     class="agent-status-dot"
                     :class="{ active: !loading }"
                 ></span>
-                <button
-                    class="agent-minimize-btn"
-                    :title="isMinimized ? '展开' : '收起'"
-                >
-                    <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path
-                            :d="
-                                isMinimized ? 'M18 15l-6-6-6 6' : 'M6 9l6 6 6-6'
-                            "
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        />
-                    </svg>
-                </button>
             </div>
         </div>
 
@@ -81,12 +35,6 @@
                 <div
                     v-if="msg.sender === 'agent'"
                     class="msg-avatar agent-msg-avatar"
-                    role="button"
-                    tabindex="0"
-                    title="呼叫"
-                    @click.stop="handleCallAgent"
-                    @keydown.enter.stop.prevent="handleCallAgent"
-                    @keydown.space.stop.prevent="handleCallAgent"
                 >
                     <img
                         src="../assets/images/agent-avatar.svg"
@@ -194,7 +142,7 @@
             <textarea
                 v-model="inputText"
                 @keydown.enter.exact.prevent="handleSendMessage"
-                placeholder="向GIS Agent发送指令···(支持语音输入)"
+                placeholder="向 GIS Agent 发送指令...(支持语音输入)"
                 :disabled="loading"
                 ref="inputInput"
             ></textarea>
@@ -246,7 +194,7 @@
                     class="send-btn"
                     @click="handleSendMessage"
                     :disabled="loading"
-                    title="发送"
+                    title="发送消息"
                     type="button"
                 >
                     <svg
@@ -284,7 +232,7 @@ import {
     computed,
     watch,
 } from "vue";
-import { chatToAgent, llmConfig, defineGisAgent } from "../hooks/agent.js";
+import { chatToAgent, defineGisAgent } from "../hooks/agent.js";
 import {
     createSpeechInput,
     SPEECH_ERROR_CODES,
@@ -298,7 +246,6 @@ const globalVar = defineProps({
     },
 });
 
-const isMinimized = ref(false);
 const messages = ref([]);
 const inputText = ref("");
 const loading = ref(false);
@@ -329,25 +276,9 @@ const damOnlyTags = ["大坝类型", "大坝长度", "大坝高度"];
 const reservoirOnlyTags = ["库容", "表面积", "水库深度"];
 const allPropertyTags = [...commonTags, ...damOnlyTags, ...reservoirOnlyTags];
 const WELCOME_TEXT =
-    "我是您的个人GIS助手(Hybrid Router架构)，可直接点击下方标签快速组合输入：";
-const WAKE_HINT_TEXT = "如若需要，请随时尝试点击头像来唤醒我吧！";
+    "我是您的个人 GIS 助手(Hybrid Router 架构)，可直接点击下方标签快速组合输入：";
+const WAKE_HINT_TEXT = "如有需要，可继续通过标签补充条件。";
 
-// 计算当前模式和模型名称用于标题显示
-const mode = computed(() => llmConfig.agentMode);
-const modelName = computed(() => {
-    let name = "未知模型";
-    if (llmConfig.modelName[mode.value]) {
-        name = llmConfig.modelName[mode.value];
-    }
-
-    const index = name.lastIndexOf("/");
-
-    if (index === -1) {
-        return name;
-    }
-
-    return name.slice(index + 1);
-});
 const voiceButtonTitle = computed(() => {
     if (!isSpeechSupported.value) {
         return "当前浏览器不支持语音输入";
@@ -360,18 +291,13 @@ const voiceButtonTitle = computed(() => {
     return "语音输入";
 });
 
-function handleToggleMinimize() {
-    isMinimized.value = !isMinimized.value;
-}
-
 function syncInputFromSelections() {
     inputText.value = buildFormattedPrompt();
     nextTick(() => inputInput.value?.focus());
 }
 
 function buildFormattedPrompt() {
-    // 根据当前标签组合出结构化提示词
-    // 确保对话输入格式稳定
+    // 根据当前标签组合输出结构化提示词，保证输入格式稳定。
     if (
         !selectedTask.value &&
         !selectedType.value &&
@@ -382,17 +308,17 @@ function buildFormattedPrompt() {
 
     if (selectedTask.value === "定位") {
         return [
-            `- **任务**：定位`,
+            "- **任务**：定位",
             `- **类型**：${selectedType.value || ""}`,
-            `- **名称**：`,
+            "- **名称**：",
         ].join("\n");
     }
 
     if (selectedTask.value === "筛选") {
         const lines = [
-            `- **任务**：筛选`,
+            "- **任务**：筛选",
             `- **类型**：${selectedType.value || ""}`,
-            `- **筛选类型**：`,
+            "- **筛选类型**：",
         ];
 
         selectedPropertyTags.value.forEach((tag, index) => {
@@ -402,7 +328,7 @@ function buildFormattedPrompt() {
         return lines.join("\n");
     }
 
-    return [`- **任务**：`, `- **类型**：${selectedType.value || ""}`].join(
+    return ["- **任务**：", `- **类型**：${selectedType.value || ""}`].join(
         "\n",
     );
 }
@@ -460,8 +386,7 @@ function handleSelectPropertyTag(tag) {
 }
 
 function isPropertyTagDisabled(tag) {
-    // 属性标签的可选状态取决于任务类型与实体类型
-    // 避免无效筛选条件进入输入框。
+    // 属性标签是否可选取决于任务类型与实体类型，避免无效筛选条件。
     if (selectedPropertyTags.value.includes(tag)) {
         return false;
     }
@@ -497,14 +422,13 @@ function addMessage(sender, content, isLoading = false, kind = "text") {
         content: formattedContent,
         loading: isLoading,
         kind,
-        // 如果是loading消息则添加id
+        // loading 消息会带上 id，便于后续原位更新。
         id: isLoading ? "agent-loading-msg" : undefined,
     };
 
     messages.value.push(msg);
     scrollToBottom();
 
-    // 返回消息引用便于后续更新
     return msg;
 }
 
@@ -519,10 +443,8 @@ function formatMessageContent(content, isLoading) {
 function updateLoadingMessage(text) {
     const loadingMsg = messages.value.find((m) => m.id === "agent-loading-msg");
     if (loadingMsg) {
-        // 更新为最终文本并移除loading状态
         loadingMsg.content = text.replace(/\n/g, "<br>");
         loadingMsg.loading = false;
-        // 移除id以避免误更新
         loadingMsg.id = undefined;
     }
 }
@@ -597,12 +519,12 @@ function shouldNotifySpeechError(errorCode) {
 
 function initSpeechRecognition() {
     speechInput = createSpeechInput({
-        // 设置语言为中文
+        // 设置语音识别语言为中文。
         lang: "zh-CN",
         onStart: () => {
             isListening.value = true;
         },
-        // 每次获取到新的转录结果时更新输入框内容
+        // 每次拿到新转录结果时同步到输入框。
         onResult: (text) => {
             appendSpeechText(text);
         },
@@ -611,7 +533,6 @@ function initSpeechRecognition() {
 
             const errorCode = getSpeechErrorCode(error);
             if (shouldNotifySpeechError(errorCode)) {
-                // 只有在当前没有正在加载的消息时才通知用户检查权限
                 addMessage("agent", "语音输入未成功，请检查麦克风权限后重试。");
             }
         },
@@ -624,13 +545,11 @@ function initSpeechRecognition() {
 }
 
 function handleToggleVoiceInput() {
-    // 如果不支持语音输入或语音输入实例未创建或正在加载则不执行任何操作
+    // 不支持语音、实例未创建或正在加载时，不触发任何操作。
     if (!isSpeechSupported.value || !speechInput || loading.value) {
         return;
     }
 
-    // 如果正在监听则停止
-    // 否则开始监听
     if (isListening.value) {
         speechInput.stop();
         return;
@@ -642,11 +561,9 @@ function handleToggleVoiceInput() {
 async function requestAgentChat(text) {
     await chatToAgent(text, {
         question: (intent) => {
-            // 发起对话反馈正在执行任务
-            addMessage("agent", `执行任务(${intent})···`, true);
+            addMessage("agent", `执行任务(${intent})...`, true);
         },
         answer: (finalOutput) => {
-            // 任务完成更新对话结果
             updateLoadingMessage(finalOutput);
             loading.value = false;
             nextTick(() => inputInput.value?.focus());
@@ -681,19 +598,15 @@ watch(inputText, (value) => {
 });
 
 onMounted(() => {
-    // 初始化浏览器语音转文字功能
+    // 先初始化语音，再展示欢迎语，最后注册 GIS Agent。
     initSpeechRecognition();
-    // 先展示欢迎语
-    // 避免初始化异常导致首条消息缺失
     handleCallAgent();
     defineGisAgent(globalVar.viewer);
 });
 
 onBeforeUnmount(() => {
-    // 销毁语音输入实例
     if (speechInput) {
         speechInput.destroy();
-        // 清除引用以释放资源
         speechInput = null;
     }
 });

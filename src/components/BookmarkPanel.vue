@@ -3,9 +3,20 @@
         <div v-if="show" class="bookmark-panel">
             <div class="bookmark-header">
                 <div class="bookmark-header-content">
-                    <div class="bookmark-title">视角收藏</div>
-                    <div class="bookmark-subtitle">
-                        保存当前相机视角和实体状态
+                    <div class="quick-panel__title bookmark-title-row">
+                        <span
+                            class="quick-panel__title-icon"
+                            aria-hidden="true"
+                        >
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M4 12.5 12 4l8 8.5-8 7.5-8-7.5zm5.2 0L12 15.1l2.8-2.6L12 9.4z"
+                                />
+                            </svg>
+                        </span>
+                        <div class="quick-panel__title-text">
+                            <h2 class="hud-card-title">视角收藏</h2>
+                        </div>
                     </div>
                 </div>
                 <button
@@ -32,10 +43,10 @@
 
             <div class="bookmark-creator">
                 <input
-                    class="bookmark-input"
                     v-model="bookmarkName"
+                    class="bookmark-input"
                     type="text"
-                    placeholder="书签名称(如：长江流域大坝全貌)"
+                    placeholder="书签名称，例如：长江流域大坝总览"
                     @keyup.enter="saveBookmark(globalVar.viewer)"
                 />
                 <button
@@ -43,7 +54,7 @@
                     :disabled="isSaving || !globalVar.viewer"
                     @click="saveBookmark(globalVar.viewer)"
                 >
-                    {{ isSaving ? "保存中···" : "保存当前" }}
+                    {{ isSaving ? "保存中..." : "保存当前" }}
                 </button>
             </div>
 
@@ -130,6 +141,8 @@ function getBadgeClass(dataType) {
             return "badge-barrier";
         case "reservoir":
             return "badge-reservoir";
+        default:
+            return "";
     }
 }
 
@@ -139,6 +152,8 @@ function getBadgeLabel(dataType) {
             return "大坝";
         case "reservoir":
             return "水库";
+        default:
+            return "未知";
     }
 }
 </script>

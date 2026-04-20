@@ -1,402 +1,315 @@
 .control-panel-actions {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 999;
-    display: grid;
-    grid-template-columns: repeat(4, 32px);
-    grid-auto-rows: 32px;
-    gap: 10px;
-    padding: 10px;
-    box-sizing: border-box;
-    width: fit-content;
-    border-radius: 10px;
-    border: 1px solid rgba(68, 68, 68, 0.95);
-    background-color: rgba(29, 29, 29, 0.9);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
-}
-
-.custom-reload-button {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    background-color: rgba(42, 42, 42, 0.9);
-    border-radius: 4px;
-    border: 1px solid #444;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-    transition: background-color 0.2s;
-}
-
-.custom-reload-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.custom-reload-button svg {
-    width: 20px;
-    height: 20px;
-    fill: #edffff;
-}
-
-.custom-reset-button {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    background-color: rgba(42, 42, 42, 0.9);
-    border-radius: 4px;
-    border: 1px solid #444;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-    transition: background-color 0.2s;
-}
-
-.custom-reset-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.custom-reset-button svg {
-    width: 20px;
-    height: 20px;
-    fill: #edffff;
-}
-
-.custom-basemap-controls {
-    position: relative;
-}
-
-.custom-basemap-button {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    background-color: rgba(42, 42, 42, 0.9);
-    border-radius: 4px;
-    border: 1px solid #444;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-    transition: background-color 0.2s;
-}
-
-.custom-basemap-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.custom-basemap-button svg {
-    width: 20px;
-    height: 20px;
-    fill: #edffff;
-}
-
-.basemap-options-panel {
-    position: absolute;
-    top: 38px;
-    left: 0;
-    width: 180px;
+    padding: 6px 10px 10px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #4a4a4a;
-    background-color: rgba(29, 29, 29, 0.95);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
-    box-sizing: border-box;
+    gap: 8px;
+    overflow: visible;
+    z-index: 5;
 }
 
-.basemap-option-item {
-    width: 100%;
-    border: 1px solid #4a4a4a;
-    border-radius: 4px;
-    padding: 8px 10px;
-    min-height: 44px;
-    cursor: pointer;
-    color: #edffff;
-    background-color: rgba(42, 42, 42, 0.7);
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.78);
-    overflow: hidden;
-    text-align: left;
-    font-size: 12px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-}
-
-.basemap-option-item:hover {
-    border-color: rgba(164, 197, 230, 0.85);
-    transform: translateY(-1px);
-}
-
-.basemap-option-item.is-selected {
-    border-color: rgba(120, 170, 200, 0.85);
-    box-shadow: 0 0 0 1px rgba(120, 170, 200, 0.42) inset;
-}
-
-.basemap-option-arcgis-world-imagery {
-    background-image:
-        linear-gradient(
-            90deg,
-            rgba(8, 14, 24, 0.65),
-            rgba(8, 14, 24, 0.3) 58%,
-            rgba(8, 14, 24, 0.52)
-        ),
-        url("../images/arcgis.jpg");
-}
-
-.basemap-option-usgs-imagery-only {
-    background-image:
-        linear-gradient(
-            90deg,
-            rgba(20, 18, 12, 0.64),
-            rgba(20, 18, 12, 0.24) 58%,
-            rgba(20, 18, 12, 0.5)
-        ),
-        url("../images/usgs.jpg");
-}
-
-.basemap-option-sentinel-2-cloudless {
-    background-image:
-        linear-gradient(
-            90deg,
-            rgba(10, 24, 20, 0.64),
-            rgba(10, 24, 20, 0.24) 58%,
-            rgba(10, 24, 20, 0.5)
-        ),
-        url("../images/sentinel.jpg");
-}
-
-.custom-visibility-controls {
-    position: relative;
-}
-
-.custom-visibility-button {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    background-color: rgba(42, 42, 42, 0.9);
-    border-radius: 4px;
-    border: 1px solid #444;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-    transition: background-color 0.2s;
-}
-
-.custom-visibility-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.custom-visibility-button.is-hidden {
-    background-color: rgba(110, 42, 42, 0.9);
-}
-
-.custom-visibility-button svg {
-    width: 20px;
-    height: 20px;
-    fill: #edffff;
-}
-
-.visibility-options-panel {
-    position: absolute;
-    top: 38px;
-    left: 0;
-    min-width: 90px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #4a4a4a;
-    background-color: rgba(29, 29, 29, 0.95);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
-}
-
-.visibility-option-item {
-    width: 100%;
+.quick-panel__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: transparent;
-    color: #edffff;
-    padding: 0px;
-    font-size: 13px;
-    font-weight: bold;
+    gap: 8px;
 }
 
-/* 滑动开关样式 */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 34px;
-    height: 18px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #6e2a2a;
-    transition: 0.4s;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 14px;
-    width: 14px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: 0.4s;
-}
-
-input:checked + .slider {
-    background-color: #2a6e3d;
-}
-
-input:focus + .slider {
-    box-shadow: 0 0 1px #2a6e3d;
-}
-
-input:checked + .slider:before {
-    transform: translateX(16px);
-}
-
-.slider.round {
-    border-radius: 18px;
-}
-
-.slider.round:before {
-    border-radius: 50%;
-}
-
-.custom-cluster-button {
-    width: 32px;
-    height: 32px;
+.quick-panel__title {
     display: flex;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    background-color: rgba(42, 42, 42, 0.9);
-    border-radius: 4px;
-    border: 1px solid #444;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-    transition: background-color 0.2s;
+    gap: 6px;
+    min-width: 0;
+    margin-top: -1px;
+    margin-left: -2px;
 }
 
-.custom-cluster-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.custom-cluster-button.is-disabled {
-    background-color: rgba(110, 42, 42, 0.9);
-}
-
-.custom-cluster-button svg {
-    width: 20px;
-    height: 20px;
-    fill: #edffff;
-}
-
-.bookmark-button {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    background-color: rgba(42, 42, 42, 0.9);
-    border-radius: 4px;
-    border: 1px solid #444;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-    transition:
-        background-color 0.2s,
-        transform 0.15s ease;
-}
-
-.bookmark-button:hover {
-    background-color: rgba(255, 255, 255, 0.12);
-    transform: translateY(-1px);
-}
-
-.bookmark-button svg {
+.quick-panel__title-icon {
     width: 18px;
     height: 18px;
-    fill: white;
-}
-
-.bookmark-button.active {
-    background-color: rgba(42, 42, 42, 0.9);
-    border-color: #5cc5f0;
-}
-
-.bookmark-button.active svg {
-    fill: #5cc5f0;
-}
-
-.control-panel-actions .stats-toggle-btn,
-.control-panel-actions .timeline-toggle-btn {
-    position: static;
-    top: auto;
-    right: auto;
-    bottom: auto;
-    left: auto;
-    transform: none;
-    z-index: auto;
-    width: 32px;
-    height: 32px;
-    padding: 0;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    gap: 0;
-    border-radius: 4px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.quick-panel__title-icon svg {
+    width: 16px;
+    height: 16px;
+    fill: #73e2ff;
+    filter: drop-shadow(0 0 6px rgba(71, 203, 255, 0.4));
+}
+
+.quick-panel__title-text {
+    min-width: 0;
+}
+
+.quick-panel__title-text .hud-card-title {
+    margin-top: 1px;
+    font-size: 12px;
+    line-height: 1.05;
+    letter-spacing: 0.06em;
+}
+
+.type-switch {
+    display: inline-grid;
+    grid-template-columns: repeat(2, minmax(62px, 1fr));
+    gap: 3px;
+    padding: 3px;
+    border-radius: 999px;
+    background:
+        linear-gradient(180deg, rgba(7, 23, 46, 0.92), rgba(5, 15, 31, 0.86)),
+        rgba(6, 16, 34, 0.9);
+    border: 1px solid rgba(72, 173, 245, 0.28);
+    box-shadow:
+        inset 0 0 18px rgba(26, 92, 163, 0.16),
+        0 0 12px rgba(20, 98, 188, 0.08);
+}
+
+.type-switch__btn {
+    min-height: 24px;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--hud-text-dim);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     cursor: pointer;
-    background-color: rgba(42, 42, 42, 0.9);
-    border: 1px solid #444;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-    color: #edffff;
-    backdrop-filter: none;
     transition:
-        background-color 0.2s,
-        transform 0.15s ease;
+        color 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
 }
 
-.control-panel-actions .stats-toggle-btn:hover,
-.control-panel-actions .timeline-toggle-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+.type-switch__btn.active {
+    color: #f1fbff;
+    border-color: rgba(82, 214, 255, 0.56);
+    background: linear-gradient(
+        180deg,
+        rgba(31, 137, 255, 0.42),
+        rgba(13, 84, 186, 0.56)
+    );
+    box-shadow:
+        inset 0 0 16px rgba(102, 215, 255, 0.12),
+        0 0 14px rgba(37, 143, 255, 0.18);
 }
 
-.control-panel-actions .stats-toggle-btn.active,
-.control-panel-actions .timeline-toggle-btn.active {
-    background-color: rgba(42, 42, 42, 0.9);
-    border-color: #5cc5f0;
-    color: #5cc5f0;
+.quick-panel__grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    column-gap: 3px;
+    row-gap: 3px;
+    align-items: start;
 }
 
-.control-panel-actions .stats-toggle-text,
-.control-panel-actions .stats-toggle-arrow,
-.control-panel-actions .timeline-toggle-text {
-    display: none;
+.quick-action-wrap {
+    position: relative;
 }
 
-.control-panel-actions .stats-toggle-icon,
-.control-panel-actions .timeline-toggle-icon {
-    width: 20px;
-    height: 20px;
+.quick-action,
+.quick-action-wrap {
+    min-width: 0;
+}
+
+.quick-action {
+    width: 100%;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: transparent;
+    border: 0;
+    color: var(--hud-text);
+    cursor: pointer;
+}
+
+.quick-action__icon {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: linear-gradient(
+        180deg,
+        rgba(18, 87, 158, 0.4),
+        rgba(10, 49, 93, 0.22)
+    );
+    box-shadow:
+        inset 0 0 12px rgba(127, 226, 255, 0.08),
+        0 0 12px rgba(17, 88, 180, 0.05);
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+    transform: scale(1.35);
+}
+
+.quick-action__icon svg {
+    width: 16px;
+    height: 16px;
+    fill: #61d8ff;
+    transition:
+        fill 0.2s ease,
+        transform 0.2s ease;
+}
+
+.quick-action__label {
+    display: block;
+    font-size: 9px;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-align: center;
+    color: #d7eeff;
+    white-space: nowrap;
+    transform: scale(1.12);
+    transform-origin: center top;
+}
+
+.quick-action:hover .quick-action__icon,
+.quick-action.active .quick-action__icon {
+    background: linear-gradient(
+        180deg,
+        rgba(28, 111, 197, 0.62),
+        rgba(8, 46, 94, 0.38)
+    );
+    box-shadow:
+        inset 0 0 16px rgba(127, 226, 255, 0.14),
+        0 0 14px rgba(37, 132, 255, 0.12);
+    transform: translateY(-1px) scale(1.35);
+}
+
+.quick-action:hover .quick-action__icon svg,
+.quick-action.active .quick-action__icon svg {
+    fill: #dff9ff;
+    transform: scale(1.03);
+}
+
+.quick-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 20;
+    width: fit-content;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 14px;
+    background: rgba(4, 16, 32, 0.96);
+    border: 1px solid rgba(74, 171, 240, 0.38);
+    box-shadow:
+        0 16px 32px rgba(0, 0, 0, 0.42),
+        0 0 18px rgba(36, 138, 255, 0.16);
+    font-size: 11px;
+}
+
+.quick-popover--visibility {
+    gap: 2px;
+    padding: 5px 7px;
+}
+
+.quick-popover--basemap {
+    gap: 3px;
+    padding: 5px;
+}
+
+.quick-popover__option {
+    position: relative;
+    min-height: 30px;
+    padding: 0 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(96, 214, 255, 0.16);
+    background-color: rgba(5, 18, 38, 0.68);
+    background-image:
+        linear-gradient(
+            90deg,
+            rgba(4, 16, 32, 0.72) 0%,
+            rgba(4, 16, 32, 0.32) 52%,
+            rgba(4, 16, 32, 0.12) 100%
+        ),
+        var(--option-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: var(--hud-text);
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.quick-popover__option--arcgis-world-imagery {
+    --option-bg-image: url("../images/arcgis.jpg");
+}
+
+.quick-popover__option--usgs-imagery-only {
+    --option-bg-image: url("../images/usgs.jpg");
+}
+
+.quick-popover__option--sentinel-2-cloudless {
+    --option-bg-image: url("../images/sentinel.jpg");
+}
+
+.quick-popover__option:hover,
+.quick-popover__option.active {
+    background-image:
+        linear-gradient(
+            90deg,
+            rgba(12, 52, 92, 0.74) 0%,
+            rgba(12, 52, 92, 0.46) 52%,
+            rgba(12, 52, 92, 0.2) 100%
+        ),
+        var(--option-bg-image);
+    border-color: rgba(85, 213, 255, 0.38);
+    color: #f2fbff;
+}
+
+.quick-switch {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 5px;
+    min-height: 22px;
+    color: var(--hud-text);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.quick-switch input {
+    width: 14px;
+    height: 14px;
+    accent-color: #36bbff;
+}
+
+@media (max-width: 1280px) {
+    .quick-panel__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .quick-panel__grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 960px) {
+    .quick-panel__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }

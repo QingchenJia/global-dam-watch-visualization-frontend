@@ -1,29 +1,62 @@
 <template>
-    <div class="position-information">
-        <div class="position-information-row">
-            <span class="position-information-label">经度</span>
-            <span class="position-information-value">{{
-                longitudeDisplay
-            }}</span>
+    <section class="position-information hud-card">
+        <div class="position-information__header">
+            <div class="quick-panel__title">
+                <span class="quick-panel__title-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M4 12.5 12 4l8 8.5-8 7.5-8-7.5zm5.2 0L12 15.1l2.8-2.6L12 9.4z"
+                        />
+                    </svg>
+                </span>
+                <div class="quick-panel__title-text">
+                    <h2 class="hud-card-title">当前位置</h2>
+                </div>
+            </div>
         </div>
-        <div class="position-information-row">
-            <span class="position-information-label">纬度</span>
-            <span class="position-information-value">{{
-                latitudeDisplay
-            }}</span>
+
+        <div class="position-information__content">
+            <div class="position-information__rows">
+                <div class="position-information-row">
+                    <span class="position-information-label">经度</span>
+                    <div class="position-information-value">
+                        <strong>{{ longitudeParts.value }}</strong>
+                        <em>{{ longitudeParts.unit }}</em>
+                    </div>
+                </div>
+                <div class="position-information-row">
+                    <span class="position-information-label">纬度</span>
+                    <div class="position-information-value">
+                        <strong>{{ latitudeParts.value }}</strong>
+                        <em>{{ latitudeParts.unit }}</em>
+                    </div>
+                </div>
+                <div class="position-information-row">
+                    <span class="position-information-label">高度</span>
+                    <div class="position-information-value">
+                        <strong>{{ heightParts.value }}</strong>
+                        <em>{{ heightParts.unit }}</em>
+                    </div>
+                </div>
+            </div>
+
+            <div class="position-information__radar" aria-hidden="true">
+                <div class="radar-ring radar-ring--outer"></div>
+                <div class="radar-ring radar-ring--middle"></div>
+                <div class="radar-ring radar-ring--inner"></div>
+                <div class="radar-grid"></div>
+                <div class="radar-scan"></div>
+                <div class="radar-peak"></div>
+            </div>
         </div>
-        <div class="position-information-row">
-            <span class="position-information-label">高度</span>
-            <span class="position-information-value">{{ heightDisplay }}</span>
-        </div>
-    </div>
+    </section>
 </template>
 
 <script setup>
-import { onBeforeUnmount, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import * as Cesium from "cesium";
 
-const globalVar = defineProps({
+const props = defineProps({
     viewer: {
         type: Object,
         required: true,
@@ -40,6 +73,25 @@ const heightDisplay = ref(EMPTY_DISPLAY);
 
 let mouseMoveHandler = null;
 
+const longitudeParts = computed(() => parseDisplay(longitudeDisplay.value));
+const latitudeParts = computed(() => parseDisplay(latitudeDisplay.value));
+const heightParts = computed(() => parseDisplay(heightDisplay.value));
+
+function parseDisplay(text) {
+    if (!text || text === EMPTY_DISPLAY) {
+        return {
+            value: EMPTY_DISPLAY,
+            unit: "",
+        };
+    }
+
+    const [value, unit] = text.split(" ");
+    return {
+        value,
+        unit: unit || "",
+    };
+}
+
 function setPositionDisplay({
     longitude = EMPTY_DISPLAY,
     latitude = EMPTY_DISPLAY,
@@ -55,11 +107,13 @@ function resetPositionDisplay() {
 }
 
 function formatLongitude(longitude) {
-    return `${longitude.toFixed(COORDINATE_DECIMALS)} °`;
+    const direction = longitude >= 0 ? "E" : "W";
+    return `${Math.abs(longitude).toFixed(COORDINATE_DECIMALS)}° ${direction}`;
 }
 
 function formatLatitude(latitude) {
-    return `${latitude.toFixed(COORDINATE_DECIMALS)} °`;
+    const direction = latitude >= 0 ? "N" : "S";
+    return `${Math.abs(latitude).toFixed(COORDINATE_DECIMALS)}° ${direction}`;
 }
 
 function formatHeight(height) {
@@ -103,7 +157,7 @@ function resolveCartographicFromScreen(viewer, screenPosition) {
 }
 
 function updatePositionDisplay(screenPosition) {
-    const viewer = globalVar.viewer;
+    const viewer = props.viewer;
     if (!viewer || !screenPosition) {
         resetPositionDisplay();
         return;
@@ -117,8 +171,6 @@ function updatePositionDisplay(screenPosition) {
 
     const longitude = Cesium.Math.toDegrees(cartographic.longitude);
     const latitude = Cesium.Math.toDegrees(cartographic.latitude);
-    // 获取相机高度而不是地形高度
-    // 以避免地形起伏导致的高度显示不稳定
     const cameraHeight = viewer.camera?.positionCartographic?.height;
     const height = Number.isFinite(cameraHeight) ? cameraHeight : 0;
 
@@ -143,7 +195,9 @@ function detachMouseMoveHandler() {
 function attachMouseMoveHandler(viewer) {
     detachMouseMoveHandler();
 
-    if (!viewer?.scene?.canvas) return;
+    if (!viewer?.scene?.canvas) {
+        return;
+    }
 
     mouseMoveHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
     mouseMoveHandler.setInputAction(
@@ -153,7 +207,7 @@ function attachMouseMoveHandler(viewer) {
 }
 
 watch(
-    () => globalVar.viewer,
+    () => props.viewer,
     (currentViewer) => {
         if (currentViewer) {
             attachMouseMoveHandler(currentViewer);

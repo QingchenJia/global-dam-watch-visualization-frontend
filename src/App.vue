@@ -1,58 +1,71 @@
 <template>
-    <div id="app-container">
-        <!-- 三维地球 -->
-        <CesiumViewer @viewer-ready="onViewerReady" />
+    <div id="app-container" class="dashboard-shell">
+        <CesiumViewer class="dashboard-viewer" @viewer-ready="onViewerReady" />
+        <div class="dashboard-noise"></div>
+        <div class="dashboard-vignette"></div>
 
-        <!-- 控制面板 -->
-        <ControlPanel
-            v-if="viewer"
-            :viewer="viewer"
-            :show-stats="showStats"
-            :show-timeline="showTimeline"
-            :show-bookmark="showBookmark"
-            @toggle-stats="showStats = !showStats"
-            @toggle-timeline="showTimeline = !showTimeline"
-            @open-bookmark="showBookmark = !showBookmark"
-        />
-        <AgentChat v-if="viewer" :viewer="viewer" />
+        <div v-if="viewer" class="dashboard-hud">
+            <TopHeaderBar :viewer="viewer" />
 
-        <!-- 统计面板 -->
-        <transition name="stats-slide">
-            <StatsPanel
-                v-if="viewer"
-                :viewer="viewer"
-                v-show="showStats"
-                :show="showStats"
-                @request-close="showStats = false"
-            />
-        </transition>
+            <div class="dashboard-main">
+                <aside class="dashboard-rail dashboard-rail--left">
+                    <div
+                        class="dashboard-stack-panel dashboard-stack-panel--bookmark"
+                    >
+                        <BookmarkPanel :viewer="viewer" :show="true" />
+                    </div>
 
-        <!-- 书签面板 -->
-        <BookmarkPanel
-            v-if="viewer"
-            :viewer="viewer"
-            :show="showBookmark"
-            @close="showBookmark = false"
-        />
+                    <div
+                        class="dashboard-stack-panel dashboard-stack-panel--filter"
+                    >
+                        <FilterPanel />
+                    </div>
 
-        <!-- 时间轴面板 -->
-        <TimelineSlider
-            v-if="viewer"
-            :viewer="viewer"
-            :show="showTimeline"
-            @close="showTimeline = false"
-        />
+                    <div
+                        class="dashboard-stack-panel dashboard-stack-panel--agent-chat"
+                    >
+                        <AgentChat :viewer="viewer" />
+                    </div>
+                </aside>
 
-        <!-- 实体描述和对比信息面板 -->
-        <EntityDescription v-if="viewer" :viewer="viewer" />
+                <div class="dashboard-center"></div>
 
-        <!-- 鼠标焦点位置信息 -->
-        <PositionInformation v-if="viewer" :viewer="viewer" />
+                <aside class="dashboard-rail dashboard-rail--right">
+                    <div class="dashboard-right-stack">
+                        <div class="dashboard-right-stack__control">
+                            <ControlPanel
+                                :viewer="viewer"
+                                :show-timeline="showTimeline"
+                                @toggle-timeline="showTimeline = !showTimeline"
+                            />
+                        </div>
+                        <div class="dashboard-right-stack__stats">
+                            <StatsPanel :show="true" />
+                        </div>
+                        <div class="dashboard-right-stack__location">
+                            <PositionInformation :viewer="viewer" />
+                        </div>
+                    </div>
+                </aside>
+            </div>
+
+            <div class="dashboard-bottom">
+                <div class="dashboard-bottom__timeline">
+                    <TimelineSlider
+                        :viewer="viewer"
+                        :show="showTimeline"
+                        @close="showTimeline = false"
+                    />
+                </div>
+            </div>
+
+            <EntityDescription v-if="showEntityDescription" :viewer="viewer" />
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onBeforeUnmount, ref } from "vue";
 import CesiumViewer from "./components/CesiumViewer.vue";
 import ControlPanel from "./components/ControlPanel.vue";
 import AgentChat from "./components/AgentChat.vue";
@@ -61,15 +74,42 @@ import TimelineSlider from "./components/TimelineSlider.vue";
 import BookmarkPanel from "./components/BookmarkPanel.vue";
 import EntityDescription from "./components/EntityDescription.vue";
 import PositionInformation from "./components/PositionInformation.vue";
+import TopHeaderBar from "./components/TopHeaderBar.vue";
+import FilterPanel from "./components/FilterPanel.vue";
 
 const viewer = ref(null);
-const showStats = ref(false);
 const showTimeline = ref(false);
-const showBookmark = ref(false);
+const showEntityDescription = ref(false);
 
-// 监听viewer实例初始化就绪事件
-// 触发后获取viewer实例作为全局变量
-const onViewerReady = (v) => {
-    viewer.value = v;
+let detachSelectionListener = null;
+
+const onViewerReady = (value) => {
+    viewer.value = value;
+
+    if (detachSelectionListener) {
+        detachSelectionListener();
+        detachSelectionListener = null;
+    }
+
+    if (!viewer.value?.selectedEntityChanged) {
+        return;
+    }
+
+    const handler = (entity) => {
+        showEntityDescription.value = Boolean(entity);
+    };
+
+    showEntityDescription.value = Boolean(viewer.value.selectedEntity);
+    viewer.value.selectedEntityChanged.addEventListener(handler);
+    detachSelectionListener = () => {
+        viewer.value?.selectedEntityChanged.removeEventListener(handler);
+    };
 };
+
+onBeforeUnmount(() => {
+    if (detachSelectionListener) {
+        detachSelectionListener();
+        detachSelectionListener = null;
+    }
+});
 </script>
