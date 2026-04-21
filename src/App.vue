@@ -10,19 +10,19 @@
             <div class="dashboard-main">
                 <aside class="dashboard-rail dashboard-rail--left">
                     <div
-                        class="dashboard-stack-panel dashboard-stack-panel--bookmark"
+                        class="dashboard-stack-panel dashboard-stack-panel--bookmark dashboard-panel-frame"
                     >
                         <BookmarkPanel :viewer="viewer" :show="true" />
                     </div>
 
                     <div
-                        class="dashboard-stack-panel dashboard-stack-panel--filter"
+                        class="dashboard-stack-panel dashboard-stack-panel--filter dashboard-panel-frame"
                     >
                         <FilterPanel />
                     </div>
 
                     <div
-                        class="dashboard-stack-panel dashboard-stack-panel--agent-chat"
+                        class="dashboard-stack-panel dashboard-stack-panel--agent-chat dashboard-panel-frame"
                     >
                         <AgentChat :viewer="viewer" />
                     </div>
@@ -31,26 +31,46 @@
                 <div class="dashboard-center"></div>
 
                 <aside class="dashboard-rail dashboard-rail--right">
-                    <div class="dashboard-right-stack">
-                        <div class="dashboard-right-stack__control">
+                    <div
+                        v-if="!showEntityDescription"
+                        class="dashboard-right-stack"
+                    >
+                        <div
+                            class="dashboard-right-stack__control dashboard-panel-frame"
+                        >
                             <ControlPanel
                                 :viewer="viewer"
                                 :show-timeline="showTimeline"
                                 @toggle-timeline="showTimeline = !showTimeline"
                             />
                         </div>
-                        <div class="dashboard-right-stack__stats">
+                        <div
+                            class="dashboard-right-stack__stats dashboard-panel-frame"
+                        >
                             <StatsPanel :show="true" />
                         </div>
-                        <div class="dashboard-right-stack__location">
+                        <div
+                            class="dashboard-right-stack__location dashboard-panel-frame"
+                        >
                             <PositionInformation :viewer="viewer" />
+                        </div>
+                    </div>
+
+                    <div
+                        v-else
+                        class="dashboard-right-stack dashboard-right-stack--entity"
+                    >
+                        <div
+                            class="dashboard-right-stack__entity dashboard-panel-frame"
+                        >
+                            <EntityDescription :viewer="viewer" />
                         </div>
                     </div>
                 </aside>
             </div>
 
             <div class="dashboard-bottom">
-                <div class="dashboard-bottom__timeline">
+                <div class="dashboard-bottom__timeline dashboard-panel-frame">
                     <TimelineSlider
                         :viewer="viewer"
                         :show="showTimeline"
@@ -58,8 +78,6 @@
                     />
                 </div>
             </div>
-
-            <EntityDescription v-if="showEntityDescription" :viewer="viewer" />
         </div>
     </div>
 </template>

@@ -24,8 +24,9 @@
 }
 
 .quick-panel__title-icon {
-    width: 18px;
-    height: 18px;
+    width: 1em;
+    height: 1em;
+    font-size: 24px;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
@@ -36,8 +37,8 @@
 }
 
 .quick-panel__title-icon svg {
-    width: 16px;
-    height: 16px;
+    width: 1em;
+    height: 1em;
     fill: #73e2ff;
     filter: drop-shadow(0 0 6px rgba(71, 203, 255, 0.4));
 }
@@ -103,8 +104,9 @@
 .quick-panel__grid {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    column-gap: 3px;
+    column-gap: 10px;
     row-gap: 3px;
+    margin-top: 10px;
     align-items: start;
 }
 

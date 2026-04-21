@@ -8,6 +8,9 @@
         calc(468px * 1.15)
     );
     --dashboard-left-stack-gap: 10px;
+    --dashboard-panel-corner-cut: 16px;
+    --dashboard-panel-corner-line: 20px;
+    --dashboard-panel-corner-highlight: rgba(74, 205, 255, 0.95);
 }
 
 html,
@@ -28,11 +31,17 @@ body,
 }
 
 .dashboard-shell {
+    position: relative;
     background:
         radial-gradient(
             circle at 50% 12%,
-            rgba(31, 113, 224, 0.22) 0%,
+            rgba(31, 113, 224, 0.26) 0%,
             rgba(7, 22, 43, 0) 38%
+        ),
+        radial-gradient(
+            circle at 50% 52%,
+            rgba(32, 125, 255, 0.2) 0%,
+            rgba(5, 14, 31, 0) 34%
         ),
         radial-gradient(
             circle at 50% 78%,
@@ -40,6 +49,33 @@ body,
             rgba(5, 14, 31, 0) 40%
         ),
         linear-gradient(180deg, rgba(4, 10, 22, 0.82), rgba(2, 8, 18, 0.94));
+}
+
+.dashboard-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+        linear-gradient(
+            90deg,
+            transparent 0,
+            transparent 49.8%,
+            rgba(82, 191, 255, 0.03) 50%,
+            transparent 50.2%,
+            transparent 100%
+        ),
+        linear-gradient(
+            0deg,
+            transparent 0,
+            transparent 49.7%,
+            rgba(82, 191, 255, 0.02) 50%,
+            transparent 50.3%,
+            transparent 100%
+        );
+    background-size: 130px 130px;
+    opacity: 0.32;
 }
 
 .dashboard-viewer,
@@ -57,7 +93,7 @@ body,
 
 .dashboard-noise {
     z-index: 1;
-    opacity: 0.4;
+    opacity: 0.48;
     background-image:
         radial-gradient(
             circle at 20% 16%,
@@ -161,6 +197,131 @@ body,
     width: 100%;
 }
 
+.dashboard-panel-frame {
+    position: relative;
+    min-height: 0;
+    width: 100%;
+}
+
+.dashboard-panel-frame > * {
+    height: 100%;
+    min-height: 0;
+    width: 100%;
+    border-radius: 0 !important;
+    clip-path: polygon(
+        var(--dashboard-panel-corner-cut) 0,
+        calc(100% - var(--dashboard-panel-corner-cut)) 0,
+        100% var(--dashboard-panel-corner-cut),
+        100% calc(100% - var(--dashboard-panel-corner-cut)),
+        calc(100% - var(--dashboard-panel-corner-cut)) 100%,
+        var(--dashboard-panel-corner-cut) 100%,
+        0 calc(100% - var(--dashboard-panel-corner-cut)),
+        0 var(--dashboard-panel-corner-cut)
+    );
+}
+
+.dashboard-panel-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 6;
+    background:
+        linear-gradient(
+                135deg,
+                transparent calc(50% - 0.5px),
+                var(--dashboard-panel-corner-highlight) calc(50% - 0.5px),
+                var(--dashboard-panel-corner-highlight) calc(50% + 0.5px),
+                transparent calc(50% + 0.5px)
+            )
+            left top / var(--dashboard-panel-corner-cut)
+            var(--dashboard-panel-corner-cut) no-repeat,
+        linear-gradient(
+                45deg,
+                transparent calc(50% - 0.5px),
+                var(--dashboard-panel-corner-highlight) calc(50% - 0.5px),
+                var(--dashboard-panel-corner-highlight) calc(50% + 0.5px),
+                transparent calc(50% + 0.5px)
+            )
+            right top / var(--dashboard-panel-corner-cut)
+            var(--dashboard-panel-corner-cut) no-repeat,
+        linear-gradient(
+                45deg,
+                transparent calc(50% - 0.5px),
+                var(--dashboard-panel-corner-highlight) calc(50% - 0.5px),
+                var(--dashboard-panel-corner-highlight) calc(50% + 0.5px),
+                transparent calc(50% + 0.5px)
+            )
+            left bottom / var(--dashboard-panel-corner-cut)
+            var(--dashboard-panel-corner-cut) no-repeat,
+        linear-gradient(
+                135deg,
+                transparent calc(50% - 0.5px),
+                var(--dashboard-panel-corner-highlight) calc(50% - 0.5px),
+                var(--dashboard-panel-corner-highlight) calc(50% + 0.5px),
+                transparent calc(50% + 0.5px)
+            )
+            right bottom / var(--dashboard-panel-corner-cut)
+            var(--dashboard-panel-corner-cut) no-repeat,
+        linear-gradient(
+                90deg,
+                var(--dashboard-panel-corner-highlight),
+                var(--dashboard-panel-corner-highlight)
+            )
+            left var(--dashboard-panel-corner-cut) top 0 /
+            var(--dashboard-panel-corner-line) 1px no-repeat,
+        linear-gradient(
+                180deg,
+                var(--dashboard-panel-corner-highlight),
+                var(--dashboard-panel-corner-highlight)
+            )
+            left 0 top var(--dashboard-panel-corner-cut) / 1px
+            var(--dashboard-panel-corner-line) no-repeat,
+        linear-gradient(
+                90deg,
+                var(--dashboard-panel-corner-highlight),
+                var(--dashboard-panel-corner-highlight)
+            )
+            right var(--dashboard-panel-corner-cut) top 0 /
+            var(--dashboard-panel-corner-line) 1px no-repeat,
+        linear-gradient(
+                180deg,
+                var(--dashboard-panel-corner-highlight),
+                var(--dashboard-panel-corner-highlight)
+            )
+            right 0 top var(--dashboard-panel-corner-cut) / 1px
+            var(--dashboard-panel-corner-line) no-repeat,
+        linear-gradient(
+                90deg,
+                var(--dashboard-panel-corner-highlight),
+                var(--dashboard-panel-corner-highlight)
+            )
+            left var(--dashboard-panel-corner-cut) bottom 0 /
+            var(--dashboard-panel-corner-line) 1px no-repeat,
+        linear-gradient(
+                180deg,
+                var(--dashboard-panel-corner-highlight),
+                var(--dashboard-panel-corner-highlight)
+            )
+            left 0 bottom var(--dashboard-panel-corner-cut) / 1px
+            var(--dashboard-panel-corner-line) no-repeat,
+        linear-gradient(
+                90deg,
+                var(--dashboard-panel-corner-highlight),
+                var(--dashboard-panel-corner-highlight)
+            )
+            right var(--dashboard-panel-corner-cut) bottom 0 /
+            var(--dashboard-panel-corner-line) 1px no-repeat,
+        linear-gradient(
+                180deg,
+                var(--dashboard-panel-corner-highlight),
+                var(--dashboard-panel-corner-highlight)
+            )
+            right 0 bottom var(--dashboard-panel-corner-cut) / 1px
+            var(--dashboard-panel-corner-line) no-repeat;
+    filter: drop-shadow(0 0 8px rgba(60, 184, 255, 0.45));
+}
+
 .dashboard-rail--right {
     display: flex;
     flex-direction: column;
@@ -176,19 +337,31 @@ body,
     gap: var(--dashboard-left-stack-gap);
 }
 
+.dashboard-right-stack--entity {
+    grid-template-rows: minmax(0, 1fr);
+}
+
 .dashboard-right-stack__control,
 .dashboard-right-stack__stats,
-.dashboard-right-stack__location {
+.dashboard-right-stack__location,
+.dashboard-right-stack__entity {
     min-height: 0;
     width: 100%;
 }
 
 .dashboard-right-stack__control > *,
 .dashboard-right-stack__stats > *,
-.dashboard-right-stack__location > * {
+.dashboard-right-stack__location > *,
+.dashboard-right-stack__entity > * {
     width: 100%;
     height: 100%;
     min-height: 0;
+}
+
+.dashboard-right-stack__control.dashboard-panel-frame > *,
+.dashboard-right-stack__stats.dashboard-panel-frame > * {
+    clip-path: none;
+    border-radius: var(--hud-radius-lg) !important;
 }
 
 .dashboard-right-stack__location .position-information {

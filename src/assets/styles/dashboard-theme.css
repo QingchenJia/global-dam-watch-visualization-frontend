@@ -2,28 +2,28 @@
     --font-ui:
         "Rajdhani", "DIN Alternate", "Microsoft YaHei", "PingFang SC",
         sans-serif;
-    --hud-bg: rgba(4, 14, 30, 0.76);
-    --hud-bg-strong: rgba(5, 18, 38, 0.9);
-    --hud-panel-top: rgba(9, 26, 52, 0.9);
-    --hud-panel-bottom: rgba(4, 13, 28, 0.82);
-    --hud-border: rgba(72, 190, 255, 0.28);
-    --hud-border-soft: rgba(72, 190, 255, 0.16);
-    --hud-border-strong: rgba(103, 220, 255, 0.62);
+    --hud-bg: rgba(2, 10, 24, 0.82);
+    --hud-bg-strong: rgba(3, 13, 30, 0.92);
+    --hud-panel-top: rgba(6, 22, 47, 0.9);
+    --hud-panel-bottom: rgba(2, 10, 24, 0.84);
+    --hud-border: rgba(72, 192, 255, 0.3);
+    --hud-border-soft: rgba(72, 192, 255, 0.18);
+    --hud-border-strong: rgba(116, 225, 255, 0.68);
     --hud-shadow:
-        inset 0 0 28px rgba(33, 120, 227, 0.08),
-        inset 0 1px 0 rgba(128, 220, 255, 0.06),
-        0 18px 36px rgba(0, 0, 0, 0.34),
-        0 0 28px rgba(18, 109, 255, 0.12);
+        inset 0 0 30px rgba(28, 106, 213, 0.12),
+        inset 0 1px 0 rgba(132, 222, 255, 0.08),
+        0 16px 34px rgba(0, 0, 0, 0.42), 0 0 26px rgba(18, 111, 255, 0.16);
     --hud-shadow-strong:
-        inset 0 0 32px rgba(52, 150, 255, 0.1),
-        0 18px 42px rgba(0, 0, 0, 0.42),
-        0 0 34px rgba(22, 109, 255, 0.18);
+        inset 0 0 36px rgba(44, 139, 247, 0.14),
+        0 18px 42px rgba(0, 0, 0, 0.48), 0 0 36px rgba(22, 109, 255, 0.22);
     --hud-text: #dcefff;
     --hud-text-dim: #7fa5c4;
     --hud-text-soft: #a8c5df;
     --hud-title: #f1fbff;
     --hud-accent: #3cd9ff;
     --hud-accent-soft: #6edbff;
+    --hud-glow: rgba(56, 182, 255, 0.34);
+    --hud-grid-line: rgba(91, 201, 255, 0.06);
     --hud-radius: 18px;
     --hud-radius-lg: 22px;
 }
@@ -38,10 +38,10 @@ body {
     background:
         radial-gradient(
             circle at top,
-            rgba(18, 69, 148, 0.22) 0%,
+            rgba(24, 83, 170, 0.28) 0%,
             transparent 42%
         ),
-        #020916;
+        linear-gradient(180deg, rgba(2, 8, 18, 0.96), rgba(1, 6, 14, 1));
     color: var(--hud-text);
 }
 
@@ -65,6 +65,7 @@ select {
     -webkit-backdrop-filter: blur(20px);
     border-radius: var(--hud-radius-lg);
     overflow: hidden;
+    isolation: isolate;
 }
 
 .hud-card::before,
@@ -86,12 +87,22 @@ select {
             rgba(86, 204, 255, 0.16) 100%
         ),
         linear-gradient(
+            0deg,
+            transparent 0%,
+            var(--hud-grid-line) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
             180deg,
             rgba(109, 221, 255, 0.08) 0%,
             transparent 26%,
             transparent 74%,
             rgba(109, 221, 255, 0.06) 100%
         );
+    background-size:
+        auto,
+        100% 22px,
+        auto;
     opacity: 0.7;
 }
 

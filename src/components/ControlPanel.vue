@@ -5,7 +5,7 @@
                 <span class="quick-panel__title-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24">
                         <path
-                            d="M4 12.5 12 4l8 8.5-8 7.5-8-7.5zm5.2 0L12 15.1l2.8-2.6L12 9.4z"
+                            d="M4 7h9v2H4V7zm0 8h15v2H4v-2zm11-9h5v4h-5V6zM8 14h5v4H8v-4z"
                         />
                     </svg>
                 </span>

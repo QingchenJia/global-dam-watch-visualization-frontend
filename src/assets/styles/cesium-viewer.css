@@ -5,3 +5,7 @@
     padding: 0;
     overflow: hidden;
 }
+
+#cesiumContainer canvas {
+    filter: saturate(1.1) contrast(1.05) brightness(0.9);
+}

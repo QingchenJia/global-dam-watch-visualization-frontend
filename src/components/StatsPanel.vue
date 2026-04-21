@@ -5,7 +5,7 @@
                 <span class="quick-panel__title-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24">
                         <path
-                            d="M4 12.5 12 4l8 8.5-8 7.5-8-7.5zm5.2 0L12 15.1l2.8-2.6L12 9.4z"
+                            d="M4 19h16v2H4v-2zm2-8h3v6H6v-6zm5-5h3v11h-3V6zm5 3h3v8h-3V9z"
                         />
                     </svg>
                 </span>
@@ -114,6 +114,8 @@ function renderPieChart(index) {
         ],
         tooltip: {
             trigger: "item",
+            appendToBody: true,
+            confine: false,
             formatter: "{b}<br/>{c} ({d}%)",
             backgroundColor: "rgba(3, 14, 28, 0.94)",
             borderColor: "rgba(95, 215, 255, 0.28)",

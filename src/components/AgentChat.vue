@@ -6,7 +6,7 @@
                 <span class="quick-panel__title-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24">
                         <path
-                            d="M4 12.5 12 4l8 8.5-8 7.5-8-7.5zm5.2 0L12 15.1l2.8-2.6L12 9.4z"
+                            d="M12 2a2 2 0 0 1 2 2v1h2a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-1.5l-3.68 3.15a1 1 0 0 1-1.64-.76V17H8a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3h2V4a2 2 0 0 1 2-2zm-2.5 8a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5zm5 0a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5z"
                         />
                     </svg>
                 </span>
@@ -142,7 +142,8 @@
             <textarea
                 v-model="inputText"
                 @keydown.enter.exact.prevent="handleSendMessage"
-                placeholder="向 GIS Agent 发送指令...(支持语音输入)"
+                @input="adjustInputHeight"
+                placeholder="向 GIS Agent 发送指令...(Shift+Enter 换行)"
                 :disabled="loading"
                 ref="inputInput"
             ></textarea>
@@ -278,6 +279,7 @@ const allPropertyTags = [...commonTags, ...damOnlyTags, ...reservoirOnlyTags];
 const WELCOME_TEXT =
     "我是您的个人 GIS 助手(Hybrid Router 架构)，可直接点击下方标签快速组合输入：";
 const WAKE_HINT_TEXT = "如有需要，可继续通过标签补充条件。";
+const INPUT_MAX_HEIGHT = 120;
 
 const voiceButtonTitle = computed(() => {
     if (!isSpeechSupported.value) {
@@ -293,11 +295,28 @@ const voiceButtonTitle = computed(() => {
 
 function syncInputFromSelections() {
     inputText.value = buildFormattedPrompt();
-    nextTick(() => inputInput.value?.focus());
+    nextTick(() => {
+        adjustInputHeight();
+        inputInput.value?.focus();
+    });
+}
+
+function adjustInputHeight() {
+    const textarea = inputInput.value;
+    if (!textarea) {
+        return;
+    }
+
+    textarea.style.height = "auto";
+    const nextHeight = Math.min(textarea.scrollHeight, INPUT_MAX_HEIGHT);
+    textarea.style.height = `${nextHeight}px`;
+    textarea.style.overflowY =
+        textarea.scrollHeight > INPUT_MAX_HEIGHT ? "auto" : "hidden";
 }
 
 function buildFormattedPrompt() {
-    // 根据当前标签组合输出结构化提示词，保证输入格式稳定。
+    // 根据当前标签组合输出结构化提示词
+    // 保证输入格式稳定
     if (
         !selectedTask.value &&
         !selectedType.value &&
@@ -386,7 +405,8 @@ function handleSelectPropertyTag(tag) {
 }
 
 function isPropertyTagDisabled(tag) {
-    // 属性标签是否可选取决于任务类型与实体类型，避免无效筛选条件。
+    // 属性标签是否可选取决于任务类型与实体类型
+    // 避免无效筛选条件
     if (selectedPropertyTags.value.includes(tag)) {
         return false;
     }
@@ -422,7 +442,8 @@ function addMessage(sender, content, isLoading = false, kind = "text") {
         content: formattedContent,
         loading: isLoading,
         kind,
-        // loading 消息会带上 id，便于后续原位更新。
+        // loading消息会带上id
+        // 便于后续原位更新
         id: isLoading ? "agent-loading-msg" : undefined,
     };
 
@@ -452,7 +473,10 @@ function updateLoadingMessage(text) {
 function handleError(errorText) {
     updateLoadingMessage(errorText);
     loading.value = false;
-    nextTick(() => inputInput.value?.focus());
+    nextTick(() => {
+        adjustInputHeight();
+        inputInput.value?.focus();
+    });
 }
 
 function handleCallAgent() {
@@ -480,7 +504,10 @@ function appendSpeechText(text) {
     }
 
     inputText.value = mergeSpeechText(inputText.value, speechText);
-    nextTick(() => inputInput.value?.focus());
+    nextTick(() => {
+        adjustInputHeight();
+        inputInput.value?.focus();
+    });
 }
 
 function mergeSpeechText(currentText, speechText) {
@@ -519,12 +546,12 @@ function shouldNotifySpeechError(errorCode) {
 
 function initSpeechRecognition() {
     speechInput = createSpeechInput({
-        // 设置语音识别语言为中文。
+        // 设置语音识别语言为中文
         lang: "zh-CN",
         onStart: () => {
             isListening.value = true;
         },
-        // 每次拿到新转录结果时同步到输入框。
+        // 每次拿到新转录结果时同步到输入框
         onResult: (text) => {
             appendSpeechText(text);
         },
@@ -545,7 +572,10 @@ function initSpeechRecognition() {
 }
 
 function handleToggleVoiceInput() {
-    // 不支持语音、实例未创建或正在加载时，不触发任何操作。
+    // 不支持语音
+    // 实例未创建
+    // 正在加载时
+    // 不触发任何操作
     if (!isSpeechSupported.value || !speechInput || loading.value) {
         return;
     }
@@ -566,7 +596,10 @@ async function requestAgentChat(text) {
         answer: (finalOutput) => {
             updateLoadingMessage(finalOutput);
             loading.value = false;
-            nextTick(() => inputInput.value?.focus());
+            nextTick(() => {
+                adjustInputHeight();
+                inputInput.value?.focus();
+            });
         },
         handle: (errorMsg) => {
             handleError(errorMsg);
@@ -588,6 +621,10 @@ async function handleSendMessage() {
 }
 
 watch(inputText, (value) => {
+    nextTick(() => {
+        adjustInputHeight();
+    });
+
     if (value.trim()) {
         return;
     }
@@ -598,10 +635,15 @@ watch(inputText, (value) => {
 });
 
 onMounted(() => {
-    // 先初始化语音，再展示欢迎语，最后注册 GIS Agent。
+    // 先初始化语音
+    // 再展示欢迎语
+    // 最后注册Agent。
     initSpeechRecognition();
     handleCallAgent();
     defineGisAgent(globalVar.viewer);
+    nextTick(() => {
+        adjustInputHeight();
+    });
 });
 
 onBeforeUnmount(() => {

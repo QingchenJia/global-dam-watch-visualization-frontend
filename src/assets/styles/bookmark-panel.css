@@ -176,19 +176,24 @@
     border-radius: 999px;
     font-size: 11px;
     font-weight: 700;
-    color: #08101b;
+    color: #e8f8ff;
+    border: 1px solid transparent;
 }
 
 .badge-barrier {
-    background: #f7d046;
+    background: rgba(245, 201, 76, 0.92);
+    border-color: rgba(255, 226, 138, 0.95);
+    color: #3a2a00;
 }
 
 .badge-reservoir {
-    background: #4fd0ff;
+    background: rgba(94, 186, 117, 0.9);
+    border-color: rgba(146, 222, 159, 0.95);
+    color: #0f3a1d;
 }
 
 .bookmark-date {
-    color: #7d92a7;
+    color: var(--hud-text-dim);
 }
 
 .bookmark-tags {
@@ -200,8 +205,9 @@
 .bookmark-tag {
     padding: 4px 8px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06);
-    color: #b9c7d6;
+    background: rgba(10, 36, 62, 0.78);
+    color: #cbe5f7;
+    border: 1px solid rgba(92, 197, 240, 0.14);
     font-size: 11px;
 }
 

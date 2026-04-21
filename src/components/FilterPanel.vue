@@ -1,13 +1,11 @@
 <template>
     <section class="filter-panel hud-card">
         <header class="filter-panel__header">
-            <div>
+            <div class="filter-panel__header-main">
                 <div class="quick-panel__title filter-title-row">
                     <span class="quick-panel__title-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24">
-                            <path
-                                d="M4 12.5 12 4l8 8.5-8 7.5-8-7.5zm5.2 0L12 15.1l2.8-2.6L12 9.4z"
-                            />
+                            <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z" />
                         </svg>
                     </span>
                     <div class="quick-panel__title-text">
@@ -15,6 +13,14 @@
                     </div>
                 </div>
             </div>
+
+            <button
+                type="button"
+                class="filter-panel__reset"
+                @click="resetDashboardFilters"
+            >
+                重置条件
+            </button>
         </header>
 
         <div class="filter-panel__body hud-scrollbar">
@@ -132,16 +138,6 @@
                 </div>
             </template>
         </div>
-
-        <footer class="filter-panel__footer">
-            <button
-                type="button"
-                class="filter-panel__reset"
-                @click="resetDashboardFilters"
-            >
-                重置条件
-            </button>
-        </footer>
     </section>
 </template>
 
