@@ -18,11 +18,8 @@ import {
     getEntitiesFromDataSource,
 } from "./earth.js";
 import { API_ENDPOINT } from "../configs/api.js";
-import {
-    POSITION_PROMPT,
-    FILTER_PROMPT,
-    SQL_PROMPT,
-} from "../configs/prompt.js";
+import { POSITION_PROMPT, FILTER_PROMPT } from "../configs/prompt.js";
+import { retrieveFilterContext } from "../knowledge/rag.js";
 import { rotateEarth, computeCenter } from "../utils/camera.js";
 
 // 定义不同任务职责的智能体执行器
@@ -69,10 +66,17 @@ export async function chatToAgent(text, callbacks) {
             executor = GIS_AGENT[intent].executor;
         }
 
-        const result = await executor.invoke({
+        const agentInput = {
             input: text,
             chat_history: chatHistory,
-        });
+        };
+
+        if (intent === "filter") {
+            // 在调用条件筛选智能体前先检索相关上下文信息辅助生成SQL条件
+            agentInput.retrieved_context = await retrieveFilterContext(text);
+        }
+
+        const result = await executor.invoke(agentInput);
 
         if (intent === "chat" || !result.output) {
             resultOutput =
@@ -282,10 +286,14 @@ function defineTools(viewer) {
     const sqlFilterTool = new DynamicStructuredTool({
         name: "sql_filter",
         description:
-            "高级过滤工具。根据SQL条件子句进行数据库查询实现过滤，请严格按照提示语中SQL语法要求构造查询条件。",
+            "高级过滤工具。根据实体类型和SQL条件子句查询数据库并更新地图筛选结果。调用前必须参考retrieved_context生成condition。",
         schema: z.object({
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
-            condition: z.string().describe(`${SQL_PROMPT}`),
+            condition: z
+                .string()
+                .describe(
+                    "WHERE子句中的condition，不包含WHERE、SELECT、FROM、表名、排序或分页。",
+                ),
         }),
         func: async ({ type, condition }) => sqlFilter(viewer, type, condition),
     });
