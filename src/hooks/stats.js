@@ -10,6 +10,17 @@ import {
 } from "./earth.js";
 import { rotateEarth, computeCenter } from "../utils/camera.js";
 
+const FILTER_VALUE_KEY = "__filterValueKey";
+
+function stripFilterValueKey(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return value;
+    }
+
+    const { [FILTER_VALUE_KEY]: _filterValueKey, ...rest } = value;
+    return rest;
+}
+
 function commonParamsCheck(params, form) {
     if (form.mainBasin && form.mainBasin.length > 0) {
         params.mainBasin = form.mainBasin;
@@ -40,14 +51,14 @@ function buildBarrierForm(form) {
         form.damLenM !== null &&
         form.damLenM !== undefined
     ) {
-        params.damLenM = form.damLenM;
+        params.damLenM = stripFilterValueKey(form.damLenM);
     }
     if (
         form.damHgtM !== "" &&
         form.damHgtM !== null &&
         form.damHgtM !== undefined
     ) {
-        params.damHgtM = form.damHgtM;
+        params.damHgtM = stripFilterValueKey(form.damHgtM);
     }
 
     return params;
@@ -62,21 +73,21 @@ function buildReservoirForm(form) {
         form.capMcm !== null &&
         form.capMcm !== undefined
     ) {
-        params.capMcm = form.capMcm;
+        params.capMcm = stripFilterValueKey(form.capMcm);
     }
     if (
         form.areaSkm !== "" &&
         form.areaSkm !== null &&
         form.areaSkm !== undefined
     ) {
-        params.areaSkm = form.areaSkm;
+        params.areaSkm = stripFilterValueKey(form.areaSkm);
     }
     if (
         form.depthM !== "" &&
         form.depthM !== null &&
         form.depthM !== undefined
     ) {
-        params.depthM = form.depthM;
+        params.depthM = stripFilterValueKey(form.depthM);
     }
 
     return params;

@@ -1,4 +1,6 @@
 import { createApp } from "vue";
+import ElementPlus from "element-plus";
+import "element-plus/dist/index.css";
 import App from "./App.vue";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 import "./assets/styles/dashboard-theme.css";
@@ -14,5 +16,6 @@ import "./assets/styles/entity-description.css";
 import "./assets/styles/position-information.css";
 import "./assets/styles/filter-panel.css";
 import "./assets/styles/chart-card.css";
+import "./assets/styles/element-plus-overrides.css";
 
-createApp(App).mount("#app");
+createApp(App).use(ElementPlus).mount("#app");

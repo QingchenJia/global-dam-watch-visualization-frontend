@@ -294,6 +294,16 @@
         background 0.2s ease;
 }
 
+.header-action-btn.el-button {
+    margin-left: 0;
+    --el-button-bg-color: rgba(7, 23, 46, 0.86);
+    --el-button-border-color: rgba(76, 181, 255, 0.3);
+    --el-button-text-color: var(--hud-text);
+    --el-button-hover-bg-color: rgba(11, 41, 78, 0.94);
+    --el-button-hover-border-color: rgba(86, 208, 255, 0.7);
+    --el-button-hover-text-color: #ffffff;
+}
+
 .header-action-btn:hover:not(:disabled) {
     color: #ffffff;
     border-color: rgba(86, 208, 255, 0.7);
@@ -332,6 +342,19 @@
     width: 13px;
     height: 13px;
     fill: currentColor;
+}
+
+.header-action-btn .el-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(
+        180deg,
+        rgba(18, 87, 158, 0.58),
+        rgba(10, 49, 93, 0.46)
+    );
+    color: #69dfff;
+    box-shadow: inset 0 0 10px rgba(127, 226, 255, 0.12);
 }
 
 .header-action-btn span:last-child {

@@ -40,6 +40,7 @@
     align-items: center;
     column-gap: 15%;
     row-gap: 3px;
+    min-height: var(--filter-control-height);
 }
 
 .filter-label {
@@ -64,6 +65,24 @@
 
 .filter-select {
     position: relative;
+    width: 100%;
+}
+
+.filter-panel .el-select__wrapper,
+.filter-panel .el-input__wrapper {
+    height: var(--filter-control-height);
+    min-height: var(--filter-control-height);
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.filter-panel .el-select__selection {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.filter-panel .el-select__selected-item {
+    min-height: 0;
 }
 
 .filter-select__trigger {
@@ -194,6 +213,10 @@
         transform 0.2s ease;
 }
 
+.filter-panel__reset.el-button {
+    margin-left: 0;
+}
+
 .filter-panel__reset:hover {
     border-color: rgba(96, 214, 255, 0.76);
     box-shadow: 0 0 16px rgba(37, 132, 255, 0.18);
@@ -206,11 +229,11 @@
     font-size: 12px;
 }
 
-.filter-panel .hud-input.filter-range__input {
+.filter-panel .hud-input.filter-range__input,
+.filter-panel .el-input.filter-range__input {
     height: var(--filter-control-height) !important;
     min-height: var(--filter-control-height) !important;
     max-height: var(--filter-control-height);
-    padding: 0 6px !important;
     line-height: calc(var(--filter-control-height) - 2px);
     box-sizing: border-box;
 }

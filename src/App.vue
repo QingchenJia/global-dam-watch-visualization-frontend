@@ -70,7 +70,12 @@
             </div>
 
             <div class="dashboard-bottom">
-                <div class="dashboard-bottom__timeline dashboard-panel-frame">
+                <div
+                    class="dashboard-bottom__timeline dashboard-panel-frame"
+                    :class="{
+                        'dashboard-bottom__timeline--open': showTimeline,
+                    }"
+                >
                     <TimelineSlider
                         :viewer="viewer"
                         :show="showTimeline"

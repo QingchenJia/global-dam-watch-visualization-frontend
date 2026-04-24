@@ -1,10 +1,10 @@
 .timeline-slider {
     width: 100%;
-    min-height: 186px;
+    min-height: 174px;
     display: grid;
     grid-template-rows: auto auto auto;
-    gap: 16px;
-    padding: 18px 20px;
+    gap: 12px;
+    padding: 14px 20px;
     background: linear-gradient(
         180deg,
         rgba(9, 26, 52, 0.84),
@@ -22,7 +22,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 16px;
+    gap: 12px;
 }
 
 .timeline-header__title {
@@ -31,32 +31,49 @@
     gap: 6px;
 }
 
+.timeline-title-row {
+    margin: 0;
+}
+
+.timeline-title-row .quick-panel__title-icon {
+    width: 1.2em;
+    height: 1.2em;
+    font-size: 20px;
+    border-radius: 999px;
+    color: #a4eeff;
+    background: radial-gradient(
+        circle at 30% 30%,
+        rgba(82, 205, 255, 0.34),
+        rgba(8, 53, 112, 0.18)
+    );
+    box-shadow:
+        inset 0 0 10px rgba(130, 220, 255, 0.2),
+        0 0 12px rgba(58, 163, 245, 0.2);
+}
+
+.timeline-title-row .quick-panel__title-icon svg {
+    fill: currentColor;
+    filter: drop-shadow(0 0 6px rgba(87, 211, 255, 0.52));
+}
+
+.timeline-title-row .quick-panel__title-text .hud-card-title {
+    margin-top: 0;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #e9f8ff;
+    text-shadow: 0 0 10px rgba(74, 197, 255, 0.26);
+}
+
 .timeline-header__tools {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.timeline-title {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1.15;
-    letter-spacing: 0.06em;
-    color: var(--hud-title);
-}
-
-.timeline-title svg {
-    width: 2em;
-    height: 2em;
-    fill: var(--hud-accent);
-}
-
 .timeline-track-wrap {
     display: grid;
-    gap: 10px;
+    gap: 8px;
 }
 
 .timeline-close-btn {
@@ -87,53 +104,7 @@
 }
 
 .timeline-range {
-    -webkit-appearance: none;
-    appearance: none;
     width: 100%;
-    height: 7px;
-    border-radius: 999px;
-    outline: none;
-    cursor: pointer;
-    background:
-        linear-gradient(
-            to right,
-            #5cc5f0 var(--slider-pct, 0%),
-            rgba(88, 117, 148, 0.28) var(--slider-pct, 0%)
-        ),
-        repeating-linear-gradient(
-            90deg,
-            transparent 0 23px,
-            rgba(95, 182, 244, 0.15) 23px 24px
-        );
-    box-shadow:
-        inset 0 0 12px rgba(14, 54, 102, 0.34),
-        0 0 10px rgba(24, 113, 223, 0.08);
-}
-
-.timeline-range::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: radial-gradient(
-        circle at 35% 35%,
-        #f8fdff 0%,
-        #8ddfff 36%,
-        #2ea0ff 100%
-    );
-    border: 2px solid #e8f4ff;
-    box-shadow:
-        0 0 10px rgba(92, 197, 240, 0.7),
-        0 0 24px rgba(92, 197, 240, 0.28);
-}
-
-.timeline-range::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #5cc5f0;
-    border: 2px solid #e8f4ff;
 }
 
 .timeline-axis {
@@ -149,7 +120,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 14px;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
@@ -169,9 +140,9 @@
 }
 
 .timeline-play-btn {
-    min-width: 42px;
-    min-height: 42px;
-    padding: 8px 10px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 9px 11px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -187,10 +158,19 @@
         0 0 18px rgba(22, 131, 255, 0.2);
 }
 
+.timeline-play-btn.el-button,
+.timeline-restart-btn.el-button {
+    margin-left: 0;
+}
+
 .timeline-play-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 1em;
+    height: 1em;
     fill: currentColor;
+}
+
+.timeline-play-btn .el-icon {
+    font-size: 22px;
 }
 
 .timeline-restart-btn {
@@ -206,14 +186,17 @@
 }
 
 .timeline-restart-btn svg {
-    width: 14px;
-    height: 14px;
+    width: 1em;
+    height: 1em;
     fill: currentColor;
 }
 
+.timeline-restart-btn .el-icon {
+    font-size: 20px;
+}
+
 .timeline-speed-group {
-    display: flex;
-    gap: 8px;
+    min-width: 220px;
 }
 
 .timeline-speed-btn {
@@ -241,7 +224,7 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 12px 16px;
+    padding: 10px 14px;
     border-radius: 16px;
     background: rgba(8, 20, 39, 0.72);
     border: 1px solid rgba(92, 197, 240, 0.24);
@@ -252,8 +235,9 @@
 
 .timeline-status__item {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
 }
 
 .timeline-status__item small {
@@ -271,7 +255,7 @@
 
 .timeline-status__divider {
     width: 1px;
-    height: 38px;
+    height: 34px;
     background: rgba(92, 197, 240, 0.14);
 }
 

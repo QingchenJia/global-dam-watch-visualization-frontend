@@ -1,0 +1,360 @@
+:root {
+    --el-color-primary: #27c8ff;
+    --el-color-primary-light-3: #57d8ff;
+    --el-color-primary-light-5: #8be6ff;
+    --el-color-primary-light-7: rgba(39, 200, 255, 0.26);
+    --el-color-primary-light-8: rgba(39, 200, 255, 0.18);
+    --el-color-primary-light-9: rgba(39, 200, 255, 0.1);
+    --el-color-primary-dark-2: #1287d8;
+    --el-fill-color-blank: rgba(5, 17, 36, 0.9);
+    --el-fill-color-light: rgba(8, 28, 57, 0.86);
+    --el-fill-color: rgba(8, 28, 57, 0.78);
+    --el-border-color: rgba(91, 202, 255, 0.3);
+    --el-border-color-light: rgba(91, 202, 255, 0.22);
+    --el-text-color-primary: var(--hud-title);
+    --el-text-color-regular: var(--hud-text);
+    --el-text-color-secondary: var(--hud-text-soft);
+    --el-disabled-bg-color: rgba(13, 31, 55, 0.55);
+    --el-disabled-text-color: rgba(168, 197, 223, 0.48);
+    --el-border-radius-base: 8px;
+    --el-font-family: var(--font-ui);
+}
+
+.dashboard-shell .el-button,
+.dashboard-shell .el-input__wrapper,
+.dashboard-shell .el-select__wrapper,
+.dashboard-shell .el-textarea__inner,
+.dashboard-shell .el-segmented,
+.dashboard-shell .el-slider {
+    font-family: var(--font-ui);
+}
+
+.dashboard-shell .el-button {
+    letter-spacing: 0.03em;
+}
+
+.dashboard-shell .el-button.is-text:not(.is-disabled):hover,
+.dashboard-shell .el-button.is-text:not(.is-disabled):focus {
+    background: rgba(44, 167, 255, 0.14);
+}
+
+.dashboard-shell .el-input__wrapper,
+.dashboard-shell .el-select__wrapper,
+.dashboard-shell .el-textarea__inner {
+    background: linear-gradient(
+        180deg,
+        rgba(7, 22, 45, 0.94),
+        rgba(4, 15, 31, 0.92)
+    );
+    border: 1px solid rgba(91, 202, 255, 0.26);
+    box-shadow:
+        inset 0 0 18px rgba(34, 121, 226, 0.1),
+        0 0 0 0 rgba(39, 200, 255, 0);
+}
+
+.dashboard-shell .el-select__wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-shell .el-select__wrapper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(89, 218, 255, 0.13),
+            transparent 18%,
+            transparent 82%,
+            rgba(89, 218, 255, 0.1)
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 17px,
+            rgba(95, 210, 255, 0.05) 17px 18px
+        );
+    opacity: 0.78;
+}
+
+.dashboard-shell .el-input__wrapper.is-focus,
+.dashboard-shell .el-select__wrapper.is-focused,
+.dashboard-shell .el-textarea__inner:focus {
+    border-color: rgba(112, 226, 255, 0.62);
+    box-shadow:
+        inset 0 0 20px rgba(34, 121, 226, 0.14),
+        0 0 18px rgba(39, 200, 255, 0.14);
+}
+
+.dashboard-shell .el-textarea__inner {
+    color: var(--hud-text);
+}
+
+.dashboard-shell .el-select__placeholder,
+.dashboard-shell .el-select__selected-item {
+    position: relative;
+    z-index: 1;
+}
+
+.dashboard-shell .el-select__placeholder {
+    color: rgba(168, 197, 223, 0.68);
+}
+
+.dashboard-shell .el-select__selected-item {
+    color: #eafaff;
+    font-weight: 700;
+}
+
+.dashboard-shell .el-select .el-tag {
+    height: 18px;
+    max-width: 112px;
+    border-radius: 6px;
+    border: 1px solid rgba(84, 214, 255, 0.38);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(30, 142, 255, 0.28),
+            rgba(13, 66, 135, 0.34)
+        ),
+        rgba(5, 20, 40, 0.82);
+    color: #eafaff;
+    box-shadow:
+        inset 0 0 12px rgba(99, 219, 255, 0.1),
+        0 0 10px rgba(39, 200, 255, 0.08);
+}
+
+.dashboard-shell .el-select .el-tag__content {
+    max-width: 86px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dashboard-shell .el-select .el-tag__close {
+    color: #b7f1ff;
+    background: rgba(7, 24, 48, 0.78);
+}
+
+.dashboard-shell .el-popper.is-light,
+.dashboard-select-popper.el-popper.is-light {
+    color: var(--hud-text);
+    background: rgba(4, 16, 32, 0.96);
+    border: 1px solid rgba(91, 202, 255, 0.3);
+    box-shadow:
+        0 18px 38px rgba(0, 0, 0, 0.46),
+        0 0 24px rgba(39, 151, 255, 0.16);
+    backdrop-filter: blur(18px);
+    overflow: hidden;
+}
+
+.dashboard-select-popper.el-popper.is-light {
+    padding: 6px;
+    border-radius: 12px;
+    background:
+        linear-gradient(180deg, rgba(9, 30, 58, 0.98), rgba(3, 13, 29, 0.98)),
+        rgba(4, 16, 32, 0.96);
+    box-shadow:
+        inset 0 0 24px rgba(32, 125, 225, 0.12),
+        0 18px 38px rgba(0, 0, 0, 0.5),
+        0 0 28px rgba(39, 151, 255, 0.2);
+}
+
+.dashboard-select-popper.el-popper.is-light::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(96, 214, 255, 0.18) 0%,
+            transparent 12%,
+            transparent 88%,
+            rgba(96, 214, 255, 0.18) 100%
+        ),
+        repeating-linear-gradient(
+            0deg,
+            transparent 0 21px,
+            rgba(96, 214, 255, 0.05) 21px 22px
+        );
+    opacity: 0.72;
+}
+
+.dashboard-shell .el-popper.is-light .el-popper__arrow::before,
+.dashboard-select-popper.el-popper.is-light .el-popper__arrow::before {
+    background: rgba(4, 16, 32, 0.96);
+    border-color: rgba(91, 202, 255, 0.3);
+}
+
+.dashboard-select-popper .el-select-dropdown__item {
+    --dashboard-option-color: #b9d9ee;
+    --dashboard-option-border: transparent;
+    --dashboard-option-bg: transparent;
+    --dashboard-option-shadow: none;
+    position: relative;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    height: 26px;
+    line-height: 1;
+    margin: 2px 0;
+    padding: 0 30px 0 10px;
+    border: 1px solid var(--dashboard-option-border) !important;
+    border-radius: 8px;
+    background: var(--dashboard-option-bg) !important;
+    color: var(--dashboard-option-color) !important;
+    font-size: 12px;
+    font-weight: 500 !important;
+    letter-spacing: 0.03em;
+    box-shadow: var(--dashboard-option-shadow) !important;
+    transition:
+        border-color 0.18s ease,
+        background 0.18s ease,
+        color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.dashboard-select-popper .el-select-dropdown__item.is-hovering,
+.dashboard-select-popper .el-select-dropdown__item:hover {
+    --dashboard-option-color: #f0fbff;
+    --dashboard-option-border: rgba(84, 214, 255, 0.28);
+    --dashboard-option-bg:
+        linear-gradient(
+            90deg,
+            rgba(39, 200, 255, 0.14),
+            rgba(32, 112, 218, 0.08)
+        ),
+        rgba(7, 25, 49, 0.86);
+    --dashboard-option-shadow: inset 0 0 14px rgba(39, 200, 255, 0.06);
+}
+
+.dashboard-select-popper .el-select-dropdown__item.is-selected {
+    --dashboard-option-color: #f7fdff;
+    --dashboard-option-border: rgba(84, 214, 255, 0.34);
+    --dashboard-option-bg:
+        linear-gradient(
+            90deg,
+            rgba(39, 200, 255, 0.16),
+            rgba(18, 108, 212, 0.12)
+        ),
+        rgba(8, 32, 62, 0.92);
+    --dashboard-option-shadow:
+        inset 0 0 15px rgba(39, 200, 255, 0.08),
+        0 0 8px rgba(39, 200, 255, 0.06);
+}
+
+.dashboard-select-popper .el-select-dropdown__item.is-selected::after {
+    right: 10px;
+    color: #72e6ff;
+    display: none;
+    font-weight: 900;
+}
+
+.dashboard-select-popper--multi .el-select-dropdown__item {
+    padding-left: 34px;
+}
+
+.dashboard-select-popper--single .el-select-dropdown__item,
+.dashboard-select-popper--multi .el-select-dropdown__item {
+    background-color: transparent !important;
+}
+
+.dashboard-select-popper--single .el-select-dropdown__item::before {
+    content: none !important;
+    display: none !important;
+}
+
+.dashboard-select-popper--multi .el-select-dropdown__item::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    width: 13px;
+    height: 13px;
+    border-radius: 3px;
+    border: 1px solid rgba(103, 202, 255, 0.46);
+    background: linear-gradient(
+        180deg,
+        rgba(7, 25, 49, 0.94),
+        rgba(5, 17, 35, 0.88)
+    );
+    box-shadow:
+        inset 0 0 8px rgba(39, 200, 255, 0.08),
+        0 0 8px rgba(39, 200, 255, 0.06);
+    transform: translateY(-50%);
+}
+
+.dashboard-select-popper--multi .el-select-dropdown__item.is-selected::before {
+    border-color: rgba(114, 230, 255, 0.9);
+    background: linear-gradient(
+        180deg,
+        rgba(39, 200, 255, 0.82),
+        rgba(16, 105, 214, 0.74)
+    );
+    box-shadow:
+        inset 0 0 8px rgba(255, 255, 255, 0.18),
+        0 0 10px rgba(39, 200, 255, 0.28);
+}
+
+.dashboard-select-popper--multi .el-select-dropdown__item.is-selected::after {
+    content: "";
+    display: block;
+    left: 11px;
+    right: auto;
+    top: calc(50% + 0.5px);
+    width: 4px;
+    height: 8px;
+    border: solid #f6fdff;
+    border-width: 0 2px 2px 0;
+    transform: translate(-50%, -50%) rotate(45deg);
+    transform-origin: center;
+}
+
+.dashboard-select-popper .el-select-dropdown__item span {
+    position: relative;
+    z-index: 1;
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-select-popper .el-select-dropdown__list {
+    padding: 2px;
+}
+
+.dashboard-select-popper .el-select-dropdown__empty {
+    color: rgba(168, 197, 223, 0.72);
+    font-size: 12px;
+}
+
+.dashboard-select-popper .el-scrollbar__bar.is-vertical {
+    right: 1px;
+}
+
+.dashboard-select-popper .el-scrollbar__thumb {
+    background: rgba(74, 202, 255, 0.34);
+}
+
+.dashboard-shell .el-segmented {
+    --el-segmented-bg-color: rgba(5, 17, 36, 0.82);
+    --el-segmented-item-selected-bg-color: rgba(33, 147, 255, 0.44);
+    --el-segmented-item-selected-color: #f1fbff;
+    --el-segmented-item-hover-bg-color: rgba(44, 167, 255, 0.12);
+    --el-segmented-item-hover-color: #dff8ff;
+    border: 1px solid rgba(91, 202, 255, 0.28);
+    box-shadow: inset 0 0 18px rgba(26, 92, 163, 0.14);
+}
+
+.dashboard-shell .el-switch {
+    --el-switch-on-color: #27c8ff;
+    --el-switch-off-color: rgba(86, 126, 160, 0.42);
+}
+
+.dashboard-shell .el-slider {
+    --el-slider-main-bg-color: #27c8ff;
+    --el-slider-runway-bg-color: rgba(77, 135, 174, 0.28);
+    --el-slider-stop-bg-color: rgba(220, 239, 255, 0.55);
+    --el-slider-button-size: 14px;
+}

@@ -4,58 +4,46 @@
             <div class="bookmark-header">
                 <div class="bookmark-header-content">
                     <div class="quick-panel__title bookmark-title-row">
-                        <span
+                        <el-icon
                             class="quick-panel__title-icon"
                             aria-hidden="true"
                         >
-                            <svg viewBox="0 0 24 24">
-                                <path
-                                    d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1zm1 2v12.56l5-2.86 5 2.86V5z"
-                                />
-                            </svg>
-                        </span>
+                            <CollectionTag />
+                        </el-icon>
                         <div class="quick-panel__title-text">
                             <h2 class="hud-card-title">视角收藏</h2>
                         </div>
                     </div>
                 </div>
-                <button
+                <el-button
                     class="bookmark-close"
+                    text
+                    circle
                     title="关闭收藏面板"
                     @click="$emit('close')"
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
+                    <el-icon><Close /></el-icon>
+                </el-button>
             </div>
 
             <div class="bookmark-creator">
-                <input
+                <el-input
                     v-model="bookmarkName"
                     class="bookmark-input"
-                    type="text"
                     placeholder="书签名称，例如：长江流域大坝总览"
+                    size="small"
+                    clearable
                     @keyup.enter="saveBookmark(globalVar.viewer)"
                 />
-                <button
+                <el-button
                     class="bookmark-save"
-                    :disabled="isSaving || !globalVar.viewer"
+                    type="primary"
+                    :loading="isSaving"
+                    :disabled="!globalVar.viewer"
                     @click="saveBookmark(globalVar.viewer)"
                 >
                     {{ isSaving ? "保存中..." : "保存当前" }}
-                </button>
+                </el-button>
             </div>
 
             <div class="bookmark-list">
@@ -84,20 +72,24 @@
                         </div>
                     </div>
                     <div class="bookmark-actions">
-                        <button
+                        <el-button
                             class="bookmark-btn primary"
+                            size="small"
+                            type="primary"
                             :disabled="isApplying"
                             @click="applyBookmark(bookmark, globalVar.viewer)"
                         >
                             恢复
-                        </button>
-                        <button
+                        </el-button>
+                        <el-button
                             class="bookmark-btn ghost"
+                            size="small"
+                            text
                             :disabled="isApplying"
                             @click="deleteBookmark(bookmark.id)"
                         >
                             删除
-                        </button>
+                        </el-button>
                     </div>
                 </div>
             </div>
@@ -106,6 +98,7 @@
 </template>
 
 <script setup>
+import { Close, CollectionTag } from "@element-plus/icons-vue";
 import {
     bookmarkManager,
     formatDate,

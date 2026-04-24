@@ -2,180 +2,156 @@
     <section class="control-panel-actions hud-card">
         <div class="quick-panel__header">
             <div class="quick-panel__title">
-                <span class="quick-panel__title-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24">
-                        <path
-                            d="M4 7h9v2H4V7zm0 8h15v2H4v-2zm11-9h5v4h-5V6zM8 14h5v4H8v-4z"
-                        />
-                    </svg>
-                </span>
+                <el-icon class="quick-panel__title-icon" aria-hidden="true">
+                    <Operation />
+                </el-icon>
                 <div class="quick-panel__title-text">
                     <h2 class="hud-card-title">快速操作</h2>
                 </div>
             </div>
 
-            <div class="type-switch" role="tablist" aria-label="数据类型切换">
-                <button
-                    type="button"
-                    class="type-switch__btn"
-                    :class="{ active: dataType === 'barrier' }"
-                    @click="setDataType('barrier')"
-                >
-                    大坝
-                </button>
-                <button
-                    type="button"
-                    class="type-switch__btn"
-                    :class="{ active: dataType === 'reservoir' }"
-                    @click="setDataType('reservoir')"
-                >
-                    水库
-                </button>
-            </div>
+            <el-segmented
+                class="type-switch"
+                :model-value="dataType"
+                :options="dataTypeOptions"
+                size="small"
+                aria-label="数据类型切换"
+                @change="setDataType"
+            />
         </div>
 
         <div class="quick-panel__grid">
-            <button
+            <el-button
                 type="button"
                 class="quick-action"
+                text
                 title="重新加载实体"
                 @click="reloadAll"
             >
                 <span class="quick-action__icon">
-                    <svg viewBox="0 0 24 24">
-                        <path
-                            d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
-                        />
-                    </svg>
+                    <el-icon><Refresh /></el-icon>
                 </span>
                 <span class="quick-action__label">重载实体</span>
-            </button>
+            </el-button>
 
-            <button
+            <el-button
                 type="button"
                 class="quick-action"
+                text
                 title="重置视角"
                 @click="resetView"
             >
                 <span class="quick-action__icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-                    </svg>
+                    <el-icon><House /></el-icon>
                 </span>
                 <span class="quick-action__label">主页视角</span>
-            </button>
+            </el-button>
 
             <div ref="baseMapControl" class="quick-action-wrap">
-                <button
-                    type="button"
-                    class="quick-action"
-                    :title="`切换底图(当前：${currentBaseMapLabel})`"
-                    @click="toggleBaseMapPanel"
+                <el-popover
+                    v-model:visible="baseMapBoxShow"
+                    popper-class="quick-popover quick-popover--basemap"
+                    placement="bottom"
+                    trigger="click"
+                    :width="152"
                 >
-                    <span class="quick-action__icon">
-                        <svg viewBox="0 0 24 24">
-                            <path
-                                d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20V6.5zm2 1.34v9.32l3-1.25V6.59L5 7.84zm5-.06v9.32l4 1.67V9.45l-4-1.67zm6 1.67v9.32l3-1.25V8.2l-3 1.25z"
-                            />
-                        </svg>
-                    </span>
-                    <span class="quick-action__label">底图切换</span>
-                </button>
-
-                <div
-                    v-if="baseMapBoxShow"
-                    class="quick-popover quick-popover--basemap"
-                >
-                    <button
+                    <template #reference>
+                        <el-button
+                            type="button"
+                            class="quick-action"
+                            text
+                            :title="`切换底图（当前：${currentBaseMapLabel}）`"
+                        >
+                            <span class="quick-action__icon">
+                                <el-icon><MapLocation /></el-icon>
+                            </span>
+                            <span class="quick-action__label">底图切换</span>
+                        </el-button>
+                    </template>
+                    <el-button
                         v-for="item in baseMapOptions"
                         :key="item.type"
-                        type="button"
                         class="quick-popover__option"
                         :class="[
                             { active: currentBaseMapType === item.type },
                             getBaseMapOptionClass(item.type),
                         ]"
+                        text
                         @click="switchBaseMap(item.type)"
                     >
                         {{ item.label }}
-                    </button>
-                </div>
+                    </el-button>
+                </el-popover>
             </div>
 
             <div ref="visibilityControlRef" class="quick-action-wrap">
-                <button
-                    type="button"
-                    class="quick-action"
-                    :class="{ active: visible }"
-                    title="控制图层显隐"
-                    @click="toggleVisibilityOptions"
+                <el-popover
+                    v-model:visible="visibilityOptionsOpen"
+                    popper-class="quick-popover quick-popover--visibility"
+                    placement="bottom"
+                    trigger="click"
+                    :width="132"
                 >
-                    <span class="quick-action__icon">
-                        <svg viewBox="0 0 24 24">
-                            <path
-                                d="M12 5c-5.5 0-9.5 4.8-10.5 6.1a1.4 1.4 0 0 0 0 1.8C2.5 14.2 6.5 19 12 19s9.5-4.8 10.5-6.1a1.4 1.4 0 0 0 0-1.8C21.5 9.8 17.5 5 12 5zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-6.2A2.2 2.2 0 1 0 12 14.2 2.2 2.2 0 0 0 12 9.8z"
-                            />
-                        </svg>
-                    </span>
-                    <span class="quick-action__label">图层显隐</span>
-                </button>
-
-                <div
-                    v-if="visibilityOptionsOpen"
-                    class="quick-popover quick-popover--visibility"
-                >
-                    <label class="quick-switch">
+                    <template #reference>
+                        <el-button
+                            type="button"
+                            class="quick-action"
+                            :class="{ active: visible }"
+                            text
+                            title="控制图层显隐"
+                        >
+                            <span class="quick-action__icon">
+                                <el-icon><View /></el-icon>
+                            </span>
+                            <span class="quick-action__label">图层显隐</span>
+                        </el-button>
+                    </template>
+                    <div class="quick-switch">
                         <span>大坝</span>
-                        <input
-                            type="checkbox"
-                            :checked="barrierVisible"
+                        <el-switch
+                            :model-value="barrierVisible"
+                            size="small"
                             @change="toggleBarrierVisible"
                         />
-                    </label>
-                    <label class="quick-switch">
+                    </div>
+                    <div class="quick-switch">
                         <span>水库</span>
-                        <input
-                            type="checkbox"
-                            :checked="reservoirVisible"
+                        <el-switch
+                            :model-value="reservoirVisible"
+                            size="small"
                             @change="toggleReservoirVisible"
                         />
-                    </label>
-                </div>
+                    </div>
+                </el-popover>
             </div>
 
-            <button
+            <el-button
                 type="button"
                 class="quick-action"
                 :class="{ active: clusterEnabled }"
+                text
                 title="点聚合开关"
                 @click="toggleClusterEnabled"
             >
                 <span class="quick-action__icon">
-                    <svg viewBox="0 0 24 24">
-                        <path
-                            d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm-7.5 4c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5zm15 0c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5zm-7.5-6.5c-.83 0-1.5-.67-1.5-1.5S11.17 4 12 4s1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0 15c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"
-                        />
-                    </svg>
+                    <el-icon><Grid /></el-icon>
                 </span>
                 <span class="quick-action__label">点聚合</span>
-            </button>
+            </el-button>
 
-            <button
+            <el-button
                 type="button"
                 class="quick-action"
                 :class="{ active: showTimeline }"
+                text
                 title="显示或隐藏时间轴"
                 @click="$emit('toggle-timeline')"
             >
                 <span class="quick-action__icon">
-                    <svg viewBox="0 0 24 24">
-                        <path
-                            d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L11 13V7h1.5v5.25l4.5 2.67-1.26 2.08z"
-                        />
-                    </svg>
+                    <el-icon><Clock /></el-icon>
                 </span>
                 <span class="quick-action__label">时间轴</span>
-            </button>
+            </el-button>
         </div>
     </section>
 </template>
@@ -183,6 +159,15 @@
 <script setup>
 import * as Cesium from "cesium";
 import { computed, onMounted, onUnmounted, ref } from "vue";
+import {
+    Clock,
+    Grid,
+    House,
+    MapLocation,
+    Operation,
+    Refresh,
+    View,
+} from "@element-plus/icons-vue";
 import { useDashboard } from "../hooks/dashboard.js";
 import {
     clearAllEntities,
@@ -213,6 +198,11 @@ const props = defineProps({
 defineEmits(["toggle-timeline"]);
 
 const { dataType, setDataType } = useDashboard();
+
+const dataTypeOptions = [
+    { label: "大坝", value: "barrier" },
+    { label: "水库", value: "reservoir" },
+];
 
 const visible = ref(true);
 const visibilityOptionsOpen = ref(false);
@@ -287,10 +277,6 @@ function resetView() {
     });
 }
 
-function toggleVisibilityOptions() {
-    visibilityOptionsOpen.value = !visibilityOptionsOpen.value;
-}
-
 function toggleBarrierVisible() {
     barrierVisible.value = !barrierVisible.value;
     applyBarrierVisible(barrierVisible.value);
@@ -301,10 +287,6 @@ function toggleReservoirVisible() {
     reservoirVisible.value = !reservoirVisible.value;
     applyReservoirVisible(reservoirVisible.value);
     updateGlobalVisibleState();
-}
-
-function toggleBaseMapPanel() {
-    baseMapBoxShow.value = !baseMapBoxShow.value;
 }
 
 async function switchBaseMap(type) {
