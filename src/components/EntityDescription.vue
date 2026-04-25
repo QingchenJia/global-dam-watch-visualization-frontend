@@ -2,7 +2,10 @@
     <transition name="entity-panel-slide">
         <aside v-if="panelVisible" class="entity-description-panel">
             <div class="entity-panel-header">
-                <div>
+                <div class="entity-panel-title-row">
+                    <el-icon class="entity-panel-title-icon" aria-hidden="true">
+                        <Memo />
+                    </el-icon>
                     <h3 class="entity-panel-title">
                         {{ compareMode ? "对比视图" : "实体详情" }}
                     </h3>
@@ -123,6 +126,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, toRaw } from "vue";
 import axios from "axios";
+import { Memo } from "@element-plus/icons-vue";
 import { API_ENDPOINT } from "../configs/api.js";
 import { FIELD_MAP } from "../configs/field.js";
 

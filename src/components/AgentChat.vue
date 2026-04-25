@@ -1,6 +1,5 @@
 <template>
     <div id="agent-chat-container" class="agent-chat-container">
-        <!-- 头部 -->
         <div class="agent-header">
             <div class="agent-header-left">
                 <span class="quick-panel__title-icon" aria-hidden="true">
@@ -24,14 +23,12 @@
             </div>
         </div>
 
-        <!-- 消息区 -->
         <div class="agent-messages" ref="messagesContainer">
             <div
                 v-for="(msg, index) in messages"
                 :key="index"
                 :class="['message-row', msg.sender]"
             >
-                <!-- 智能体消息头像 -->
                 <div
                     v-if="msg.sender === 'agent'"
                     class="msg-avatar agent-msg-avatar"
@@ -49,7 +46,6 @@
                         { loading: msg.loading },
                     ]"
                 >
-                    <!-- 打字动画 -->
                     <template v-if="msg.loading">
                         <div class="typing-indicator">
                             <span></span><span></span><span></span>
@@ -127,7 +123,6 @@
                     ></div>
                 </div>
 
-                <!-- 用户消息头像 -->
                 <div
                     v-if="msg.sender === 'user'"
                     class="msg-avatar user-msg-avatar"
@@ -137,13 +132,12 @@
             </div>
         </div>
 
-        <!-- 输入区 -->
         <div class="agent-input-area">
             <textarea
                 v-model="inputText"
                 @keydown.enter.exact.prevent="handleSendMessage"
                 @input="adjustInputHeight"
-                placeholder="向 GIS Agent 发送指令...(Shift+Enter 换行)"
+                placeholder="向 GIS Agent 发送指令...（Shift+Enter 换行）"
                 :disabled="loading"
                 ref="inputInput"
             ></textarea>
@@ -277,7 +271,7 @@ const damOnlyTags = ["大坝类型", "大坝长度", "大坝高度"];
 const reservoirOnlyTags = ["库容", "表面积", "水库深度"];
 const allPropertyTags = [...commonTags, ...damOnlyTags, ...reservoirOnlyTags];
 const WELCOME_TEXT =
-    "我是您的个人 GIS 助手(Hybrid Router 架构)，可直接点击下方标签快速组合输入：";
+    "我是您的 GIS 助手（Hybrid Router 架构），可直接点击下方标签快速组合输入：";
 const WAKE_HINT_TEXT = "如有需要，可继续通过标签补充条件。";
 const INPUT_MAX_HEIGHT = 120;
 
@@ -315,8 +309,6 @@ function adjustInputHeight() {
 }
 
 function buildFormattedPrompt() {
-    // 根据当前标签组合输出结构化提示词
-    // 保证输入格式稳定
     if (
         !selectedTask.value &&
         !selectedType.value &&
@@ -347,7 +339,7 @@ function buildFormattedPrompt() {
         return lines.join("\n");
     }
 
-    return ["- **任务**：", `- **类型**：${selectedType.value || ""}`].join(
+    return [`- **任务**：${selectedTask.value}`, `- **类型**：${selectedType.value || ""}`].join(
         "\n",
     );
 }
@@ -398,15 +390,15 @@ function handleSelectPropertyTag(tag) {
         return;
     }
 
-    if (isPropertyTagDisabled(tag)) return;
+    if (isPropertyTagDisabled(tag)) {
+        return;
+    }
 
     selectedPropertyTags.value = [...selectedPropertyTags.value, tag];
     syncInputFromSelections();
 }
 
 function isPropertyTagDisabled(tag) {
-    // 属性标签是否可选取决于任务类型与实体类型
-    // 避免无效筛选条件
     if (selectedPropertyTags.value.includes(tag)) {
         return false;
     }
@@ -423,11 +415,11 @@ function isPropertyTagDisabled(tag) {
         return true;
     }
 
-    if (selectedTask.value === "筛选" && selectedType.value === "大坝") {
+    if (selectedType.value === "大坝") {
         return reservoirOnlyTags.includes(tag);
     }
 
-    if (selectedTask.value === "筛选" && selectedType.value === "水库") {
+    if (selectedType.value === "水库") {
         return damOnlyTags.includes(tag);
     }
 
@@ -435,15 +427,11 @@ function isPropertyTagDisabled(tag) {
 }
 
 function addMessage(sender, content, isLoading = false, kind = "text") {
-    const formattedContent = formatMessageContent(content, isLoading);
-
     const msg = {
         sender,
-        content: formattedContent,
+        content: formatMessageContent(content, isLoading),
         loading: isLoading,
         kind,
-        // loading消息会带上id
-        // 便于后续原位更新
         id: isLoading ? "agent-loading-msg" : undefined,
     };
 
@@ -546,12 +534,10 @@ function shouldNotifySpeechError(errorCode) {
 
 function initSpeechRecognition() {
     speechInput = createSpeechInput({
-        // 设置语音识别语言为中文
         lang: "zh-CN",
         onStart: () => {
             isListening.value = true;
         },
-        // 每次拿到新转录结果时同步到输入框
         onResult: (text) => {
             appendSpeechText(text);
         },
@@ -560,7 +546,10 @@ function initSpeechRecognition() {
 
             const errorCode = getSpeechErrorCode(error);
             if (shouldNotifySpeechError(errorCode)) {
-                addMessage("agent", "语音输入未成功，请检查麦克风权限后重试。");
+                addMessage(
+                    "agent",
+                    "语音输入未成功，请检查麦克风权限后重试。",
+                );
             }
         },
         onEnd: () => {
@@ -572,10 +561,6 @@ function initSpeechRecognition() {
 }
 
 function handleToggleVoiceInput() {
-    // 不支持语音
-    // 实例未创建
-    // 正在加载时
-    // 不触发任何操作
     if (!isSpeechSupported.value || !speechInput || loading.value) {
         return;
     }
@@ -591,7 +576,7 @@ function handleToggleVoiceInput() {
 async function requestAgentChat(text) {
     await chatToAgent(text, {
         question: (intent) => {
-            addMessage("agent", `执行任务(${intent})...`, true);
+            addMessage("agent", `执行任务（${intent}）...`, true);
         },
         answer: (finalOutput) => {
             updateLoadingMessage(finalOutput);
@@ -635,9 +620,6 @@ watch(inputText, (value) => {
 });
 
 onMounted(() => {
-    // 先初始化语音
-    // 再展示欢迎语
-    // 最后注册Agent。
     initSpeechRecognition();
     handleCallAgent();
     defineGisAgent(globalVar.viewer);

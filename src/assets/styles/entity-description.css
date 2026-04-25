@@ -30,11 +30,36 @@
     gap: 12px;
 }
 
+.entity-panel-title-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.entity-panel-title-icon {
+    width: 1em;
+    height: 1em;
+    font-size: 24px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.entity-panel-title-icon svg {
+    width: 1em;
+    height: 1em;
+    fill: #73e2ff;
+    filter: drop-shadow(0 0 6px rgba(71, 203, 255, 0.4));
+}
+
 .entity-panel-title {
     margin: 0;
-    font-size: 22px;
+    font-size: 12px;
+    line-height: 1.05;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
 }
 
 .entity-panel-close {
@@ -54,12 +79,12 @@
 
 .entity-action-btn {
     flex: 1;
-    min-height: 40px;
+    min-height: 32px;
     border: 1px solid rgba(173, 206, 239, 0.24);
     background: rgba(19, 45, 70, 0.55);
     color: #dfefff;
     border-radius: 10px;
-    padding: 8px 12px;
+    padding: 5px 12px;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;

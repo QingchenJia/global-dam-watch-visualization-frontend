@@ -22,7 +22,6 @@ import { POSITION_PROMPT, FILTER_PROMPT } from "../configs/prompt.js";
 import { retrieveFilterContext } from "../knowledge/rag.js";
 import { rotateEarth, computeCenter } from "../utils/camera.js";
 
-// 定义不同任务职责的智能体执行器
 let GIS_AGENT = {
     router: null,
     position: null,
@@ -31,7 +30,6 @@ let GIS_AGENT = {
 };
 
 export const llmConfig = {
-    // 加载环境变量配置智能体模式
     agentMode: import.meta.env.VITE_AGENT_MODE,
     modelName: {
         cloud: import.meta.env.VITE_OPENAI_MODEL_NAME,
@@ -42,9 +40,6 @@ export const llmConfig = {
 
 let chatHistory = [];
 
-// 处理用户与智能体的对话交互
-// 判断用户输入意图并提供友好反馈
-// 针对性调用不同的智能体完成对应任务并反馈对话结果
 export async function chatToAgent(text, callbacks) {
     const { question, answer, handle } = callbacks;
 
@@ -54,72 +49,60 @@ export async function chatToAgent(text, callbacks) {
             chat_history: chatHistory,
         });
 
-        let resultOutput = "";
-        let executor = null;
-
-        // 通知对话窗口ui开始执行任务
         question(missionLabel(intent));
 
-        if (intent === "chat") {
-            executor = GIS_AGENT.chat;
-        } else {
-            executor = GIS_AGENT[intent].executor;
-        }
-
+        const executor = intent === "chat" ? GIS_AGENT.chat : GIS_AGENT[intent].executor;
         const agentInput = {
             input: text,
             chat_history: chatHistory,
         };
 
         if (intent === "filter") {
-            // 在调用条件筛选智能体前先检索相关上下文信息辅助生成SQL条件
             agentInput.retrieved_context = await retrieveFilterContext(text);
         }
 
         const result = await executor.invoke(agentInput);
 
-        if (intent === "chat" || !result.output) {
-            resultOutput =
-                typeof result === "string"
+        const resultOutput =
+            intent === "chat" || !result?.output
+                ? typeof result === "string"
                     ? result
-                    : result.content || result.output || "";
-        } else {
-            resultOutput = result.output;
-        }
+                    : result?.content || result?.output || ""
+                : result.output;
 
-        // 移除输出结果首尾多余的空白字符和换行符
-        const finalOutput = resultOutput.trim();
+        const finalOutput = String(resultOutput || "").trim();
 
-        // 更新聊天历史对话记录
         chatHistory.push(new HumanMessage(text));
         chatHistory.push(new AIMessage(finalOutput));
 
-        // 保留最新的10条对话记录
         if (chatHistory.length > 10) {
             chatHistory = chatHistory.slice(chatHistory.length - 10);
         }
 
-        // 通知对话窗口ui更新结果
         answer(finalOutput);
     } catch (e) {
-        console.error("消息处理出错：", e);
-        const errorMsg = e.message.includes("404") ? "服务未响应" : e.message;
+        console.error("消息处理出错:", e);
 
-        // 通知对话窗口ui发生错误
+        const rawMsg =
+            e?.response?.data?.error?.message ||
+            e?.response?.data?.message ||
+            e?.message ||
+            "未知错误";
+
+        const errorMsg = rawMsg.includes("404") ? "服务未响应" : rawMsg;
+
         handle(`执行出错:${errorMsg}`);
     }
 }
 
 function createProxyLlm(provider, model, temperature = 0) {
     return new ChatOpenAI({
-        // 使用后端代理后前端不再持有真实密钥
         apiKey: "proxy",
         configuration: {
             baseURL: API_ENDPOINT.llmProxy(provider),
         },
         model,
         temperature,
-        // 关闭用量统计提高云服务接口兼容
         streamUsage: false,
         streaming: false,
     });
@@ -128,24 +111,21 @@ function createProxyLlm(provider, model, temperature = 0) {
 function defineLlm() {
     const provider = llmConfig.agentMode;
     const llmModel = llmConfig.modelName[provider];
-    const llm = createProxyLlm(provider, llmModel);
 
-    const chatLlm = createProxyLlm("chat", llmConfig.modelName.chat);
+    const llm = createProxyLlm(provider, llmModel, 0);
+    const chatLlm = createProxyLlm("chat", llmConfig.modelName.chat, 0);
 
     return { llm, chatLlm };
 }
 
 export function defineGisAgent(viewer) {
-    // 定义agent模型与聊天模型
     const { llm, chatLlm } = defineLlm();
-    // 初始化定义智能体所需的工具
     const [searchAndFlyTool, flyToTool, sqlFilterTool] = defineTools(viewer);
 
     GIS_AGENT.router = {
         invoke: async ({ input }) => {
-            const text = input.trim();
+            const text = String(input || "").trim();
 
-            // 结构化提示词
             if (
                 text.includes("- **任务**：定位") &&
                 text.includes("- **类型**：") &&
@@ -162,15 +142,15 @@ export function defineGisAgent(viewer) {
                 return "filter";
             }
 
-            // 自然语言提示词
-            const positionRegex = /(定位|搜索|寻找|查一下|去)/i;
-            if (positionRegex.test(text)) {
+            if (/(定位|搜索|查找|飞到|跳转到)/i.test(text)) {
                 return "position";
             }
 
-            const filterRegex =
-                /(筛选|过滤|(列|查|找|显示)(出|一下)?(所有|全部)|统计|数量|多少|列表)/i;
-            if (filterRegex.test(text)) {
+            if (
+                /(筛选|过滤|只看|位于|属于|统计|数量|多少|列表|大于|小于|介于)/i.test(
+                    text,
+                )
+            ) {
                 return "filter";
             }
 
@@ -186,13 +166,12 @@ export function defineGisAgent(viewer) {
     ]);
 
     const positionAgent = createToolCallingAgent({
-        llm: llm,
+        llm,
         tools: [searchAndFlyTool, flyToTool],
         prompt: positionPrompt,
         streamRunnable: false,
     });
 
-    // 定义实体定位智能体执行器
     GIS_AGENT.position = {
         agent: positionAgent,
         executor: new AgentExecutor({
@@ -200,6 +179,7 @@ export function defineGisAgent(viewer) {
             tools: [searchAndFlyTool, flyToTool],
             handleParsingErrors: true,
             maxIterations: 4,
+            verbose: false,
         }),
     };
 
@@ -211,13 +191,12 @@ export function defineGisAgent(viewer) {
     ]);
 
     const filterAgent = createToolCallingAgent({
-        llm: llm,
+        llm,
         tools: [sqlFilterTool],
         prompt: filterPrompt,
         streamRunnable: false,
     });
 
-    // 定义条件筛选智能体执行器
     GIS_AGENT.filter = {
         agent: filterAgent,
         executor: new AgentExecutor({
@@ -225,13 +204,14 @@ export function defineGisAgent(viewer) {
             tools: [sqlFilterTool],
             handleParsingErrors: true,
             maxIterations: 4,
+            verbose: false,
         }),
     };
 
     const chatPrompt = ChatPromptTemplate.fromMessages([
         [
             "system",
-            "你是一个友好的GIS助手。请用简练专业的语言回答用户的普通闲聊问题。",
+            "你是一个友好的 GIS 助手。请用简洁、专业的语言回答用户的普通闲聊问题。",
         ],
         new MessagesPlaceholder("chat_history"),
         ["human", "{input}"],
@@ -240,24 +220,18 @@ export function defineGisAgent(viewer) {
     GIS_AGENT.chat = chatPrompt
         .pipe(chatLlm)
         .pipe(new StringOutputParser())
-        .pipe((text) => {
-            // 移除markdown符号仅保留文本和基本标点
-            return text ? text.replace(/[*#`_~>]/g, "") : "";
-        });
+        .pipe((text) => (text ? text.replace(/[*#`_~>]/g, "") : ""));
 }
 
 function defineTools(viewer) {
     const searchAndFlyTool = new DynamicStructuredTool({
         name: "search_and_fly",
         description:
-            "综合搜索定位工具。按名称搜索实体，优先查找本地，若无则查询远程数据库。找到后自动控制地图飞行定位。",
+            "综合搜索定位工具。按名称搜索实体，优先查找本地数据；若没有命中，再查询远程数据库。找到后自动控制地图飞行定位。",
         schema: z.object({
             keyword: z
                 .string()
-                .describe(
-                    "实体名称关键词(英文，尽可能简短如'Three Gorges'，'Miyun','Winnipeg')",
-                ),
-            // 限定实体数据类型
+                .describe("实体名称关键词，尽量使用简短英文，如 'Three Gorges'、'Miyun'、'Winnipeg'"),
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
         }),
         func: async ({ keyword, type }) => searchAndFly(viewer, keyword, type),
@@ -266,33 +240,35 @@ function defineTools(viewer) {
     const flyToTool = new DynamicStructuredTool({
         name: "fly_to",
         description:
-            "精确id定位工具。当上下文中已经知道实体的id时，必须优先使用此工具进行跳转，而不是重新搜索名称。",
+            "精确 ID 定位工具。当上下文中已经知道实体 id 时，必须优先使用该工具，而不是重新按名称搜索。",
         schema: z.object({
-            id: z.string().describe("实体唯一id(格式如'b-12345'或'r-67890')"),
+            id: z.string().describe("实体唯一 id，格式如 'b-12345' 或 'r-67890'"),
         }),
         func: async ({ id }) => {
             const entity = getAllEntities().getById(id);
 
             if (entity) {
                 viewer.selectedEntity = entity;
-                viewer.flyTo(toRaw(viewer.selectedEntity), { duration: 1.5 });
-                return `SUCCESS:已定位到实体"${entity.name}"(id：${id})，视角已自动调整。`;
-            } else {
-                return `ERROR:不存在当前实体(id：${id})。`;
+                await viewer.flyTo(toRaw(viewer.selectedEntity), {
+                    duration: 1.5,
+                });
+                return `SUCCESS:已定位到实体"${entity.name}"(id:${id})，视角已自动调整。`;
             }
+
+            return `ERROR:当前不存在该实体(id:${id})。`;
         },
     });
 
     const sqlFilterTool = new DynamicStructuredTool({
         name: "sql_filter",
         description:
-            "高级过滤工具。根据实体类型和SQL条件子句查询数据库并更新地图筛选结果。调用前必须参考retrieved_context生成condition。",
+            "高级过滤工具。根据实体类型和 SQL 条件子句查询数据库，并更新地图筛选结果。调用前必须参考 retrieved_context 生成 condition。",
         schema: z.object({
             type: z.enum(["barrier", "reservoir"]).describe("实体类型"),
             condition: z
                 .string()
                 .describe(
-                    "WHERE子句中的condition，不包含WHERE、SELECT、FROM、表名、排序或分页。",
+                    "WHERE 子句中的 condition，不包含 WHERE、SELECT、FROM、表名、排序或分页。",
                 ),
         }),
         func: async ({ type, condition }) => sqlFilter(viewer, type, condition),
@@ -302,79 +278,83 @@ function defineTools(viewer) {
 }
 
 async function searchAndFly(viewer, keyword, type) {
-    let entities;
-
-    switch (type) {
-        case "barrier":
-            entities = getEntitiesFromDataSource(type);
-            break;
-        case "reservoir":
-            entities = getEntitiesFromDataSource(type);
-            break;
+    const normalizedKeyword = String(keyword || "").trim();
+    if (!normalizedKeyword) {
+        return "ERROR:关键词为空，无法执行定位。";
     }
 
-    // 遍历本地实体列表查找名称模糊匹配
-    const localTarget = entities.find((e) => {
-        return e.name.includes(keyword);
-    });
+    const entities = getEntitiesFromDataSource(type);
+    const localTarget = entities.find((e) =>
+        String(e?.name || "").includes(normalizedKeyword),
+    );
 
     if (localTarget) {
         viewer.selectedEntity = localTarget;
-        viewer.flyTo(toRaw(viewer.selectedEntity), { duration: 1.5 });
-        return `SUCCESS:本地已找到实体"${localTarget.name}"(id：${localTarget.id})，视角已自动定位。`;
+        await viewer.flyTo(toRaw(viewer.selectedEntity), { duration: 1.5 });
+        return `SUCCESS:本地已找到实体"${localTarget.name}"(id:${localTarget.id})，视角已自动定位。`;
     }
 
     try {
         const url = API_ENDPOINT.position[type];
-        const res = await axios.post(url, keyword, {
+        const res = await axios.post(url, normalizedKeyword, {
             headers: { "Content-Type": "text/plain" },
         });
 
         if (res.data.code === 1 && res.data.data) {
             const item = res.data.data;
 
-            let entityId, entityName, entity;
+            let entityId = "";
+            let entityName = "";
 
             switch (type) {
                 case "barrier":
-                    entityId = "b-" + item.gdwId;
-                    entityName = item.dam_name || "Barrier #" + item.gdwId;
+                    entityId = `b-${item.gdwId}`;
+                    entityName = item.dam_name || `Barrier #${item.gdwId}`;
                     break;
                 case "reservoir":
-                    entityId = "r-" + item.gdwId;
-                    entityName = item.res_name || "Reservoir #" + item.gdwId;
+                    entityId = `r-${item.gdwId}`;
+                    entityName = item.res_name || `Reservoir #${item.gdwId}`;
                     break;
+                default:
+                    return `ERROR:未知实体类型:${type}。`;
             }
 
-            entity = entities.getById(entityId);
+            const entity = entities.getById(entityId);
 
             if (entity) {
                 viewer.selectedEntity = entity;
-                viewer.flyTo(toRaw(viewer.selectedEntity), { duration: 1.5 });
-                return `SUCCESS:远程数据库查找到"${entityName}"(id：${entityId})，已加载并自动定位。`;
-            } else {
-                return `ERROR:数据库查找到数据，但实体加载失败(id：${entityId})。`;
+                await viewer.flyTo(toRaw(viewer.selectedEntity), {
+                    duration: 1.5,
+                });
+                return `SUCCESS:远程数据库查询到"${entityName}"(id:${entityId})，已加载并自动定位。`;
             }
+
+            return `ERROR:数据库查到结果，但实体加载失败(id:${entityId})。`;
         }
 
-        return `ERROR:未找到名为"${keyword}"的${type}实体(本地与远程均无结果)。`;
+        return `ERROR:未找到名称为"${normalizedKeyword}"的${type}实体。`;
     } catch (error) {
-        return `ERROR:搜索过程出错：${error.message}`;
+        return `ERROR:搜索过程出错:${error.message}`;
     }
 }
 
 async function sqlFilter(viewer, type, condition) {
+    const normalizedCondition = String(condition || "").trim();
+    if (!normalizedCondition) {
+        return "ERROR:筛选条件为空，无法执行查询。";
+    }
+
     try {
         const url = API_ENDPOINT.filter[type];
         clearAllEntities(viewer);
 
-        const res = await axios.post(url, condition, {
+        const res = await axios.post(url, normalizedCondition, {
             headers: { "Content-Type": "text/plain" },
         });
 
         if (res.data.code === 1 && Array.isArray(res.data.data)) {
             const data = res.data.data;
-            // 符合查询条件的实体确实不存在
+
             if (data.length === 0) {
                 return "SUCCESS:查询成功，但未找到符合条件的实体。";
             }
@@ -388,15 +368,15 @@ async function sqlFilter(viewer, type, condition) {
                     console.warn(`未知实体类型:${type}`);
                 }
             });
-            // 调整地图相机视角适应所有实体
+
             await rotateEarth(viewer, computeCenter(getAllEntities()));
 
-            return `SUCCESS:查询成功！已筛选${data.length}个符合条件的${type}实体。`;
-        } else {
-            return `ERROR:查询失败：${res.data.message || "未知错误"}。`;
+            return `SUCCESS:查询成功，已筛选出 ${data.length} 个符合条件的${type}实体。`;
         }
+
+        return `ERROR:查询失败:${res.data.message || "未知错误"}。`;
     } catch (error) {
-        return `ERROR:查询出错：${error.message}`;
+        return `ERROR:查询出错:${error.message}`;
     }
 }
 
@@ -407,6 +387,8 @@ function missionLabel(intent) {
         case "filter":
             return "筛选";
         case "chat":
+            return "聊天";
+        default:
             return "聊天";
     }
 }
