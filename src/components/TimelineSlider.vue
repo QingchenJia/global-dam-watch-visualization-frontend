@@ -47,19 +47,23 @@
             <div class="timeline-controls__left">
                 <el-button
                     class="timeline-play-btn"
-                    circle
                     :title="isPlaying ? '暂停' : '播放'"
                     @click="togglePlay"
                 >
-                    <el-icon>
-                        <VideoPause v-if="isPlaying" />
-                        <VideoPlay v-else />
-                    </el-icon>
+                    <span
+                        v-if="isPlaying"
+                        class="timeline-play-icon timeline-play-icon--pause"
+                        aria-hidden="true"
+                    ></span>
+                    <span
+                        v-else
+                        class="timeline-play-icon timeline-play-icon--triangle"
+                        aria-hidden="true"
+                    ></span>
                 </el-button>
 
                 <el-button
                     class="timeline-restart-btn"
-                    circle
                     title="重置到起始年份"
                     @click="restart"
                 >
@@ -91,13 +95,7 @@
 
 <script setup>
 import { computed, onUnmounted, ref, watch } from "vue";
-import {
-    Clock,
-    Close,
-    RefreshRight,
-    VideoPause,
-    VideoPlay,
-} from "@element-plus/icons-vue";
+import { Clock, Close, RefreshRight } from "@element-plus/icons-vue";
 import { useDashboard } from "../hooks/dashboard.js";
 import {
     getBarrierDataSource,
