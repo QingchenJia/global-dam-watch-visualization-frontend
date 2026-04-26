@@ -1,7 +1,7 @@
 import { Document } from "@langchain/core/documents";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { FILTER_RAG_DOCUMENTS } from "./docs.js";
-import { HashEmbeddings } from "./embeddings.js";
+import { createProxyEmbeddings } from "./embeddings.js";
 
 let filterVectorStorePromise = null;
 
@@ -18,7 +18,7 @@ export function initFilterVectorStore() {
 
         filterVectorStorePromise = MemoryVectorStore.fromDocuments(
             documents,
-            new HashEmbeddings(),
+            createProxyEmbeddings(),
         );
     }
 

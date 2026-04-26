@@ -264,7 +264,7 @@ function expandFilterQuery(query) {
         hints.push("country China admin_unit near_city river basin longitude latitude");
     }
 
-    if (/建成|年份|年代|拆除|改造|year|built|completion|construction/i.test(input)) {
+    if (/建成|新建|修建|兴建|建造|建于|年份|年代|拆除|改造|以后|以前|之前|之后|year|built|completion|construction/i.test(input)) {
         hints.push("year_dam rem_year timeline built removed modified");
     }
 
@@ -354,7 +354,7 @@ function detectFilterTopics(query) {
         topics.add("location-coordinate");
     }
 
-    if (/建成|建成年份|年份|年代|year|built|completion|construction/i.test(input)) {
+    if (/建成|新建|修建|兴建|建造|建于|建成年份|年份|年代|以后|以前|之前|之后|year|built|completion|construction/i.test(input)) {
         topics.add("time-built");
     }
 
@@ -413,9 +413,13 @@ export async function retrieveFilterDocuments(
     const input = expandFilterQuery(query);
     const type = detectFilterType(query);
     const topics = detectFilterTopics(query);
+    const typeMultiplier = type ? 1 : 2;
+    const effectiveSchemaK = topics.size
+        ? Math.max(schemaK, topics.size * typeMultiplier)
+        : schemaK;
     const schemaRows = await vectorStore.similaritySearchWithScore(
         input,
-        schemaK,
+        effectiveSchemaK,
         (document) => {
             if (document.metadata.category !== "schema") {
                 return false;
