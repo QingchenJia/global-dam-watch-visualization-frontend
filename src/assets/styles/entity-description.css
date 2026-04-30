@@ -10,14 +10,15 @@
     padding: 16px;
     background: linear-gradient(
         180deg,
-        rgba(7, 22, 43, 0.9),
-        rgba(4, 13, 28, 0.86)
+        var(--hud-panel-glass-top),
+        var(--hud-panel-glass-bottom)
     );
     border-radius: 0;
     border: 1px solid var(--hud-border);
     box-shadow: var(--hud-shadow);
     color: var(--hud-text);
-    backdrop-filter: blur(18px);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     z-index: 1;
     pointer-events: auto;
     overflow: hidden;

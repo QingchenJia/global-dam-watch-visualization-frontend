@@ -11,12 +11,13 @@
     border-radius: var(--hud-radius-lg);
     background: linear-gradient(
         180deg,
-        rgba(9, 26, 52, 0.84),
-        rgba(4, 13, 28, 0.8)
+        var(--hud-panel-glass-top),
+        var(--hud-panel-glass-bottom)
     );
     border: 1px solid var(--hud-border);
     box-shadow: var(--hud-shadow);
-    backdrop-filter: blur(18px);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 .bookmark-header {

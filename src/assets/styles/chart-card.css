@@ -4,8 +4,12 @@
     border-radius: 20px;
     border: 1px solid rgba(78, 186, 255, 0.28);
     background:
-        linear-gradient(180deg, rgba(9, 26, 52, 0.88), rgba(4, 13, 28, 0.84)),
-        rgba(7, 22, 43, 0.86);
+        linear-gradient(
+            180deg,
+            var(--hud-panel-glass-top),
+            var(--hud-panel-glass-bottom)
+        ),
+        var(--hud-panel-glass-fill);
     box-shadow:
         inset 0 0 26px rgba(35, 132, 255, 0.1),
         0 0 24px rgba(18, 88, 196, 0.14);

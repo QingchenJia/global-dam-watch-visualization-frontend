@@ -7,13 +7,14 @@
     padding: 14px 20px;
     background: linear-gradient(
         180deg,
-        rgba(9, 26, 52, 0.84),
-        rgba(4, 13, 28, 0.82)
+        var(--hud-panel-glass-top),
+        var(--hud-panel-glass-bottom)
     );
     border: 1px solid var(--hud-border);
     border-radius: var(--hud-radius-lg);
     box-shadow: var(--hud-shadow-strong);
-    backdrop-filter: blur(18px);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     color: var(--hud-text);
     user-select: none;
 }

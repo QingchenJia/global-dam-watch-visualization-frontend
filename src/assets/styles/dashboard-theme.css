@@ -26,6 +26,9 @@
     --hud-grid-line: rgba(91, 201, 255, 0.06);
     --hud-radius: 18px;
     --hud-radius-lg: 22px;
+    --hud-panel-glass-top: rgba(9, 26, 52, 0.48);
+    --hud-panel-glass-bottom: rgba(4, 13, 28, 0.42);
+    --hud-panel-glass-fill: rgba(7, 22, 43, 0.38);
 }
 
 *,
@@ -56,13 +59,13 @@ select {
     position: relative;
     background: linear-gradient(
         180deg,
-        rgba(9, 26, 52, 0.84),
-        rgba(4, 13, 28, 0.8)
+        var(--hud-panel-glass-top),
+        var(--hud-panel-glass-bottom)
     );
     border: 1px solid var(--hud-border);
     box-shadow: var(--hud-shadow);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     border-radius: var(--hud-radius-lg);
     overflow: hidden;
     isolation: isolate;
@@ -81,10 +84,10 @@ select {
     background:
         linear-gradient(
             90deg,
-            rgba(86, 204, 255, 0.16) 0%,
+            rgba(86, 204, 255, 0.12) 0%,
             transparent 14%,
             transparent 86%,
-            rgba(86, 204, 255, 0.16) 100%
+            rgba(86, 204, 255, 0.12) 100%
         ),
         linear-gradient(
             0deg,
