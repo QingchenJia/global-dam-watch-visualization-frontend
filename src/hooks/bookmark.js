@@ -5,9 +5,11 @@ import {
     createBarrierFormState,
     createReservoirFormState,
 } from "./stats.js";
+import { FORM_FIELD } from "../configs/chart.js";
 import { captureCamera, flyCamera } from "../utils/camera.js";
 
 const STORAGE_KEY = "gdw-bookmarks";
+const FILTER_VALUE_KEY = "__filterValueKey";
 
 function loadBookmarks() {
     try {
@@ -38,6 +40,56 @@ function getFormDefaults(type) {
         default:
             return null;
     }
+}
+
+function normalizeOptionValue(fieldKey, value, index) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return value;
+    }
+
+    return {
+        ...value,
+        [FILTER_VALUE_KEY]: `${fieldKey}:${index}:${JSON.stringify(value)}`,
+    };
+}
+
+function stripFilterValueKey(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return value;
+    }
+
+    const { [FILTER_VALUE_KEY]: _filterValueKey, ...rest } = value;
+    return rest;
+}
+
+function getObjectSignature(value) {
+    const normalized = stripFilterValueKey(value);
+
+    return JSON.stringify(
+        Object.keys(normalized)
+            .sort()
+            .reduce((acc, key) => {
+                acc[key] = normalized[key];
+                return acc;
+            }, {}),
+    );
+}
+
+export function normalizeRestoredFormValue(type, key, value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return value;
+    }
+
+    const field = (FORM_FIELD[type] || []).find((item) => item.key === key);
+    const optionIndex = field?.options?.findIndex(
+        (option) => getObjectSignature(option.value) === getObjectSignature(value),
+    );
+
+    if (optionIndex === undefined || optionIndex < 0) {
+        return value;
+    }
+
+    return normalizeOptionValue(key, field.options[optionIndex].value, optionIndex);
 }
 
 export function bookmarkManager() {
@@ -72,7 +124,10 @@ export function bookmarkManager() {
         const target = form[type];
         Object.keys(defaults).forEach((key) => {
             const val = data[key];
-            target[key] = val !== undefined ? val : defaults[key];
+            target[key] =
+                val !== undefined
+                    ? normalizeRestoredFormValue(type, key, val)
+                    : defaults[key];
         });
     };
 
