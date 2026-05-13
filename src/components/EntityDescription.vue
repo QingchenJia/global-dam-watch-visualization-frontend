@@ -34,6 +34,15 @@
                 >
                     {{ compareMode ? "关闭对比" : "开启对比" }}
                 </button>
+                <button
+                    v-if="canCruiseReservoir"
+                    class="entity-action-btn cruise-toggle"
+                    :class="{ active: cruiseActive }"
+                    :disabled="!currentEntity"
+                    @click="toggleCruise"
+                >
+                    {{ cruiseActive ? "停止绕行" : "环湖绕行" }}
+                </button>
             </div>
 
             <div
@@ -129,6 +138,7 @@ import axios from "axios";
 import { Memo } from "@element-plus/icons-vue";
 import { API_ENDPOINT } from "../configs/api.js";
 import { FIELD_MAP } from "../configs/field.js";
+import * as cruise from "../utils/cruise.js";
 
 const globalVar = defineProps({
     viewer: {
@@ -139,6 +149,7 @@ const globalVar = defineProps({
 
 const focusing = ref(false);
 const compareMode = ref(false);
+const cruiseActive = ref(false);
 
 const currentEntity = ref(null);
 const nextEntity = ref(null);
@@ -151,6 +162,10 @@ let requestSeq = 0;
 
 const panelVisible = computed(() => {
     return Boolean(currentRecord.value);
+});
+
+const canCruiseReservoir = computed(() => {
+    return currentRecord.value?.type === "reservoir";
 });
 
 const compareFields = computed(() => {
@@ -283,6 +298,10 @@ async function onEntitySelected(entity) {
         return;
     }
 
+    if (currentEntity.value?.id && currentEntity.value.id !== entity.id) {
+        stopCruise();
+    }
+
     if (compareMode.value && currentRecord.value) {
         const nextType = entity.properties.dataType.getValue();
         const currentType = currentRecord.value.type;
@@ -331,12 +350,33 @@ async function onEntitySelected(entity) {
 }
 
 function closePanel() {
+    stopCruise();
     globalVar.viewer.selectedEntity = null;
     compareMode.value = false;
     currentEntity.value = null;
     nextEntity.value = null;
     currentRecord.value = null;
     nextRecord.value = null;
+}
+
+function stopCruise() {
+    cruise.stop(globalVar.viewer);
+    cruiseActive.value = false;
+}
+
+function toggleCruise() {
+    if (!currentEntity.value || !globalVar.viewer) {
+        return;
+    }
+
+    if (cruiseActive.value) {
+        stopCruise();
+        return;
+    }
+
+    const controller = cruise.start(globalVar.viewer, toRaw(currentEntity.value));
+
+    cruiseActive.value = Boolean(controller);
 }
 
 function toggleCompareMode() {
@@ -386,6 +426,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+    stopCruise();
     if (detachListener) {
         detachListener();
     }

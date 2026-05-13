@@ -273,6 +273,7 @@ const allPropertyTags = [...commonTags, ...damOnlyTags, ...reservoirOnlyTags];
 const WELCOME_TEXT =
     "我是您的 GIS 助手（Hybrid Router 架构），可直接点击下方标签快速组合输入：";
 const WAKE_HINT_TEXT = "如有需要，可继续通过标签补充条件。";
+const INPUT_MIN_HEIGHT = 32;
 const INPUT_MAX_HEIGHT = 120;
 
 const voiceButtonTitle = computed(() => {
@@ -302,7 +303,16 @@ function adjustInputHeight() {
     }
 
     textarea.style.height = "auto";
-    const nextHeight = Math.min(textarea.scrollHeight, INPUT_MAX_HEIGHT);
+    if (!textarea.value.trim()) {
+        textarea.style.height = `${INPUT_MIN_HEIGHT}px`;
+        textarea.style.overflowY = "hidden";
+        return;
+    }
+
+    const nextHeight = Math.min(
+        Math.max(textarea.scrollHeight, INPUT_MIN_HEIGHT),
+        INPUT_MAX_HEIGHT,
+    );
     textarea.style.height = `${nextHeight}px`;
     textarea.style.overflowY =
         textarea.scrollHeight > INPUT_MAX_HEIGHT ? "auto" : "hidden";

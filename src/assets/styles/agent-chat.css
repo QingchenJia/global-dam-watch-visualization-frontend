@@ -232,7 +232,7 @@
 
 .agent-input-area textarea {
     flex: 1;
-    padding: 7px 10px;
+    padding: 6px 10px;
     background: rgba(30, 40, 54, 0.8);
     border: 1px solid rgba(92, 197, 240, 0.15);
     color: #dde6f0;
@@ -240,10 +240,10 @@
     outline: none;
     font-size: 12px;
     font-family: inherit;
-    height: 40px;
-    min-height: 40px;
+    height: 32px;
+    min-height: 32px;
     max-height: 120px;
-    line-height: 1.5;
+    line-height: 18px;
     overflow-y: hidden;
     resize: none;
     scrollbar-width: thin;

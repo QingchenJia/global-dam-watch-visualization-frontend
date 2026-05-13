@@ -100,6 +100,20 @@
     );
 }
 
+.entity-action-btn.cruise-toggle.active {
+    border-color: rgba(115, 226, 255, 0.88);
+    background: linear-gradient(
+        135deg,
+        rgba(30, 114, 148, 0.88),
+        rgba(21, 78, 112, 0.92)
+    );
+}
+
+.entity-action-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
 .entity-single-wrapper,
 .entity-compare-wrapper {
     overflow: auto;
