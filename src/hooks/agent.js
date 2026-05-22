@@ -63,14 +63,7 @@ export async function chatToAgent(text, callbacks) {
 
         const result = await executor.invoke(agentInput);
 
-        const resultOutput =
-            intent === "chat" || !result?.output
-                ? typeof result === "string"
-                    ? result
-                    : result?.content || result?.output || ""
-                : result.output;
-
-        const finalOutput = String(resultOutput || "").trim();
+        const finalOutput = resolveAgentOutput(result, intent);
 
         chatHistory.push(new HumanMessage(text));
         chatHistory.push(new AIMessage(finalOutput));
@@ -93,6 +86,37 @@ export async function chatToAgent(text, callbacks) {
 
         handle(`执行出错:${errorMsg}`);
     }
+}
+
+function resolveAgentOutput(result, intent) {
+    const primaryOutput =
+        intent === "chat" || !result?.output
+            ? typeof result === "string"
+                ? result
+                : result?.content || result?.output || ""
+            : result.output;
+
+    const normalizedOutput = String(primaryOutput || "").trim();
+    if (normalizedOutput) {
+        return normalizedOutput;
+    }
+
+    return getLastToolObservation(result);
+}
+
+function getLastToolObservation(result) {
+    const steps = Array.isArray(result?.intermediateSteps)
+        ? result.intermediateSteps
+        : [];
+
+    for (let index = steps.length - 1; index >= 0; index -= 1) {
+        const observation = String(steps[index]?.observation || "").trim();
+        if (observation) {
+            return observation.replace(/^(SUCCESS|ERROR)\s*:\s*/i, "").trim();
+        }
+    }
+
+    return "";
 }
 
 function createProxyLlm(provider, model, temperature = 0) {
@@ -178,6 +202,7 @@ export function defineGisAgent(viewer) {
             agent: positionAgent,
             tools: [searchAndFlyTool, flyToTool],
             handleParsingErrors: true,
+            returnIntermediateSteps: true,
             maxIterations: 4,
             verbose: false,
         }),
@@ -203,6 +228,7 @@ export function defineGisAgent(viewer) {
             agent: filterAgent,
             tools: [sqlFilterTool],
             handleParsingErrors: true,
+            returnIntermediateSteps: true,
             maxIterations: 4,
             verbose: false,
         }),
