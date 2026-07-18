@@ -1,30 +1,134 @@
-# Global Dam Watch Visualization Frontend
+# 全球大坝与水库三维可视化前端
 
-基于 Vue 3、Vite 与 CesiumJS 构建的全球大坝/水库三维可视化前端。项目提供大坝与水库实体加载、地图筛选、统计图表、实体详情对比、时间轴过滤、智能体对话定位/筛选，以及水库环湖绕行动画等能力。
+基于 Vue 3、CesiumJS 和 Vite 构建的 Global Dam Watch（GDW）数据可视化前端。应用以三维地球为核心，将大坝点位、水库多边形、条件筛选、统计分析、实体详情、时间演进和 GIS 智能体整合在同一套 HUD 界面中。
 
-## 功能概览
+## 当前功能
 
-- 三维地球可视化：使用 CesiumJS 初始化全球视图，并加载大坝点实体与水库多边形实体。
-- 多底图切换：支持 ArcGIS World Imagery、USGS Imagery Only、Sentinel-2 Cloudless。
-- 数据筛选与同步：按实体类型、流域、用途、数据质量、建成年份、国家/地区及尺寸类字段筛选，并同步更新地图实体。
-- 统计分析：使用 ECharts 展示不同维度的占比图表，并支持图表 PNG 导出。
-- 实体详情：点击实体后展示属性详情，支持聚焦当前实体与同类型实体对比。
-- 水库环湖绕行：对水库实体生成边界巡航路线，使用 `public/models/Boat.glb` 显示小船模型并沿边缘绕行。
-- GIS Agent：基于 LangChain 工具调用实现自然语言定位、筛选与普通问答。
-- 语音输入：在浏览器支持 Web Speech API 时，可通过语音补充聊天输入。
-- 时间轴过滤：按建成年份控制实体显示范围。
-- 书签与位置信息：提供视角书签管理和鼠标/相机位置辅助信息。
+- **大坝与水库可视化**：分别以 Cesium 点实体和多边形实体加载，支持选择、定位、重载和独立显隐。
+- **多源影像底图**：支持 ArcGIS World Imagery、USGS Imagery Only 和 Sentinel-2 Cloudless 2024。
+- **点位聚合**：大坝数据源可按相机高度自动聚合，也可在快捷操作区手动开关。
+- **条件筛选与地图同步**：支持在大坝/水库之间切换，并按流域、用途、质量、年份、国家或地区及类型、尺寸等字段筛选。
+- **统计与导出**：通过 ECharts 展示 6 组占比图；可导出同步后的实体 CSV，以及逐图导出 PNG。
+- **实体详情与对比**：点击实体加载完整属性，可聚焦目标，并对比两个同类型实体。
+- **水库环湖绕行**：根据水库边界生成闭合巡航路线，驱动 `public/models/Boat.glb` 小船模型沿边界运动。
+- **建设历程回放**：按建成年份过滤当前类型实体，支持播放、暂停、重置及多档速度。
+- **视角书签**：保存筛选条件与相机位置；书签存放在浏览器 `localStorage` 的 `gdw-bookmarks` 项中。
+- **GIS 智能体**：使用规则路由区分定位、筛选和普通问答，再通过 LangChain 和 OpenAI-compatible 后端代理执行任务；筛选任务会结合本地字段知识进行 RAG 检索。
+- **语音输入**：在支持 Web Speech API 的浏览器中使用中文语音补充智能体输入。
+- **位置辅助信息**：实时显示鼠标经纬度、相机高度和视角等信息。
 
 ## 技术栈
 
-- Vue 3 + `<script setup>`
-- Vite 5
-- CesiumJS + vite-plugin-cesium
+- Vue 3.5 + `<script setup>`
+- Vite 5 + `@vitejs/plugin-vue` 6
+- CesiumJS + `vite-plugin-cesium`
 - Element Plus
-- ECharts
+- ECharts 6
 - Axios
-- LangChain、OpenAI-compatible LLM Proxy、Ollama/OpenAI 模型配置
-- Node.js 原生测试模块
+- LangChain 0.3、`@langchain/openai`
+- Node.js 原生测试运行器
+
+实际安装版本以 `package-lock.json` 为准。
+
+## 运行要求
+
+- Node.js `^20.19.0` 或 `>=22.12.0`（来自当前 `@vitejs/plugin-vue` 的运行要求）
+- npm
+- 支持 WebGL 的现代桌面浏览器
+- 运行在 `http://localhost:8100` 的配套后端
+- 能够访问 ArcGIS、USGS 或 EOX 的公网影像瓦片服务
+
+语音输入是可选能力，取决于浏览器的 Web Speech API 支持和麦克风权限。
+
+## 快速开始
+
+### 1. 安装依赖
+
+推荐按锁文件安装：
+
+```bash
+npm ci
+```
+
+需要更新依赖时可改用 `npm install`。
+
+### 2. 配置智能体
+
+在项目根目录创建或更新 `.env`：
+
+```env
+# 主 GIS Agent 使用的代理提供方：cloud 或 local
+VITE_AGENT_MODE=cloud
+
+# cloud/local 模式对应的模型名
+VITE_OPENAI_MODEL_NAME=
+VITE_OLLAMA_MODEL_NAME=
+
+# 普通问答和 RAG 向量化所用模型
+VITE_CHAT_MODEL_NAME=
+VITE_EMBEDDING_MODEL_NAME=
+
+# 可选，未设置时分别使用 8 和 10000
+VITE_EMBEDDING_BATCH_SIZE=8
+VITE_EMBEDDING_TIMEOUT_MS=10000
+```
+
+前端不会直连模型服务，也不需要保存模型 API Key。代码使用固定占位凭据 `proxy`，所有模型请求都交由后端代理鉴权和转发。不要将真实密钥写入 `VITE_*` 变量，因为 Vite 会把这些值打包到浏览器代码中。
+
+如果只使用地图、筛选和统计功能，可以不配置模型变量，但 GIS 智能体将不可用。
+
+### 3. 启动开发服务
+
+```bash
+npm run dev
+```
+
+Vite 默认会提供类似 `http://localhost:5173` 的访问地址，实际端口以终端输出为准。
+
+### 4. 构建与预览
+
+```bash
+npm run build
+npm run preview
+```
+
+构建产物生成在 `dist/`。
+
+## 后端依赖
+
+API 统一定义在 `src/configs/api.js`，当前后端基地址直接写为：
+
+```js
+const API_BASE_URL = "http://localhost:8100";
+```
+
+若后端地址不同，需要修改该常量后重新启动或构建前端。目前尚未通过环境变量配置 API 基地址。
+
+| 方法与路径                                           | 前端用途                                        |
+| ---------------------------------------------------- | ----------------------------------------------- |
+| `GET /barrier/location`                              | 加载大坝轻量点位                                |
+| `GET /reservoir/location`                            | 加载水库轻量多边形                              |
+| `POST /barrier/position`、`POST /reservoir/position` | 按名称搜索实体                                  |
+| `POST /barrier/filter`、`POST /reservoir/filter`     | 执行智能体生成的筛选条件                        |
+| `GET /barrier/{id}`、`GET /reservoir/{id}`           | 获取实体完整详情                                |
+| `POST /barrier/stats`、`POST /reservoir/stats`       | 获取筛选结果总量和图表数据                      |
+| `POST /barrier/sync`、`POST /reservoir/sync`         | 获取筛选实体并同步到地图                        |
+| `/api/llm/cloud` 或 `/api/llm/local`                 | GIS 定位/筛选所用的 OpenAI-compatible 代理基址  |
+| `/api/llm/chat`                                      | 普通问答所用的 OpenAI-compatible 代理基址       |
+| `/api/llm/rag`                                       | 字段知识向量化所用的 OpenAI-compatible 代理基址 |
+
+后端返回的数据结构必须与 `src/hooks/earth.js`、`src/hooks/stats.js` 和 `src/components/EntityDescription.vue` 中的解析逻辑一致。没有后端时，前端仍可启动，但实体加载、详情、筛选、统计和智能体功能无法正常工作。
+
+## 常用操作流程
+
+1. 在右侧快捷操作区选择“大坝”或“水库”。
+2. 在左侧条件筛选区设置条件。
+3. 点击顶部“查询统计”刷新总量和图表。
+4. 点击“地图同步”清空当前实体，并只加载当前类型的筛选结果。
+5. 同步成功后可导出 CSV；统计图加载后可导出 PNG。
+6. 点击地图实体查看详情；水库详情提供环湖绕行，同类型实体可进入对比模式。
+
+“查询统计”和“同步地图”是两个独立请求，修改筛选条件后不会自动请求后端。
 
 ## 目录结构
 
@@ -32,149 +136,53 @@
 .
 ├─ public/
 │  ├─ favicon.ico
-│  └─ models/
-│     └─ Boat.glb              # 水库环湖绕行小船模型
+│  └─ models/Boat.glb          # 环湖绕行小船模型
 ├─ src/
 │  ├─ assets/
-│  │  ├─ images/               # 底图缩略图、头像等静态图片
-│  │  └─ styles/               # 全局与组件样式
-│  ├─ components/              # Vue 展示组件
-│  │  ├─ CesiumViewer.vue      # Cesium Viewer 初始化与基础实体加载
-│  │  ├─ ControlPanel.vue      # 快捷操作、底图切换、图层显隐、聚合、时间轴入口
-│  │  ├─ FilterPanel.vue       # 筛选表单
-│  │  ├─ StatsPanel.vue        # 统计图表
-│  │  ├─ EntityDescription.vue # 实体详情、对比、环湖绕行入口
-│  │  ├─ AgentChat.vue         # 智能体聊天与语音输入
-│  │  └─ ...
-│  ├─ configs/                 # API、字段、图表、提示词配置
-│  ├─ hooks/                   # 地图数据、统计筛选、智能体、书签等组合逻辑
-│  ├─ knowledge/               # 筛选问答 RAG 文档、检索与向量化逻辑
-│  ├─ utils/                   # Cesium 相机、图层、聚合、巡航、语音等工具
-│  ├─ App.vue                  # 应用 HUD 布局
-│  └─ main.js                  # 应用入口与样式注册
-├─ tests/
-│  └─ cruise.test.mjs          # 水库巡航工具测试
+│  │  ├─ images/               # 底图缩略图和聊天头像
+│  │  └─ styles/               # 全局及组件样式
+│  ├─ components/              # HUD、地图、筛选、统计、详情等 Vue 组件
+│  ├─ configs/                 # API、字段、图表和提示词配置
+│  ├─ hooks/                   # 地图数据、筛选统计、智能体和书签状态
+│  ├─ knowledge/               # 筛选字段知识、向量存储与 RAG 检索
+│  ├─ utils/                   # 相机、图层、聚合、巡航和语音工具
+│  ├─ App.vue                  # 应用整体 HUD 布局
+│  └─ main.js                  # Vue 入口和全局样式注册
+├─ tests/cruise.test.mjs       # 水库巡航工具测试
+├─ resource/                   # 本地辅助资源，已被 Git 忽略
 ├─ index.html
 ├─ package.json
-├─ vite.config.js
-└─ README.md
+├─ package-lock.json
+└─ vite.config.js
 ```
 
-## 快速开始
+## 核心代码
 
-### 环境要求
-
-- Node.js 18 或更高版本
-- npm
-- 可访问的后端服务，默认地址为 `http://localhost:8100`
-
-### 安装依赖
-
-```bash
-npm install
-```
-
-### 配置环境变量
-
-项目会读取根目录 `.env` 中的 Vite 环境变量。当前代码使用的变量包括：
-
-```env
-VITE_AGENT_MODE=
-VITE_OPENAI_MODEL_NAME=
-VITE_OLLAMA_MODEL_NAME=
-VITE_CHAT_MODEL_NAME=
-VITE_EMBEDDING_MODEL_NAME=
-```
-
-`VITE_AGENT_MODE` 用于选择智能体主模型来源，通常对应 `cloud` 或 `local`。LLM 与 Embedding 请求会通过前端配置的后端代理接口转发，不建议在前端暴露真实模型服务密钥。
-
-代码还支持以下可选变量：
-
-```env
-VITE_EMBEDDING_BATCH_SIZE=
-VITE_EMBEDDING_TIMEOUT_MS=
-```
-
-### 启动开发服务
-
-```bash
-npm run dev
-```
-
-Vite 会在终端输出本地访问地址，通常为 `http://localhost:5173`。
-
-### 生产构建
-
-```bash
-npm run build
-```
-
-### 本地预览构建产物
-
-```bash
-npm run preview
-```
-
-## 后端接口依赖
-
-前端 API 入口集中在 `src/configs/api.js`，默认后端地址为：
-
-```js
-const API_BASE_URL = "http://localhost:8100";
-```
-
-主要接口分组如下：
-
-- `GET /barrier/location`、`GET /reservoir/location`：初始加载大坝/水库轻量位置数据。
-- `POST /barrier/position`、`POST /reservoir/position`：按名称定位实体。
-- `POST /barrier/filter`、`POST /reservoir/filter`：根据 SQL 条件筛选实体。
-- `GET /barrier/{id}`、`GET /reservoir/{id}`：查询实体详情。
-- `POST /barrier/stats`、`POST /reservoir/stats`：获取筛选统计数据。
-- `POST /barrier/sync`、`POST /reservoir/sync`：同步筛选结果到地图。
-- `/api/llm/{provider}`：LLM/Embedding 代理接口，供 LangChain 模型与 RAG 检索使用。
-
-如需切换后端地址，修改 `src/configs/api.js` 中的 `API_BASE_URL`。
-
-## 核心模块说明
-
-### 地图与实体
-
-`src/components/CesiumViewer.vue` 创建 Cesium Viewer，隐藏默认控件，设置初始中国上空俯视视角，并调用 `showLightBarrier` 与 `showLightReservoir` 加载实体。
-
-`src/hooks/earth.js` 负责维护大坝与水库 `CustomDataSource`，将后端返回的 GeoJSON-like 几何数据解析为 Cesium 点位或多边形实体，并提供清空、显隐、年份过滤等操作。
-
-### 仪表盘状态
-
-`src/hooks/dashboard.js` 聚合筛选表单、统计数据、地图同步、CSV/PNG 导出等状态。`FilterPanel`、`ControlPanel`、`StatsPanel` 通过该 hook 共享当前实体类型和筛选条件。
-
-### 智能体
-
-`src/hooks/agent.js` 定义 GIS Agent。它会先进行意图路由，再调用定位、精确跳转或 SQL 筛选工具。筛选类请求会通过 `src/knowledge/` 中的 RAG 检索补充字段上下文，降低自然语言字段映射错误。
-
-### 水库环湖绕行
-
-`src/utils/cruise.js` 提供水库巡航工具：
-
-- 判断当前实体是否为水库。
-- 从水库多边形边界提取闭合路线。
-- 对路线进行轻量平滑，降低转向抖动。
-- 使用 `Cesium.SampledPositionProperty` 和方向回调驱动小船模型沿边界移动。
-- 添加巡航路径显示，并提供 `start`、`stop`、`active` 等方法。
-
-`EntityDescription.vue` 在选中水库时显示“环湖绕行”按钮，点击后调用巡航工具。
+- `src/components/CesiumViewer.vue`：创建 Viewer、设置初始视角、注册实体选择并加载轻量数据。
+- `src/hooks/earth.js`：维护大坝/水库 `CustomDataSource`，解析几何数据并控制显隐和年份过滤。
+- `src/hooks/dashboard.js`：集中管理筛选统计、地图同步及 CSV/PNG 导出状态。
+- `src/hooks/stats.js`：组装筛选表单并调用统计、同步接口。
+- `src/hooks/agent.js`：执行意图路由，定义定位、飞行和 SQL 筛选工具。
+- `src/knowledge/`：为筛选任务提供字段文档、Embedding 和内存向量检索。
+- `src/utils/layer.js`：配置三种影像底图。
+- `src/utils/cruise.js`：生成水库边界路线并控制小船巡航生命周期。
+- `src/hooks/bookmark.js`：持久化和恢复筛选条件与相机视角。
 
 ## 测试
 
-当前项目包含水库巡航工具测试，可使用：
+当前仓库只有水库巡航工具测试，`package.json` 尚未定义 `test` 脚本，请直接运行：
 
 ```bash
 node --test tests/cruise.test.mjs
 ```
 
-## 开发注意事项
+## 开发说明
 
-- `.env`、`node_modules/`、`dist/`、`resource/` 已在 `.gitignore` 中忽略。
-- `resource/` 可作为本地生成资源目录使用，不应依赖其内容进入版本控制。
-- Cesium 底图中的 USGS 与 Sentinel-2 图层需要浏览器能够访问对应公网瓦片服务。
-- 浏览器语音输入依赖 Web Speech API，不同浏览器支持情况不同。
-- 新增 Cesium 实体交互时，优先复用 `hooks/earth.js`、`utils/camera.js`、`utils/layer.js`、`utils/cruise.js` 中已有工具，避免在组件中堆叠底层 Cesium 逻辑。
+- `.env`、`node_modules/`、`dist/` 和 `resource/` 已在 `.gitignore` 中忽略。
+- `.env` 属于本地配置；新增环境变量时，应同步更新本 README，但不要提交真实密钥。
+- 书签仅保存在当前浏览器，不会同步到后端；清理站点数据会删除书签。
+- 大坝与水库的轻量数据分别维护在独立 `CustomDataSource` 中，时间轴只过滤当前选择的实体类型。
+- CSV 仅导出最近一次“同步地图”返回的实体；没有同步数据时不会生成文件。
+- 图表 PNG 会按当前实体类型逐张下载。
+- 更换底图依赖第三方公网服务，网络或跨域策略可能导致切换失败。
+- 新增 Cesium 交互时，优先复用 `src/hooks/earth.js` 与 `src/utils/` 中的现有工具，保持组件层只负责界面和事件编排。
