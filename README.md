@@ -207,6 +207,7 @@ global-dam-watch-visualization-frontend/
 ├─ tests/
 │  └─ cruise.test.mjs                 # 水库环湖巡航算法单元测试
 ├─ index.html
+├─ .env.example                       # 环境变量配置模板（复制为 .env 后填写真实配置）
 ├─ package.json
 └─ vite.config.js
 ```
